@@ -41,8 +41,7 @@
               <div>
                 Building 18 Office Park Lt. 18<br>
                 Jl. T.B. Simatupang No.18,<br>
-                Pasar Minggu,<br>
-                South Jakarta - 12520<br>
+                Pasar Minggu, South Jakarta - 12520<br>
                 Indonesia
               </div>
             </div>
@@ -104,14 +103,14 @@
 
       <div class="hero-content">
         <h1>E-Prakualifikasi</h1>
-        <p>Portal online registrasi dan pengelolaan vendor untuk mendapatkan vendor yang berkompeten dan terkualifikasi</p>
+        <p>Portal online registrasi dan pengelolaan vendor untuk mendapatkan vendor <br>yang berkompeten dan terkualifikasi <strong>PLN Nusantara Power Construction</strong> </p>
         <div class="cta-buttons">
           <router-link to="/registration" class="btn btn-primary">
             <i class="fas fa-user-plus"></i> Daftar Sebagai Vendor
           </router-link>
-          <router-link to="/guide" class="btn btn-secondary">
+          <!-- <router-link to="/guide" class="btn btn-secondary">
             <i class="fas fa-book"></i> Panduan Pendaftaran
-          </router-link>
+          </router-link> -->
         </div>
       </div>
     </section>
@@ -270,9 +269,9 @@
           <p class="company-quote"><em>"Become a Trusted EPC Energy Company"</em></p>
         </div>
         <div class="footer-social">
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
           <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
           <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
           <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
         </div>
       </div>
@@ -672,8 +671,9 @@ export default {
 .sidebar-socials {
   display: flex;
   gap: 18px;
-  margin-top: 14px;
+  margin-top: 50px;
   margin-bottom: 18px;
+  margin-left: 65px;
 }
 .social-icon {
   font-size: 1.35em;

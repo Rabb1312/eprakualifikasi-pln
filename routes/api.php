@@ -1,42 +1,66 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\VendorController; 
 
-// Register
-Route::post('/register', function (Request $request) {
-    $request->validate([
-        'name' => 'required',
-        'email' => 'required|email|unique:users',
-        'password' => 'required|min:6',
-    ]);
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-    ]);
-    return response()->json($user);
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+| Here is where you can register API routes for your application.
+*/
+
+// Public routes (no authentication required)
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail']);
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 });
 
-// Login
-Route::post('/login', function (Request $request) {
-    $user = User::where('email', $request->email)->first();
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
-    $token = $user->createToken('auth_token')->plainTextToken;
-    return response()->json(['token' => $token, 'user' => $user]);
+// Protected routes (require authentication)
+Route::middleware(['api', 'cors'])->group(function () {
+    
+    // Auth routes
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']); // Get current user info
+    
+    // Dashboard routes
+    Route::get('/dashboard/stats', [UserController::class, 'dashboard']);
+    
+    // Vendor routes (untuk level user)
+    Route::prefix('vendor')->group(function () {
+        Route::get('/profile', [VendorController::class, 'show']);
+        Route::put('/profile', [VendorController::class, 'update']);
+        Route::get('/field-mappings', [VendorController::class, 'getFieldMappings']);
+    });
+    
+    // Admin only routes
+    Route::middleware('admin')->group(function () {
+        // User management
+        Route::apiResource('users', UserController::class);
+        Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus']);
+        
+        // Vendor management
+        Route::prefix('admin/vendors')->group(function () {
+            Route::get('/', [VendorController::class, 'index']);
+            Route::get('/{id}', [VendorController::class, 'showAdmin']);
+            Route::patch('/{id}/verify', [VendorController::class, 'verify']);
+            Route::patch('/{id}/reject', [VendorController::class, 'reject']);
+        });
+        
+        // Admin dashboard
+        Route::get('/admin/dashboard/stats', [UserController::class, 'adminDashboard']);
+    });
 });
 
-// Profile (protected)
-Route::middleware('auth:sanctum')->get('/profile', function (Request $request) {
-    return $request->user();
-});
-
-// Logout
-Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
-    $request->user()->tokens()->delete();
-    return response()->json(['message' => 'Logged out']);
+// Fallback route untuk API
+Route::fallback(function () {
+    return response()->json([
+        'success' => false,
+        'message' => 'API endpoint not found'
+    ], 404);
 });

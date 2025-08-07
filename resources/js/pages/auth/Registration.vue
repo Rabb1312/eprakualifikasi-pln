@@ -4,7 +4,7 @@
       <i class="fas fa-arrow-left"></i> Kembali ke Beranda
     </button>
     <div class="register-container">
-      <!-- Left Side Info -->
+      <!-- Left Side Info - tetap sama -->
       <div class="register-left">
         <div class="logo-section">
           <div class="logo">
@@ -33,6 +33,7 @@
           </div>
         </div>
       </div>
+      
       <!-- Right Side Form -->
       <div class="register-right">
         <div class="register-header">
@@ -46,7 +47,7 @@
             <label for="companyName">Nama Perusahaan <span style="color: red;">*</span></label>
             <div class="input-wrapper">
               <i class="fas fa-building input-icon"></i>
-              <input v-model="form.companyName" id="companyName" required placeholder="Nama Perusahaan" />
+              <input v-model="form.companyName" id="companyName" required placeholder="Nama Perusahaan" maxlength="200" />
             </div>
           </div>
 
@@ -68,6 +69,7 @@
               <span>
                 Format:
                 <span class="npwp-example">00.000.000.0-000.000</span>
+                (Opsional)
               </span>
             </div>
           </div>
@@ -118,9 +120,10 @@
                   required
                   placeholder="Username"
                   minlength="4"
+                  maxlength="50"
                 />
               </div>
-              <small style="color: #666; font-size: 12px;">Minimal 4 karakter</small>
+              <small style="color: #666; font-size: 12px;">Minimal 4 karakter, maksimal 50 karakter</small>
             </div>
             <div class="form-group">
               <label for="password">Password <span style="color: red;">*</span></label>
@@ -158,10 +161,16 @@
           </div>
 
           <div class="form-group" v-if="form.knownFrom === 'other'">
-            <label for="other">Lainnya</label>
+            <label for="other">Lainnya <span style="color: red;">*</span></label>
             <div class="input-wrapper">
               <i class="fas fa-comment input-icon"></i>
-              <input v-model="form.other" id="other" placeholder="Sebutkan sumber informasi lainnya" required />
+              <input 
+                v-model="form.other" 
+                id="other" 
+                placeholder="Sebutkan sumber informasi lainnya" 
+                :required="form.knownFrom === 'other'"
+                maxlength="200"
+              />
             </div>
           </div>
 
@@ -203,10 +212,19 @@
           <i class="fas fa-envelope-check"></i>
         </div>
         <h2>Registrasi Berhasil!</h2>
+        <div v-if="registrationData" style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: left;">
+          <strong>Detail Akun Anda:</strong>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li><strong>Nomor Vendor:</strong> {{ registrationData.nomor_vendor }}</li>
+            <li><strong>Username:</strong> {{ form.username }}</li>
+            <li><strong>Email:</strong> {{ form.emailAddress }}</li>
+            <li><strong>Tipe:</strong> {{ getTypeLabel(form.companyType) }}</li>
+          </ul>
+        </div>
         <p v-if="!emailFailed">
           Email verifikasi telah dikirim ke alamat email Anda. Silakan cek kotak masuk dan spam folder, kemudian klik link verifikasi untuk mengaktifkan akun.
         </p>
-        <p v-else>
+        <p v-else style="color: #dc3545;">
           Registrasi berhasil! Namun email verifikasi gagal dikirim. Silakan hubungi admin untuk mengaktifkan akun Anda.
         </p>
         <div style="margin: 20px 0;">
@@ -214,7 +232,8 @@
           <ol style="text-align: left; margin: 10px 0; padding-left: 20px;">
             <li>Buka email dan klik link verifikasi</li>
             <li>Login ke akun Anda</li>
-            <li>Lengkapi dokumen yang diperlukan</li>
+            <li>Lengkapi profil perusahaan</li>
+            <li>Upload dokumen yang diperlukan</li>
           </ol>
         </div>
         <router-link to="/login" class="modal-btn">
@@ -226,7 +245,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -237,6 +256,12 @@ const showModal = ref(false)
 const emailFailed = ref(false)
 const alertMsg = ref('')
 const alertType = ref('error')
+const registrationData = ref(null)
+
+// Set base URL untuk backend
+axios.defaults.baseURL = "http://eprakualifikasi-pln.test"
+axios.defaults.headers.common['Accept'] = 'application/json'
+axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 const form = ref({
   companyName: '',
@@ -260,9 +285,26 @@ const alertTypeClass = computed(() => {
   }[alertType.value]
 })
 
+// Check if user already logged in
+onMounted(() => {
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+  
+  if (token && user) {
+    const userData = JSON.parse(user);
+    // Redirect based on user level
+    if (userData.level === "admin") {
+      router.push("/admin/dashboard");
+    } else {
+      router.push("/user/dashboard");
+    }
+  }
+});
+
 function goHome() {
   router.push('/')
 }
+
 function goBack() {
   router.push('/login')
 }
@@ -292,7 +334,7 @@ function formatNPWP(e) {
 }
 
 function validateNPWP(npwp) {
-  if (!npwp) return true
+  if (!npwp) return true // NPWP is optional
   const digits = npwp.replace(/\D/g, '')
   return digits.length === 15
 }
@@ -339,53 +381,137 @@ function onKnownFromChange() {
   }
 }
 
+function getTypeLabel(type) {
+  const labels = {
+    'distributor': 'Distributor',
+    'subcontractor': 'Subcontractor', 
+    'manufacturer': 'Manufacturer/Fabrication',
+    'forwarder': 'Forwarder'
+  }
+  return labels[type] || type
+}
+
 function showAlert(type, msg) {
   alertType.value = type
   alertMsg.value = msg
-  setTimeout(() => (alertMsg.value = ''), 6000)
+  setTimeout(() => (alertMsg.value = ''), 8000)
 }
 
 async function register() {
-  // Validasi manual
-  if (!form.value.companyName) return showAlert('error', 'Nama perusahaan wajib diisi!')
-  if (!form.value.companyType) return showAlert('error', 'Tipe perusahaan wajib dipilih!')
-  if (!form.value.emailAddress) return showAlert('error', 'Email wajib diisi!')
-  if (!form.value.username || form.value.username.length < 4)
+  // Clear previous alerts
+  alertMsg.value = ''
+
+  // Client-side validation
+  if (!form.value.companyName.trim()) {
+    return showAlert('error', 'Nama perusahaan wajib diisi!')
+  }
+  if (!form.value.companyType) {
+    return showAlert('error', 'Tipe perusahaan wajib dipilih!')
+  }
+  if (!form.value.emailAddress.trim()) {
+    return showAlert('error', 'Email wajib diisi!')
+  }
+  if (!form.value.username.trim() || form.value.username.length < 4) {
     return showAlert('error', 'Username minimal 4 karakter!')
-  if (!form.value.password || form.value.password.length < 6)
+  }
+  if (!form.value.password || form.value.password.length < 6) {
     return showAlert('error', 'Password minimal 6 karakter!')
-  if (!form.value.knownFrom) return showAlert('error', 'Sumber informasi wajib dipilih!')
-  if (form.value.knownFrom === 'other' && !form.value.other)
+  }
+  if (!form.value.knownFrom) {
+    return showAlert('error', 'Sumber informasi wajib dipilih!')
+  }
+  if (form.value.knownFrom === 'other' && !form.value.other.trim()) {
     return showAlert('error', 'Mohon isi sumber informasi lainnya!')
-  if (!form.value.agreement)
+  }
+  if (!form.value.agreement) {
     return showAlert('error', 'Anda harus menyetujui pernyataan data dan informasi.')
-  if (form.value.npwp && !validateNPWP(form.value.npwp))
+  }
+  if (form.value.npwp && !validateNPWP(form.value.npwp)) {
     return showAlert('error', 'Format NPWP tidak valid. NPWP harus terdiri dari 15 digit.')
+  }
 
   loading.value = true
 
   try {
-    // Ganti endpoint sesuai backend Anda
-    const res = await axios.post('/api/register', form.value)
-    // result.success, result.data.email_sent
-    if (res.data.success) {
-      emailFailed.value = !(res.data.data && res.data.data.email_sent)
+    console.log('Registering to:', axios.defaults.baseURL + '/api/auth/register')
+    console.log('Registration data:', {
+      ...form.value,
+      password: '***hidden***'
+    })
+
+    // Send registration request to correct endpoint
+    const response = await axios.post('/api/auth/register', form.value)
+    
+    console.log('Registration response:', response.data)
+
+    if (response.data.success) {
+      // Store registration data for modal
+      registrationData.value = response.data.data
+      
+      // Check if email was sent successfully
+      emailFailed.value = !response.data.data.email_sent
+      
+      // Show success modal
       showModal.value = true
-      Object.keys(form.value).forEach((k) => (form.value[k] = ''))
-      form.value.agreement = false
+      
+      // Clear form
+      Object.keys(form.value).forEach((key) => {
+        if (key === 'agreement') {
+          form.value[key] = false
+        } else {
+          form.value[key] = ''
+        }
+      })
       companyDesc.value = ''
+      
+      showAlert('success', 'Registrasi berhasil! Silakan cek email untuk verifikasi.')
     } else {
-      showAlert('error', res.data.message)
+      showAlert('error', response.data.message || 'Registrasi gagal')
     }
-  } catch (e) {
-    showAlert('error', e.response?.data?.message || 'Terjadi kesalahan jaringan. Silakan coba lagi.')
+  } catch (error) {
+    console.error('Registration error:', error)
+
+    if (error.response) {
+      const status = error.response.status
+      const errorData = error.response.data
+      
+      console.log('Error response:', errorData)
+      
+      let errorMessage = 'Registrasi gagal'
+      
+      if (status === 422) {
+        // Validation errors
+        if (errorData.errors) {
+          const errors = Object.values(errorData.errors).flat()
+          errorMessage = errors.join('<br>')
+        } else {
+          errorMessage = errorData.message || 'Data yang dimasukkan tidak valid'
+        }
+      } else if (status >= 500) {
+        errorMessage = 'Terjadi kesalahan server. Silakan coba lagi nanti.'
+      } else {
+        errorMessage = errorData.message || 'Terjadi kesalahan saat registrasi'
+      }
+      
+      showAlert('error', errorMessage)
+    } else if (error.request) {
+      showAlert('error', 
+        'Tidak dapat terhubung ke server. Pastikan:<br>' +
+        '• Server Laravel berjalan di http://eprakualifikasi-pln.test<br>' +
+        '• Koneksi internet stabil<br>' +
+        '• CORS dikonfigurasi dengan benar'
+      )
+    } else {
+      showAlert('error', 'Terjadi kesalahan. Silakan coba lagi.')
+    }
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 </script>
 
 <style scoped>
-/* Styles mirip registrasi.php - bisa modifikasi lebih lanjut */
+/* CSS tetap sama seperti sebelumnya - tidak perlu diubah */
 .register-bg {
   min-height: 100vh;
   background: linear-gradient(rgba(30, 60, 114, 0.6), rgba(30, 60, 114, 0.6)),
@@ -398,6 +524,8 @@ async function register() {
   padding: 20px;
   font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+
+/* ... rest of CSS sama seperti sebelumnya ... */
 .back-home {
   position: absolute;
   top: 20px;
@@ -528,6 +656,7 @@ async function register() {
   transition: all 0.3s ease;
   background: #f8f9fa;
   font-family: inherit;
+  box-sizing: border-box;
 }
 .form-group textarea {
   resize: vertical;
@@ -745,6 +874,7 @@ async function register() {
 .modal-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(30, 60, 114, 0.3);
+  color: white;
 }
 /* Responsive */
 @media (max-width: 768px) {
