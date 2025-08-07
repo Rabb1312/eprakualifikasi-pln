@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Home from '../pages/Home.vue';
-import Login from '../pages/auth/Login.vue';
+
 
 // Cek login dengan localStorage token
 function isLoggedIn() {
@@ -8,18 +7,9 @@ function isLoggedIn() {
 }
 
 const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: Home,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: Login,
-    meta: { guest: true }
-  },
+  { path: '/', component: () => import('@/pages/Home.vue') },
+  { path: '/login', component: () => import('@/pages/auth/Login.vue') },
+  { path: '/registration', component: () => import('@/pages/auth/Registration.vue') },
 ];
 
 const router = createRouter({
