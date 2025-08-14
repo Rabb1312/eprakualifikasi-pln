@@ -63,38 +63,132 @@ class Vendor extends Model
     }
 
     // Calculate completion percentage
-    public function calculateCompletion()
+   public function calculateCompletion()
 {
-    // Get required fields for this vendor type from database
+    $totalFields = 0;
+    $filledFields = 0;
+
+    // 1. TAB GENERAL INFORMATION - Dari tabel vendors (KECUALI holding fields)
+    $excludedHoldingFields = [
+        'holding_nama_perusahaan', 'holding_tanggal_berdiri', 'holding_alamat',
+        'holding_phone', 'holding_modal_dasar', 'holding_modal_dikeluarkan',
+        'holding_pemegang_saham', 'holding_contact_person', 'holding_nama_direktur'
+    ];
+
     $fieldMappings = \App\Models\VendorFieldMapping::where('tipe_perusahaan', $this->tipe_perusahaan)
         ->where('is_required', true)
+        ->whereNotIn('field_name', $excludedHoldingFields) // Exclude holding fields
         ->get();
-
-    $totalFields = $fieldMappings->count();
-    $filledFields = 0;
 
     foreach ($fieldMappings as $field) {
         $value = $this->{$field->field_name};
+        $totalFields++;
         
-        // Check different field types
         if ($field->field_type === 'json') {
-            // For JSON fields (contact_person, etc)
             if (is_array($value) && !empty($value)) {
                 $filledFields++;
             }
         } elseif ($field->field_type === 'date') {
-            // For date fields
             if (!empty($value)) {
                 $filledFields++;
             }
         } else {
-            // For text, textarea, number, etc
             if (!empty($value) && $value !== null) {
                 $filledFields++;
             }
         }
     }
 
+    // 2. TAB LAINNYA - Dari tabel subcontractors (KECUALI holding company)
+    if ($this->tipe_perusahaan === 'SC') {
+        $subcontractor = $this->subcontractor;
+        
+        if ($subcontractor) {
+            // Define fields yang perlu dihitung dari subcontractors table
+            // TIDAK TERMASUK holding company fields
+            $subcontractorFields = [
+                // Tab 3: Facilities Company
+                'facilities' => 'json',
+                'other_services' => 'text',
+                
+                // Tab 4: Total Permanent Construction Employees
+                'employees' => 'json',
+                
+                // Tab 5: Scope of Work
+                'scope_of_work' => 'text',
+                
+                // Tab 6: Major Projects 3-5
+                'major_projects' => 'json',
+                
+                // Tab 7: Knowledgeable
+                'local_regulation_knowledge' => 'enum',
+                'regulation_knowledge_details' => 'text'
+            ];
+
+            foreach ($subcontractorFields as $fieldName => $fieldType) {
+                $value = $subcontractor->{$fieldName};
+                $totalFields++;
+                
+                if ($fieldType === 'json') {
+                    if (is_array($value) && !empty($value)) {
+                        if ($fieldName === 'employees') {
+                            // Untuk employees, cek apakah ada yang > 0
+                            $hasData = false;
+                            foreach ($value as $employee) {
+                                if (($employee['craft_labor'] ?? 0) > 0 || 
+                                    ($employee['foreman'] ?? 0) > 0 || 
+                                    ($employee['supervisor'] ?? 0) > 0 || 
+                                    ($employee['manager'] ?? 0) > 0) {
+                                    $hasData = true;
+                                    break;
+                                }
+                            }
+                            if ($hasData) $filledFields++;
+                        } elseif ($fieldName === 'major_projects') {
+                            // Untuk major_projects, cek apakah ada project yang terisi
+                            $hasData = false;
+                            foreach ($value as $project) {
+                                if (!empty($project['project_name']) || !empty($project['project_owner'])) {
+                                    $hasData = true;
+                                    break;
+                                }
+                            }
+                            if ($hasData) $filledFields++;
+                        } else {
+                            // Untuk facilities dan lainnya
+                            if (!empty($value)) $filledFields++;
+                        }
+                    }
+                } elseif ($fieldType === 'enum') {
+                    if (!empty($value) && $value !== null) {
+                        $filledFields++;
+                    }
+                } else {
+                    // text, textarea, dll
+                    if (!empty($value) && $value !== null) {
+                        $filledFields++;
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. TAB DOCUMENTS/ATTACHMENT - Dari tabel vendor_documents
+    $requiredDocuments = \App\Models\VendorDocument::where('vendor_id', $this->id)
+        ->where('is_required', true)
+        ->where('sub_index', 0) // Only count base documents
+        ->get();
+
+    foreach ($requiredDocuments as $doc) {
+        $totalFields++;
+        
+        // Dokumen dianggap terisi jika sudah uploaded dan approved
+        if (in_array($doc->status, ['uploaded', 'under_review', 'approved'])) {
+            $filledFields++;
+        }
+    }
+
+    // Hitung persentase
     $percentage = $totalFields > 0 ? round(($filledFields / $totalFields) * 100, 2) : 0;
     
     $this->update([
