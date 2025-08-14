@@ -24,10 +24,10 @@
     <i class="fas fa-sign-out-alt"></i>
     Logout
   </button>
-  <button class="btn btn-primary" @click="saveAllData" :disabled="loading">
+  <!-- <button class="btn btn-primary" @click="saveAllData" :disabled="loading">
     <i class="fas fa-save"></i>
     {{ loading ? 'Saving...' : 'Save All' }}
-  </button>
+  </button> -->
       </div>
     </div>
 
