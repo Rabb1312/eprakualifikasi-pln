@@ -63,174 +63,975 @@
                 </div>
             </div>
 
-            <!-- Documents Table -->
-            <div class="documents-table-section">
-                <div class="table-header">
-                    <h4>Individual Document Upload & Review</h4>
-                    <div class="table-actions">
-                        <button
-                            @click="refreshDocuments"
-                            class="btn btn-outline btn-sm"
+            <!-- ✅ FIXED: Only Tab System, Remove Duplicate Table -->
+            <div
+                v-if="Object.keys(attachments).length > 0"
+                class="attachment-tabs"
+            >
+                <div class="tabs-header">
+                    <button
+                        v-for="(attachment, key) in attachments"
+                        :key="key"
+                        @click="activeTab = key"
+                        :class="['tab-btn', { active: activeTab === key }]"
+                    >
+                        {{ attachment.title }}
+                        <span class="tab-count"
+                            >({{ attachment.documents?.length || 0 }})</span
                         >
-                            <i class="fas fa-sync-alt"></i>
-                            Refresh
-                        </button>
-                    </div>
+                    </button>
                 </div>
 
-                <div class="table-container">
-                    <table class="documents-table">
-                        <thead>
-                            <tr>
-                                <th class="no-col">No</th>
-                                <th class="document-col">Document Name</th>
-                                <th class="status-col">Status</th>
-                                <th class="expiry-col">Expiry Date</th>
-                                <th class="file-col">File</th>
-                                <th class="actions-col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="(document, index) in documents"
-                                :key="document.id"
-                                :class="getRowClass(document)"
+                <div class="tab-content">
+                    <div
+                        v-if="attachments[activeTab]"
+                        class="attachment-content"
+                    >
+                        <div class="table-header">
+                            <h4>
+                                {{ attachments[activeTab].title }} - Document
+                                Upload & Review
+                            </h4>
+                            <div class="table-actions">
+                                <button
+                                    @click="refreshDocuments"
+                                    class="btn btn-outline btn-sm"
+                                >
+                                    <i class="fas fa-sync-alt"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <!-- Cek apakah ada grouped_documents dan tidak kosong -->
+                            <div
+                                v-if="
+                                    attachments[activeTab]?.grouped_documents &&
+                                    Object.keys(
+                                        attachments[activeTab].grouped_documents
+                                    ).length > 0
+                                "
                             >
-                                <td class="text-center">{{ index + 1 }}</td>
-                                <td class="document-name">
-                                    <div class="document-info">
-                                        <span class="document-title">{{
-                                            document.document_name
-                                        }}</span>
-                                        <span
-                                            v-if="document.is_required"
-                                            class="required-badge"
-                                            >Required</span
-                                        >
-                                        <span
-                                            v-if="document.is_expired"
-                                            class="expired-badge"
-                                            >Expired</span
-                                        >
-                                        <span
-                                            v-if="
-                                                document.is_expiring_soon &&
-                                                !document.is_expired
-                                            "
-                                            class="expiring-badge"
-                                            >Expiring Soon</span
-                                        >
+                                <!-- Render grouped documents -->
+                                <div
+                                    v-for="(group, groupIndex) in Object.values(
+                                        attachments[activeTab].grouped_documents
+                                    )"
+                                    :key="groupIndex"
+                                    class="document-group"
+                                >
+                                    <div class="group-header">
+                                        <h5>
+                                            {{ group.group_number }}.
+                                            {{ group.group_name }}
+                                        </h5>
                                     </div>
-                                    <div
-                                        v-if="document.admin_notes"
-                                        class="admin-notes"
-                                    >
-                                        <i class="fas fa-comment"></i>
-                                        <span>{{ document.admin_notes }}</span>
-                                    </div>
-                                    <div
-                                        v-if="document.rejection_reason"
-                                        class="rejection-reason"
-                                    >
-                                        <i
-                                            class="fas fa-exclamation-triangle"
-                                        ></i>
-                                        <span>{{
-                                            document.rejection_reason
-                                        }}</span>
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <span
-                                        :class="`status-badge status-${document.status_badge.class}`"
-                                    >
-                                        <i
-                                            :class="document.status_badge.icon"
-                                        ></i>
-                                        {{ document.status_badge.text }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <span
-                                        v-if="document.expiry_date"
-                                        class="expiry-date"
-                                    >
-                                        {{ formatDate(document.expiry_date) }}
-                                    </span>
-                                    <span v-else class="no-expiry"
-                                        >No Expiry</span
-                                    >
-                                </td>
-                                <td class="text-center">
-                                    <div v-if="document.file_name" class="file-info">
-        <div class="file-details">
-            <span class="file-name">{{ document.file_name }}</span>
-            <span class="file-size">{{ document.file_size }}</span>
-            <span class="file-version">v{{ document.version }}</span>
-            <span v-if="document.expiry_date" class="expiry-date">
-                Expiry: {{ formatDate(document.expiry_date) }}
-            </span>
-        </div>
-        <div class="file-actions">
-            <a v-if="document.file_url" :href="document.file_url" target="_blank" rel="noopener" class="btn btn-sm btn-outline">
-                <i class="fas fa-eye"></i> View
-            </a>
-            <button @click="downloadDocument(doc)" class="btn btn-sm btn-outline">
-                <i class="fas fa-download"></i> Download
-            </button>
-        </div>
-    </div>
-    <span v-else class="no-file">No file uploaded</span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <!-- Upload Button -->
-                                        <button
-                                            @click="openUploadModal(document)"
-                                            class="btn btn-sm btn-primary"
-                                            :disabled="
-                                                uploadingDocuments[document.id]
-                                            "
-                                        >
-                                            <i class="fas fa-upload"></i>
-                                            {{
-                                                document.file_name
-                                                    ? "Re-upload"
-                                                    : "Upload"
-                                            }}
-                                        </button>
 
-                                        <!-- Download Button -->
-                                        <button
-                                            v-if="document.file_name"
-                                            @click="downloadDocument(document)"
-                                            class="btn btn-sm btn-outline"
-                                        >
-                                            <i class="fas fa-download"></i>
-                                            Download
-                                        </button>
+                                    <table class="documents-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="no-col">No</th>
+                                                <th class="document-col">
+                                                    Document Name
+                                                </th>
+                                                <th class="status-col">
+                                                    Status
+                                                </th>
+                                                <th class="expiry-col">
+                                                    Expiry Date
+                                                </th>
+                                                <th class="file-col">Files</th>
+                                                <th class="actions-col">
+                                                    Actions
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="(
+                                                    doc, index
+                                                ) in group.documents"
+                                                :key="doc.id || index"
+                                                :class="getRowClass(doc)"
+                                            >
+                                                <!-- No Column -->
+                                                <td class="text-center">
+                                                    {{ doc.document_number }}
+                                                </td>
 
-                                        <!-- Delete Button -->
-                                        <button
-                                            v-if="
-                                                document.file_name &&
-                                                document.status !== 'approved'
-                                            "
-                                            @click="deleteDocument(document)"
-                                            class="btn btn-sm btn-danger"
+                                                <!-- Document Name Column -->
+                                                <td class="document-name">
+                                                    <div class="document-info">
+                                                        <span
+                                                            class="document-title"
+                                                            >{{
+                                                                doc.document_name
+                                                            }}</span
+                                                        >
+                                                        <span
+                                                            v-if="
+                                                                doc.document_subtitle
+                                                            "
+                                                            class="document-subtitle"
+                                                            >{{
+                                                                doc.document_subtitle
+                                                            }}</span
+                                                        >
+                                                        <span
+                                                            v-if="
+                                                                doc.is_required
+                                                            "
+                                                            class="required-badge"
+                                                            >Required</span
+                                                        >
+                                                        <span
+                                                            v-if="
+                                                                doc.allows_multiple
+                                                            "
+                                                            class="multiple-badge"
+                                                            >Multiple
+                                                            Files</span
+                                                        >
+                                                        <span
+                                                            v-if="
+                                                                doc.is_expired
+                                                            "
+                                                            class="expired-badge"
+                                                            >Expired</span
+                                                        >
+                                                        <span
+                                                            v-if="
+                                                                doc.is_expiring_soon &&
+                                                                !doc.is_expired
+                                                            "
+                                                            class="expiring-badge"
+                                                            >Expiring Soon</span
+                                                        >
+                                                    </div>
+                                                    <div
+                                                        v-if="doc.admin_notes"
+                                                        class="admin-notes"
+                                                    >
+                                                        <i
+                                                            class="fas fa-comment"
+                                                        ></i>
+                                                        <span>{{
+                                                            doc.admin_notes
+                                                        }}</span>
+                                                    </div>
+                                                    <div
+                                                        v-if="
+                                                            doc.rejection_reason
+                                                        "
+                                                        class="rejection-reason"
+                                                    >
+                                                        <i
+                                                            class="fas fa-exclamation-triangle"
+                                                        ></i>
+                                                        <span>{{
+                                                            doc.rejection_reason
+                                                        }}</span>
+                                                    </div>
+                                                </td>
+
+                                                <!-- Status Column -->
+                                                <td class="text-center">
+                                                    <span
+                                                        :class="`status-badge status-${
+                                                            doc.status_badge
+                                                                ?.class ||
+                                                            'secondary'
+                                                        }`"
+                                                    >
+                                                        <i
+                                                            :class="
+                                                                doc.status_badge
+                                                                    ?.icon ||
+                                                                'fa-upload'
+                                                            "
+                                                        ></i>
+                                                        {{
+                                                            doc.status_badge
+                                                                ?.text ||
+                                                            "Not Uploaded"
+                                                        }}
+                                                    </span>
+                                                </td>
+
+                                                <!-- Expiry Date Column -->
+                                                <td class="text-center">
+                                                    <span
+                                                        v-if="doc.expiry_date"
+                                                        class="expiry-date"
+                                                    >
+                                                        {{
+                                                            formatDate(
+                                                                doc.expiry_date
+                                                            )
+                                                        }}
+                                                    </span>
+                                                    <span
+                                                        v-else
+                                                        class="no-expiry"
+                                                        >No Expiry</span
+                                                    >
+                                                </td>
+
+                                                <!-- Files Column -->
+                                                <td class="file-display">
+                                                    <!-- Multiple files display -->
+                                                    <div
+                                                        v-if="
+                                                            doc.allows_multiple &&
+                                                            doc.all_files
+                                                                ?.length
+                                                        "
+                                                        class="multiple-files"
+                                                    >
+                                                        <div
+                                                            class="file-count-badge"
+                                                        >
+                                                            <i
+                                                                class="fas fa-files"
+                                                            ></i>
+                                                            {{ doc.file_count }}
+                                                            file(s)
+                                                        </div>
+                                                        <div class="files-list">
+                                                            <div
+                                                                v-for="file in doc.all_files"
+                                                                :key="file.id"
+                                                                class="file-item"
+                                                            >
+                                                                <div
+                                                                    class="file-info"
+                                                                >
+                                                                    <div
+                                                                        class="file-details"
+                                                                    >
+                                                                        <span
+                                                                            class="file-name"
+                                                                            :title="
+                                                                                file.file_name
+                                                                            "
+                                                                            >{{
+                                                                                truncateFileName(
+                                                                                    file.file_name
+                                                                                )
+                                                                            }}</span
+                                                                        >
+                                                                        <span
+                                                                            class="file-size"
+                                                                            >{{
+                                                                                file.file_size
+                                                                            }}</span
+                                                                        >
+                                                                        <span
+                                                                            class="file-version"
+                                                                            >v{{
+                                                                                file.version
+                                                                            }}</span
+                                                                        >
+                                                                    </div>
+                                                                    <div
+                                                                        class="file-status"
+                                                                    >
+                                                                        <span
+                                                                            :class="`status-dot status-${
+                                                                                file
+                                                                                    .status_badge
+                                                                                    ?.class ||
+                                                                                'secondary'
+                                                                            }`"
+                                                                            :title="
+                                                                                file
+                                                                                    .status_badge
+                                                                                    ?.text
+                                                                            "
+                                                                        ></span>
+                                                                    </div>
+                                                                </div>
+                                                                <div
+                                                                    class="file-actions"
+                                                                >
+                                                                    <button
+                                                                        @click="
+                                                                            downloadDocument(
+                                                                                file
+                                                                            )
+                                                                        "
+                                                                        class="btn btn-xs btn-outline"
+                                                                        title="Download"
+                                                                    >
+                                                                        <i
+                                                                            class="fas fa-download"
+                                                                        ></i>
+                                                                    </button>
+                                                                    <button
+                                                                        v-if="
+                                                                            file.status !==
+                                                                            'approved'
+                                                                        "
+                                                                        @click="
+                                                                            deleteSpecificFile(
+                                                                                file
+                                                                            )
+                                                                        "
+                                                                        class="btn btn-xs btn-danger"
+                                                                        title="Delete"
+                                                                    >
+                                                                        <i
+                                                                            class="fas fa-trash"
+                                                                        ></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Single file display -->
+                                                    <div
+                                                        v-else-if="
+                                                            !doc.allows_multiple &&
+                                                            doc.file_name
+                                                        "
+                                                        class="single-file"
+                                                    >
+                                                        <div class="file-info">
+                                                            <div
+                                                                class="file-details"
+                                                            >
+                                                                <span
+                                                                    class="file-name"
+                                                                    :title="
+                                                                        doc.file_name
+                                                                    "
+                                                                    >{{
+                                                                        truncateFileName(
+                                                                            doc.file_name
+                                                                        )
+                                                                    }}</span
+                                                                >
+                                                                <span
+                                                                    class="file-size"
+                                                                    >{{
+                                                                        doc.file_size
+                                                                    }}</span
+                                                                >
+                                                                <span
+                                                                    class="file-version"
+                                                                    >v{{
+                                                                        doc.version
+                                                                    }}</span
+                                                                >
+                                                                <span
+                                                                    v-if="
+                                                                        doc.expiry_date
+                                                                    "
+                                                                    class="expiry-info"
+                                                                >
+                                                                    Exp:
+                                                                    {{
+                                                                        formatDate(
+                                                                            doc.expiry_date
+                                                                        )
+                                                                    }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="file-actions"
+                                                        >
+                                                            <a
+                                                                v-if="
+                                                                    doc.file_url
+                                                                "
+                                                                :href="
+                                                                    doc.file_url
+                                                                "
+                                                                target="_blank"
+                                                                rel="noopener"
+                                                                class="btn btn-xs btn-outline"
+                                                                title="View"
+                                                            >
+                                                                <i
+                                                                    class="fas fa-eye"
+                                                                ></i>
+                                                            </a>
+                                                            <button
+                                                                @click="
+                                                                    downloadDocument(
+                                                                        doc
+                                                                    )
+                                                                "
+                                                                class="btn btn-xs btn-outline"
+                                                                title="Download"
+                                                            >
+                                                                <i
+                                                                    class="fas fa-download"
+                                                                ></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <span v-else class="no-file"
+                                                        >No file uploaded</span
+                                                    >
+                                                </td>
+
+                                                <!-- Actions Column -->
+                                                <td class="text-center">
+                                                    <div class="action-buttons">
+                                                        <!-- ✅ NEW: Download Template Button -->
+                                                        <a
+                                                            v-if="
+                                                                doc.has_template
+                                                            "
+                                                            :href="
+                                                                doc.template_download_url
+                                                            "
+                                                            target="_blank"
+                                                            class="btn btn-sm btn-info"
+                                                            :title="`Download template: ${doc.template_filename}`"
+                                                        >
+                                                            <i
+                                                                class="fas fa-download"
+                                                            ></i>
+                                                            Template
+                                                        </a>
+
+                                                        <!-- Upload Button -->
+                                                        <button
+                                                            @click="
+                                                                openUploadModal(
+                                                                    doc
+                                                                )
+                                                            "
+                                                            class="btn btn-sm btn-primary"
+                                                            :disabled="
+                                                                uploadingDocuments[
+                                                                    doc.id
+                                                                ]
+                                                            "
+                                                        >
+                                                            <i
+                                                                class="fas fa-upload"
+                                                            ></i>
+                                                            {{
+                                                                getUploadButtonText(
+                                                                    doc
+                                                                )
+                                                            }}
+                                                        </button>
+
+                                                        <!-- Download Button -->
+                                                        <button
+                                                            v-if="hasFiles(doc)"
+                                                            @click="
+                                                                downloadDocument(
+                                                                    doc
+                                                                )
+                                                            "
+                                                            class="btn btn-sm btn-outline"
+                                                        >
+                                                            <i
+                                                                class="fas fa-download"
+                                                            ></i>
+                                                            Download
+                                                        </button>
+
+                                                        <!-- Delete Button -->
+                                                        <button
+                                                            v-if="
+                                                                hasFiles(doc) &&
+                                                                canDeleteDocument(
+                                                                    doc
+                                                                )
+                                                            "
+                                                            @click="
+                                                                deleteDocument(
+                                                                    doc
+                                                                )
+                                                            "
+                                                            class="btn btn-sm btn-danger"
+                                                        >
+                                                            <i
+                                                                class="fas fa-trash"
+                                                            ></i>
+                                                            {{
+                                                                doc.allows_multiple &&
+                                                                doc.file_count >
+                                                                    1
+                                                                    ? "Delete All"
+                                                                    : "Delete"
+                                                            }}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Fallback untuk struktur sederhana -->
+                            <div v-else>
+                                <table class="documents-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="no-col">No</th>
+                                            <th class="document-col">
+                                                Document Name
+                                            </th>
+                                            <th class="status-col">Status</th>
+                                            <th class="expiry-col">
+                                                Expiry Date
+                                            </th>
+                                            <th class="file-col">Files</th>
+                                            <th class="actions-col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="(
+                                                document, index
+                                            ) in attachments[activeTab]
+                                                ?.documents || []"
+                                            :key="document.id || index"
+                                            :class="getRowClass(document)"
                                         >
-                                            <i class="fas fa-trash"></i>
-                                            Delete
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                            <td class="text-center">
+                                                {{
+                                                    document.document_number ||
+                                                    index + 1
+                                                }}
+                                            </td>
+                                            <td class="document-name">
+                                                <div class="document-info">
+                                                    <span
+                                                        class="document-title"
+                                                        >{{
+                                                            document.document_name
+                                                        }}</span
+                                                    >
+                                                    <span
+                                                        v-if="
+                                                            document.is_required
+                                                        "
+                                                        class="required-badge"
+                                                        >Required</span
+                                                    >
+                                                    <span
+                                                        v-if="
+                                                            document.allows_multiple
+                                                        "
+                                                        class="multiple-badge"
+                                                        >Multiple Files</span
+                                                    >
+                                                    <span
+                                                        v-if="
+                                                            document.is_expired
+                                                        "
+                                                        class="expired-badge"
+                                                        >Expired</span
+                                                    >
+                                                    <span
+                                                        v-if="
+                                                            document.is_expiring_soon &&
+                                                            !document.is_expired
+                                                        "
+                                                        class="expiring-badge"
+                                                        >Expiring Soon</span
+                                                    >
+                                                </div>
+                                                <div
+                                                    v-if="document.admin_notes"
+                                                    class="admin-notes"
+                                                >
+                                                    <i
+                                                        class="fas fa-comment"
+                                                    ></i>
+                                                    <span>{{
+                                                        document.admin_notes
+                                                    }}</span>
+                                                </div>
+                                                <div
+                                                    v-if="
+                                                        document.rejection_reason
+                                                    "
+                                                    class="rejection-reason"
+                                                >
+                                                    <i
+                                                        class="fas fa-exclamation-triangle"
+                                                    ></i>
+                                                    <span>{{
+                                                        document.rejection_reason
+                                                    }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span
+                                                    :class="`status-badge status-${
+                                                        document.status_badge
+                                                            ?.class ||
+                                                        'secondary'
+                                                    }`"
+                                                >
+                                                    <i
+                                                        :class="
+                                                            document
+                                                                .status_badge
+                                                                ?.icon ||
+                                                            'fa-upload'
+                                                        "
+                                                    ></i>
+                                                    {{
+                                                        document.status_badge
+                                                            ?.text ||
+                                                        "Not Uploaded"
+                                                    }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span
+                                                    v-if="document.expiry_date"
+                                                    class="expiry-date"
+                                                >
+                                                    {{
+                                                        formatDate(
+                                                            document.expiry_date
+                                                        )
+                                                    }}
+                                                </span>
+                                                <span v-else class="no-expiry"
+                                                    >No Expiry</span
+                                                >
+                                            </td>
+                                            <!-- Files Column - FIXED VERSION -->
+                                            <td class="file-display">
+                                                <!-- ✅ FIXED: Show structure for multiple documents even when empty -->
+                                                <div
+                                                    v-if="doc.allows_multiple"
+                                                    class="multiple-files"
+                                                >
+                                                    <!-- Show file count badge -->
+                                                    <div
+                                                        class="file-count-badge"
+                                                    >
+                                                        <i
+                                                            class="fas fa-files"
+                                                        ></i>
+                                                        {{
+                                                            doc.file_count || 0
+                                                        }}
+                                                        file(s)
+                                                    </div>
+
+                                                    <!-- Show files if they exist -->
+                                                    <div
+                                                        v-if="
+                                                            doc.all_files &&
+                                                            doc.all_files
+                                                                .length > 0
+                                                        "
+                                                        class="files-list"
+                                                    >
+                                                        <div
+                                                            v-for="file in doc.all_files"
+                                                            :key="file.id"
+                                                            class="file-item"
+                                                        >
+                                                            <div
+                                                                class="file-info"
+                                                            >
+                                                                <div
+                                                                    class="file-details"
+                                                                >
+                                                                    <span
+                                                                        class="file-name"
+                                                                        :title="
+                                                                            file.file_name
+                                                                        "
+                                                                    >
+                                                                        {{
+                                                                            truncateFileName(
+                                                                                file.file_name
+                                                                            )
+                                                                        }}
+                                                                    </span>
+                                                                    <span
+                                                                        class="file-size"
+                                                                        >{{
+                                                                            file.file_size
+                                                                        }}</span
+                                                                    >
+                                                                    <span
+                                                                        class="file-version"
+                                                                        >v{{
+                                                                            file.version
+                                                                        }}</span
+                                                                    >
+                                                                </div>
+                                                                <div
+                                                                    class="file-status"
+                                                                >
+                                                                    <span
+                                                                        :class="`status-dot status-${
+                                                                            file
+                                                                                .status_badge
+                                                                                ?.class ||
+                                                                            'secondary'
+                                                                        }`"
+                                                                        :title="
+                                                                            file
+                                                                                .status_badge
+                                                                                ?.text
+                                                                        "
+                                                                    ></span>
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                class="file-actions"
+                                                            >
+                                                                <button
+                                                                    @click="
+                                                                        downloadDocument(
+                                                                            file
+                                                                        )
+                                                                    "
+                                                                    class="btn btn-xs btn-outline"
+                                                                    title="Download"
+                                                                >
+                                                                    <i
+                                                                        class="fas fa-download"
+                                                                    ></i>
+                                                                </button>
+                                                                <button
+                                                                    v-if="
+                                                                        file.status !==
+                                                                        'approved'
+                                                                    "
+                                                                    @click="
+                                                                        deleteSpecificFile(
+                                                                            file
+                                                                        )
+                                                                    "
+                                                                    class="btn btn-xs btn-danger"
+                                                                    title="Delete"
+                                                                >
+                                                                    <i
+                                                                        class="fas fa-trash"
+                                                                    ></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- ✅ Show message when no files uploaded for multiple documents -->
+                                                    <div
+                                                        v-else
+                                                        class="no-files-multiple"
+                                                    >
+                                                        <span
+                                                            class="no-file-text"
+                                                            >No files uploaded
+                                                            yet</span
+                                                        >
+                                                        <small
+                                                            class="upload-hint"
+                                                            >Click Upload to add
+                                                            multiple
+                                                            files</small
+                                                        >
+                                                    </div>
+                                                </div>
+
+                                                <!-- Single file display -->
+                                                <div
+                                                    v-else-if="
+                                                        !doc.allows_multiple &&
+                                                        doc.file_name
+                                                    "
+                                                    class="single-file"
+                                                >
+                                                    <div class="file-info">
+                                                        <div
+                                                            class="file-details"
+                                                        >
+                                                            <span
+                                                                class="file-name"
+                                                                :title="
+                                                                    doc.file_name
+                                                                "
+                                                            >
+                                                                {{
+                                                                    truncateFileName(
+                                                                        doc.file_name
+                                                                    )
+                                                                }}
+                                                            </span>
+                                                            <span
+                                                                class="file-size"
+                                                                >{{
+                                                                    doc.file_size
+                                                                }}</span
+                                                            >
+                                                            <span
+                                                                class="file-version"
+                                                                >v{{
+                                                                    doc.version
+                                                                }}</span
+                                                            >
+                                                            <span
+                                                                v-if="
+                                                                    doc.expiry_date
+                                                                "
+                                                                class="expiry-info"
+                                                            >
+                                                                Exp:
+                                                                {{
+                                                                    formatDate(
+                                                                        doc.expiry_date
+                                                                    )
+                                                                }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="file-actions">
+                                                        <a
+                                                            v-if="doc.file_url"
+                                                            :href="doc.file_url"
+                                                            target="_blank"
+                                                            rel="noopener"
+                                                            class="btn btn-xs btn-outline"
+                                                            title="View"
+                                                        >
+                                                            <i
+                                                                class="fas fa-eye"
+                                                            ></i>
+                                                        </a>
+                                                        <button
+                                                            @click="
+                                                                downloadDocument(
+                                                                    doc
+                                                                )
+                                                            "
+                                                            class="btn btn-xs btn-outline"
+                                                            title="Download"
+                                                        >
+                                                            <i
+                                                                class="fas fa-download"
+                                                            ></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- No file for single documents -->
+                                                <span v-else class="no-file"
+                                                    >No file uploaded</span
+                                                >
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-buttons">
+                                                    <!-- Upload Button -->
+                                                    <button
+                                                        @click="
+                                                            openUploadModal(
+                                                                document
+                                                            )
+                                                        "
+                                                        class="btn btn-sm btn-primary"
+                                                        :disabled="
+                                                            uploadingDocuments[
+                                                                document.id
+                                                            ]
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fas fa-upload"
+                                                        ></i>
+                                                        {{
+                                                            getUploadButtonText(
+                                                                document
+                                                            )
+                                                        }}
+                                                    </button>
+
+                                                    <!-- Download Button -->
+                                                    <button
+                                                        v-if="
+                                                            hasFiles(document)
+                                                        "
+                                                        @click="
+                                                            downloadDocument(
+                                                                document
+                                                            )
+                                                        "
+                                                        class="btn btn-sm btn-outline"
+                                                    >
+                                                        <i
+                                                            class="fas fa-download"
+                                                        ></i>
+                                                        Download
+                                                    </button>
+
+                                                    <!-- Delete Button -->
+                                                    <button
+                                                        v-if="
+                                                            hasFiles(
+                                                                document
+                                                            ) &&
+                                                            canDeleteDocument(
+                                                                document
+                                                            )
+                                                        "
+                                                        @click="
+                                                            deleteDocument(
+                                                                document
+                                                            )
+                                                        "
+                                                        class="btn btn-sm btn-danger"
+                                                    >
+                                                        <i
+                                                            class="fas fa-trash"
+                                                        ></i>
+                                                        {{
+                                                            document.allows_multiple &&
+                                                            document.file_count >
+                                                                1
+                                                                ? "Delete All"
+                                                                : "Delete"
+                                                        }}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Upload Modal -->
+            <!-- ✅ ADDED: No Data State -->
+            <div v-else class="no-data-container">
+                <div class="no-data-content">
+                    <i class="fas fa-file-alt no-data-icon"></i>
+                    <h4>No Documents Found</h4>
+                    <p>
+                        Document templates are being initialized. Please refresh
+                        the page.
+                    </p>
+                    <button @click="refreshDocuments" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Documents
+                    </button>
+                </div>
+            </div>
+
+            <!-- ✅ Enhanced Upload Modal for Multiple Files -->
             <div
                 v-if="showUploadModal"
                 class="modal-overlay"
@@ -238,7 +1039,12 @@
             >
                 <div class="modal-content" @click.stop>
                     <div class="modal-header">
-                        <h4>Upload Document</h4>
+                        <h4>
+                            <i class="fas fa-upload"></i>
+                            Upload Document{{
+                                selectedDocument?.allows_multiple ? "s" : ""
+                            }}
+                        </h4>
                         <button @click="closeUploadModal" class="modal-close">
                             <i class="fas fa-times"></i>
                         </button>
@@ -246,57 +1052,233 @@
 
                     <div class="modal-body">
                         <div class="document-info-modal">
-                            <h5>{{ selectedDocument?.document_name }}</h5>
-                            <p
-                                v-if="selectedDocument?.is_required"
-                                class="required-text"
-                            >
-                                <i class="fas fa-exclamation-circle"></i>
-                                This is a required document
-                            </p>
-                        </div>
+        <h5>{{ selectedDocument?.document_name }}</h5>
+        
+        <!-- ✅ Template Instructions (Only for template documents) -->
+        <div v-if="selectedDocument?.has_template" class="template-section">
+            <div class="template-info">
+                <i class="fas fa-file-excel text-success"></i>
+                <span>Template tersedia - Anda dapat upload PDF atau Excel</span>
+            </div>
+            <a 
+                :href="selectedDocument.template_download_url" 
+                target="_blank"
+                class="btn btn-sm btn-success template-download-btn"
+            >
+                <i class="fas fa-download"></i>
+                Download Template: {{ selectedDocument.template_filename }}
+            </a>
+            <small class="template-help">
+                Untuk Excel: Download template, isi sesuai format, lalu upload. <br>
+                Untuk PDF: Upload dokumen PDF langsung.
+            </small>
+        </div>
+
+        <!-- ✅ Non-template Notice -->
+        <div v-else class="pdf-only-notice">
+            <div class="pdf-info">
+                <i class="fas fa-file-pdf text-danger"></i>
+                <span>Dokumen ini hanya menerima format PDF</span>
+            </div>
+            <small class="pdf-help">
+                Pastikan dokumen Anda dalam format PDF sebelum upload.
+            </small>
+        </div>
+
+        <div class="document-badges">
+            <span v-if="selectedDocument?.is_required" class="required-text">
+                <i class="fas fa-exclamation-circle"></i>
+                Required Document
+            </span>
+            <span v-if="selectedDocument?.allows_multiple" class="multiple-text">
+                <i class="fas fa-files"></i>
+                Multiple Files Allowed (Max {{ maxFiles }})
+            </span>
+            <span v-if="selectedDocument?.has_template" class="template-text">
+                <i class="fas fa-file-excel"></i>
+                PDF/Excel Accepted
+            </span>
+            <span v-else class="pdf-only-text">
+                <i class="fas fa-file-pdf"></i>
+                PDF Only
+            </span>
+        </div>
+    </div>
 
                         <div class="upload-form">
+                            <!-- Enhanced file input -->
                             <div class="form-group">
-                                <label>Select File:</label>
-                                <input
-                                    ref="modalFileInput"
-                                    type="file"
-                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                    @change="handleFileSelection"
-                                    class="file-input"
-                                />
-                                <p class="file-requirements">
-                                    Supported formats: PDF, DOC, DOCX, JPG, PNG
-                                    (Max 10MB)
-                                </p>
+                                <label
+                                    >Select File{{
+                                        selectedDocument?.allows_multiple
+                                            ? "s"
+                                            : ""
+                                    }}:</label
+                                >
+                                <div class="file-input-container">
+                                    <input
+                                        ref="modalFileInput"
+                                        type="file"
+                                        :multiple="
+                                            selectedDocument?.allows_multiple
+                                        "
+                                        :accept="
+                                            selectedDocument?.has_template
+                                                ? '.pdf,.xlsx,.xls'
+                                                : '.pdf'
+                                        "
+                                        @change="handleMultipleFileSelection"
+                                        class="file-input"
+                                        :class="{
+                                            'has-files':
+                                                selectedFiles.length > 0,
+                                        }"
+                                    />
+                                    <div class="file-input-overlay">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>
+                                            {{
+                                                selectedDocument?.allows_multiple
+                                                    ? "Drop files here or click to select"
+                                                    : "Drop file here or click to select"
+                                            }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="file-requirements">
+                                    <p>
+                                        <i class="fas fa-info-circle"></i>
+                                        <!-- ✅ CONDITIONAL: Show different requirements based on template -->
+                                        <span
+                                            v-if="
+                                                selectedDocument?.has_template
+                                            "
+                                        >
+                                            Supported: PDF, Excel (XLSX, XLS)
+                                            (Max 10MB each)
+                                        </span>
+                                        <span v-else>
+                                            Supported: PDF only (Max 10MB each)
+                                        </span>
+                                        <span
+                                            v-if="
+                                                selectedDocument?.allows_multiple
+                                            "
+                                        >
+                                            | Maximum {{ maxFiles }} files
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
 
+                            <!-- Expiry date input -->
                             <div
                                 v-if="selectedDocument?.has_expiry_date"
                                 class="form-group"
                             >
-                                <label>Expiry Date:</label>
+                                <label>
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Expiry Date:
+                                </label>
                                 <input
                                     v-model="uploadForm.expiry_date"
                                     type="date"
                                     :min="getTomorrowDate()"
                                     class="date-input"
                                 />
+                                <small class="form-help">
+                                    This expiry date will be applied to
+                                    {{
+                                        selectedDocument?.allows_multiple
+                                            ? "all selected files"
+                                            : "the selected file"
+                                    }}
+                                </small>
                             </div>
 
-                            <div v-if="selectedFile" class="selected-file">
-                                <div class="file-preview">
-                                    <i
-                                        :class="getFileIcon(selectedFile.type)"
-                                    ></i>
-                                    <div class="file-details">
-                                        <span class="file-name">{{
-                                            selectedFile.name
-                                        }}</span>
-                                        <span class="file-size">{{
-                                            formatFileSize(selectedFile.size)
-                                        }}</span>
+                            <!-- Selected files preview -->
+                            <div
+                                v-if="selectedFiles.length"
+                                class="selected-files"
+                            >
+                                <h6>
+                                    <i class="fas fa-list"></i>
+                                    Selected Files ({{
+                                        selectedFiles.length
+                                    }}/{{
+                                        selectedDocument?.allows_multiple
+                                            ? maxFiles
+                                            : 1
+                                    }})
+                                </h6>
+                                <div class="files-preview">
+                                    <div
+                                        v-for="(file, index) in selectedFiles"
+                                        :key="index"
+                                        class="file-preview-item"
+                                    >
+                                        <div class="file-preview">
+                                            <i
+                                                :class="getFileIcon(file.type)"
+                                            ></i>
+                                            <div class="file-details">
+                                                <span
+                                                    class="file-name"
+                                                    :title="file.name"
+                                                    >{{
+                                                        truncateFileName(
+                                                            file.name
+                                                        )
+                                                    }}</span
+                                                >
+                                                <span class="file-size">{{
+                                                    formatFileSize(file.size)
+                                                }}</span>
+                                                <span class="file-type">{{
+                                                    file.type
+                                                        .split("/")[1]
+                                                        .toUpperCase()
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                        <button
+                                            @click="removeFile(index)"
+                                            class="remove-file-btn"
+                                            title="Remove file"
+                                        >
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Upload progress -->
+                                <div
+                                    v-if="uploadProgress.show"
+                                    class="upload-progress"
+                                >
+                                    <div class="progress-header">
+                                        <span
+                                            >Uploading
+                                            {{ uploadProgress.current }}/{{
+                                                uploadProgress.total
+                                            }}
+                                            files...</span
+                                        >
+                                        <span
+                                            >{{
+                                                uploadProgress.percentage
+                                            }}%</span
+                                        >
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div
+                                            class="progress-fill"
+                                            :style="{
+                                                width:
+                                                    uploadProgress.percentage +
+                                                    '%',
+                                            }"
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
@@ -308,12 +1290,13 @@
                             @click="closeUploadModal"
                             class="btn btn-outline"
                         >
+                            <i class="fas fa-times"></i>
                             Cancel
                         </button>
                         <button
-                            @click="uploadDocumentFile"
+                            @click="uploadDocumentFiles"
                             :disabled="
-                                !selectedFile ||
+                                !selectedFiles.length ||
                                 uploadingDocuments[selectedDocument?.id]
                             "
                             class="btn btn-primary"
@@ -322,7 +1305,9 @@
                             {{
                                 uploadingDocuments[selectedDocument?.id]
                                     ? "Uploading..."
-                                    : "Upload Document"
+                                    : `Upload ${selectedFiles.length} File${
+                                          selectedFiles.length > 1 ? "s" : ""
+                                      }`
                             }}
                         </button>
                     </div>
@@ -331,21 +1316,24 @@
 
             <!-- Document Requirements -->
             <div class="requirements-section">
-                <h4>Document Requirements & Guidelines</h4>
+                <h4>
+                    <i class="fas fa-info-circle"></i>
+                    Document Requirements & Guidelines
+                </h4>
                 <div class="requirements-grid">
                     <div class="requirement-item">
-                        <h5>
-                            <i class="fas fa-file-pdf"></i> Format Requirements
-                        </h5>
-                        <ul>
-                            <li>PDF format preferred for official documents</li>
-                            <li>Images: JPG, PNG (max 5MB per file)</li>
-                            <li>
-                                Documents: DOC, DOCX, PDF (max 10MB per file)
-                            </li>
-                            <li>Ensure documents are clear and readable</li>
-                        </ul>
-                    </div>
+    <h5>
+        <i class="fas fa-file-pdf"></i> Format Requirements
+    </h5>
+    <ul>
+        <li><strong>Default:</strong> PDF format only (max 10MB per file)</li>
+        <li><strong>Template documents:</strong> PDF or Excel (XLSX, XLS) allowed</li>
+        <li>Template documents are marked with <span class="template-badge-small">Template Available</span> badge</li>
+        <li>Use provided Excel templates for structured data documents</li>
+        <li>Multiple files allowed for certain document types</li>
+        <li>Ensure documents are clear and readable</li>
+    </ul>
+</div>
 
                     <div class="requirement-item">
                         <h5>
@@ -359,6 +1347,7 @@
                                 Official seals and signatures must be visible
                             </li>
                             <li>Documents will be verified for authenticity</li>
+                            <li>Each file is reviewed individually</li>
                         </ul>
                     </div>
 
@@ -371,6 +1360,7 @@
                             <li>Approved documents get green checkmark</li>
                             <li>Rejected documents need to be re-uploaded</li>
                             <li>Check admin notes for feedback</li>
+                            <li>Multiple files can have different statuses</li>
                         </ul>
                     </div>
                 </div>
@@ -398,7 +1388,7 @@ const props = defineProps({
 
 const emit = defineEmits(["updated"]);
 
-// ✅ Reactive data
+// ✅ Enhanced reactive data
 const loading = ref(true);
 const alertMsg = ref("");
 const alertType = ref("success");
@@ -406,9 +1396,20 @@ const documents = ref([]);
 const stats = ref({});
 const showUploadModal = ref(false);
 const selectedDocument = ref(null);
-const selectedFile = ref(null);
+const selectedFiles = ref([]); // ✅ Array of files for multiple upload
+const maxFiles = ref(5); // ✅ Configurable max files per document
 const uploadingDocuments = ref({});
 const modalFileInput = ref(null);
+const activeTab = ref("attachment_1");
+const attachments = ref({});
+
+// ✅ Upload progress tracking
+const uploadProgress = reactive({
+    show: false,
+    current: 0,
+    total: 0,
+    percentage: 0,
+});
 
 const uploadForm = reactive({
     expiry_date: "",
@@ -417,18 +1418,44 @@ const uploadForm = reactive({
 // ✅ API Base URL
 const API_BASE_URL = "http://eprakualifikasi-pln.test";
 
-// ✅ Computed
+// ✅ Enhanced computed properties
 const completionPercentage = computed(() => {
     if (!stats.value.total || stats.value.total === 0) return 0;
     return Math.round((stats.value.approved / stats.value.total) * 100);
 });
 
-// ✅ Methods
+const hasMultipleFiles = computed(() => {
+    return selectedDocument.value?.allows_multiple || false;
+});
+
+// ✅ Lifecycle
 onMounted(async () => {
     console.log("🚀 SubcontractorDocuments mounted");
     await loadDocuments();
 });
 
+// Tambahkan method cleanup di Vue component
+// async function cleanupEmptySlots() {
+//     try {
+//         const token = localStorage.getItem("token");
+//         const response = await axios.delete(
+//             `${API_BASE_URL}/api/vendor/documents/cleanup-empty`,
+//             {
+//                 headers: { Authorization: `Bearer ${token}` }
+//             }
+//         );
+
+//         if (response.data.success) {
+//             console.log("✅ Cleaned up empty slots:", response.data.message);
+//             await loadDocuments(); // Refresh data
+//         }
+//     } catch (error) {
+//         console.error("❌ Cleanup error:", error);
+//     }
+// }
+
+// ✅ Enhanced methods
+// Update loadDocuments untuk auto-cleanup
 async function loadDocuments() {
     loading.value = true;
 
@@ -439,17 +1466,16 @@ async function loadDocuments() {
             return;
         }
 
-        console.log(
-            "📤 Making request to:",
-            `${API_BASE_URL}/api/vendor/documents`
-        );
+        // ✅ First, cleanup empty slots
+        // await cleanupEmptySlots();
 
         const response = await axios.get(
-            `${API_BASE_URL}/api/vendor/documents`,
+            `${API_BASE_URL}/api/vendor/documents?t=${Date.now()}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
+                    "Cache-Control": "no-cache",
                 },
             }
         );
@@ -457,9 +1483,14 @@ async function loadDocuments() {
         console.log("📥 Documents response:", response.data);
 
         if (response.data.success) {
-            documents.value = response.data.data.documents || [];
-            stats.value = response.data.data.stats || {};
-            console.log("✅ Documents loaded:", documents.value.length);
+            if (response.data.data.attachments) {
+                attachments.value = response.data.data.attachments || {};
+                stats.value = response.data.data.stats || {};
+            } else {
+                documents.value = response.data.data.documents || [];
+                stats.value = response.data.data.stats || {};
+            }
+            console.log("✅ Documents loaded");
         } else {
             showAlert(
                 "error",
@@ -468,22 +1499,7 @@ async function loadDocuments() {
         }
     } catch (error) {
         console.error("❌ Load documents error:", error);
-        if (error.response?.status === 403) {
-            showAlert(
-                "error",
-                "Access forbidden. Please check your permissions."
-            );
-        } else if (error.response?.status === 404) {
-            showAlert(
-                "error",
-                "API endpoint not found. Please check server configuration."
-            );
-        } else {
-            showAlert(
-                "error",
-                error.response?.data?.message || "Failed to load documents"
-            );
-        }
+        handleApiError(error);
     } finally {
         loading.value = false;
     }
@@ -496,7 +1512,7 @@ async function refreshDocuments() {
 
 function openUploadModal(document) {
     selectedDocument.value = document;
-    selectedFile.value = null;
+    selectedFiles.value = []; // ✅ Reset to empty array
     uploadForm.expiry_date = document.expiry_date || "";
     showUploadModal.value = true;
 
@@ -509,114 +1525,208 @@ function openUploadModal(document) {
 function closeUploadModal() {
     showUploadModal.value = false;
     selectedDocument.value = null;
-    selectedFile.value = null;
+    selectedFiles.value = [];
     uploadForm.expiry_date = "";
+    uploadProgress.show = false;
+    uploadProgress.current = 0;
+    uploadProgress.total = 0;
+    uploadProgress.percentage = 0;
 }
 
-function handleFileSelection(event) {
-    const file = event.target.files[0];
-    if (file && validateFile(file)) {
-        selectedFile.value = file;
+// ✅ Enhanced file selection handler
+function handleMultipleFileSelection(event) {
+    const files = Array.from(event.target.files);
+
+    if (selectedDocument.value?.allows_multiple) {
+        // Multiple files validation
+        if (files.length > maxFiles.value) {
+            showAlert(
+                "error",
+                `Maximum ${maxFiles.value} files allowed per document`
+            );
+            return;
+        }
+
+        const validFiles = files.filter((file) => validateFile(file));
+        selectedFiles.value = validFiles;
+
+        if (validFiles.length !== files.length) {
+            showAlert(
+                "warning",
+                `${
+                    files.length - validFiles.length
+                } file(s) were skipped due to validation errors`
+            );
+        }
+    } else {
+        // Single file (existing logic)
+        const file = files[0];
+        if (file && validateFile(file)) {
+            selectedFiles.value = [file]; // Array with single file
+        }
     }
+
+    console.log("📁 Selected files:", selectedFiles.value.length);
 }
 
+// ✅ File validation
 function validateFile(file) {
     const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-    ];
+
+    // ✅ CONDITIONAL: Check if current document has template
+    const hasTemplate = selectedDocument.value?.has_template || false;
+
+    const allowedTypes = hasTemplate
+        ? [
+              // Template documents: PDF + Excel
+              "application/pdf",
+              "application/vnd.ms-excel", // Excel .xls
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel .xlsx
+          ]
+        : [
+              // Non-template documents: PDF only
+              "application/pdf",
+          ];
 
     if (file.size > maxSize) {
         showAlert(
             "error",
-            `File ${file.name} is too large. Maximum size is 10MB.`
+            `File "${file.name}" is too large. Maximum size is 10MB.`
         );
         return false;
     }
 
     if (!allowedTypes.includes(file.type)) {
-        showAlert("error", `File ${file.name} has unsupported format.`);
+        const allowedFormats = hasTemplate
+            ? "PDF or Excel (XLSX, XLS)"
+            : "PDF only";
+        showAlert(
+            "error",
+            `File "${file.name}" has unsupported format. Only ${allowedFormats} files are allowed for this document.`
+        );
         return false;
     }
 
     return true;
 }
 
-async function uploadDocumentFile() {
-    if (!selectedFile.value || !selectedDocument.value) return;
+// ✅ Remove file from selection
+function removeFile(index) {
+    selectedFiles.value.splice(index, 1);
+}
+
+// ✅ Enhanced upload function for multiple files
+async function uploadDocumentFiles() {
+    if (!selectedFiles.value.length || !selectedDocument.value) return;
 
     const documentId = selectedDocument.value.id;
     uploadingDocuments.value[documentId] = true;
 
+    // Initialize progress
+    uploadProgress.show = true;
+    uploadProgress.current = 0;
+    uploadProgress.total = selectedFiles.value.length;
+    uploadProgress.percentage = 0;
+
     try {
         const formData = new FormData();
-        formData.append('document_id', documentId);
-        formData.append('file', selectedFile.value);
+        formData.append("document_id", documentId);
 
-        // Jika dokumen punya expiry date, tambahkan ke formData
-        if (selectedDocument.value.has_expiry_date && uploadForm.expiry_date) {
-            formData.append('expiry_date', uploadForm.expiry_date);
-        }
+        // ✅ Append multiple files
+        selectedFiles.value.forEach((file, index) => {
+            formData.append("files[]", file); // Array notation
 
-        const token = localStorage.getItem('token');
-        const response = await axios.post(`${API_BASE_URL}/api/vendor/documents/upload`, formData, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'multipart/form-data',
-            },
+            if (
+                selectedDocument.value.has_expiry_date &&
+                uploadForm.expiry_date
+            ) {
+                formData.append(
+                    `expiry_dates[${index}]`,
+                    uploadForm.expiry_date
+                );
+            }
         });
 
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+            `${API_BASE_URL}/api/vendor/documents/upload`,
+            formData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total
+                    );
+                    uploadProgress.percentage = percentCompleted;
+                },
+            }
+        );
+
         if (response.data.success) {
-            showAlert('success', 'Document uploaded successfully and submitted for review!');
+            const fileCount = selectedFiles.value.length;
+            showAlert(
+                "success",
+                `${fileCount} file(s) uploaded successfully and submitted for review!`
+            );
             closeUploadModal();
-            await loadDocuments(); // ✅ Memuat ulang daftar dokumen untuk merefresh status
+            await loadDocuments(); // Refresh documents
         } else {
-            showAlert('error', response.data.message || 'Failed to upload document');
+            showAlert(
+                "error",
+                response.data.message || "Failed to upload files"
+            );
         }
     } catch (error) {
-        console.error('Upload error:', error);
-        showAlert('error', error.response?.data?.message || 'Failed to upload document');
+        console.error("Upload error:", error);
+        showAlert(
+            "error",
+            error.response?.data?.message || "Failed to upload files"
+        );
     } finally {
         uploadingDocuments.value[documentId] = false;
+        uploadProgress.show = false;
     }
 }
 
+// ✅ Download document (works for both single and multiple files)
 async function downloadDocument(doc) {
     try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         const response = await axios.get(
             `${API_BASE_URL}/api/vendor/documents/${doc.id}/download`,
             {
                 headers: { Authorization: `Bearer ${token}` },
-                responseType: 'blob',
+                responseType: "blob",
             }
         );
 
-        // ✅ Ini akan menggunakan global window.document
         const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
-        link.setAttribute('download', doc.file_name || 'document');
+        link.setAttribute("download", doc.file_name || "document");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
 
-        showAlert('success', 'Document downloaded successfully');
+        showAlert("success", "Document downloaded successfully");
     } catch (error) {
-        console.error('Download error:', error);
-        showAlert('error', 'Failed to download document');
+        console.error("Download error:", error);
+        showAlert("error", "Failed to download document");
     }
 }
 
+// ✅ Delete document (handle both single and multiple)
 async function deleteDocument(document) {
-    if (!confirm(`Are you sure you want to delete ${document.document_name}?`))
-        return;
+    const message =
+        document.allows_multiple && document.file_count > 1
+            ? `Are you sure you want to delete all ${document.file_count} files for "${document.document_name}"?`
+            : `Are you sure you want to delete "${document.document_name}"?`;
+
+    if (!confirm(message)) return;
 
     try {
         const token = localStorage.getItem("token");
@@ -628,8 +1738,11 @@ async function deleteDocument(document) {
         );
 
         if (response.data.success) {
-            showAlert("success", "Document deleted successfully");
-            await loadDocuments(); // Refresh documents list
+            showAlert(
+                "success",
+                response.data.message || "Document(s) deleted successfully"
+            );
+            await loadDocuments();
         } else {
             showAlert(
                 "error",
@@ -645,7 +1758,39 @@ async function deleteDocument(document) {
     }
 }
 
-// ✅ Helper functions
+// ✅ Delete specific file (for multiple upload documents)
+async function deleteSpecificFile(file) {
+    if (!confirm(`Are you sure you want to delete "${file.file_name}"?`))
+        return;
+
+    try {
+        const token = localStorage.getItem("token");
+        const response = await axios.delete(
+            `${API_BASE_URL}/api/vendor/documents/${file.id}`,
+            {
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        );
+
+        if (response.data.success) {
+            showAlert("success", "File deleted successfully");
+            await loadDocuments();
+        } else {
+            showAlert(
+                "error",
+                response.data.message || "Failed to delete file"
+            );
+        }
+    } catch (error) {
+        console.error("Delete file error:", error);
+        showAlert(
+            "error",
+            error.response?.data?.message || "Failed to delete file"
+        );
+    }
+}
+
+// ✅ Enhanced helper functions
 function getRowClass(document) {
     return {
         "required-row": document.is_required,
@@ -653,7 +1798,44 @@ function getRowClass(document) {
         "rejected-row": document.status === "rejected",
         "expired-row": document.is_expired,
         "expiring-row": document.is_expiring_soon && !document.is_expired,
+        "multiple-row": document.allows_multiple,
     };
+}
+
+function getUploadButtonText(document) {
+    if (document.allows_multiple) {
+        return document.file_count > 0 ? "Add More" : "Upload Files";
+    } else {
+        return document.file_name ? "Re-upload" : "Upload";
+    }
+}
+
+function hasFiles(document) {
+    if (document.allows_multiple) {
+        return document.file_count > 0;
+    } else {
+        return document.file_name;
+    }
+}
+
+function canDeleteDocument(document) {
+    if (document.allows_multiple) {
+        return (
+            document.all_files?.some((file) => file.status !== "approved") ||
+            false
+        );
+    } else {
+        return document.status !== "approved";
+    }
+}
+
+function truncateFileName(fileName, maxLength = 25) {
+    if (!fileName || fileName.length <= maxLength) return fileName;
+    const extension = fileName.split(".").pop();
+    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf("."));
+    const truncated =
+        nameWithoutExt.substring(0, maxLength - extension.length - 4) + "...";
+    return truncated + "." + extension;
 }
 
 function formatDate(dateString) {
@@ -669,9 +1851,8 @@ function getTomorrowDate() {
 
 function getFileIcon(type) {
     if (type.includes("pdf")) return "fas fa-file-pdf text-danger";
-    if (type.includes("word") || type.includes("document"))
-        return "fas fa-file-word text-primary";
-    if (type.includes("image")) return "fas fa-file-image text-success";
+    if (type.includes("sheet") || type.includes("excel"))
+        return "fas fa-file-excel text-success";
     return "fas fa-file text-secondary";
 }
 
@@ -681,6 +1862,22 @@ function formatFileSize(bytes) {
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
+
+function handleApiError(error) {
+    if (error.response?.status === 403) {
+        showAlert("error", "Access forbidden. Please check your permissions.");
+    } else if (error.response?.status === 404) {
+        showAlert(
+            "error",
+            "API endpoint not found. Please check server configuration."
+        );
+    } else {
+        showAlert(
+            "error",
+            error.response?.data?.message || "An error occurred"
+        );
+    }
 }
 
 function showAlert(type, message) {
@@ -693,7 +1890,7 @@ function showAlert(type, message) {
 </script>
 
 <style scoped>
-/* Keep all existing styles exactly as they are */
+/* ✅ Enhanced styles for multiple upload support */
 .subcontractor-documents {
     max-width: 1200px;
     margin: 0 auto;
@@ -855,7 +2052,7 @@ function showAlert(type, message) {
 .documents-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 800px;
+    min-width: 900px;
 }
 
 .documents-table th,
@@ -892,11 +2089,11 @@ function showAlert(type, message) {
 }
 
 .file-col {
-    width: 200px;
+    width: 250px;
 }
 
 .actions-col {
-    width: 200px;
+    width: 180px;
     text-align: center;
 }
 
@@ -904,6 +2101,7 @@ function showAlert(type, message) {
     text-align: center;
 }
 
+/* ✅ Enhanced document info badges */
 .document-info {
     display: flex;
     align-items: center;
@@ -917,33 +2115,147 @@ function showAlert(type, message) {
     font-weight: 500;
 }
 
-.required-badge {
-    background: #dc3545;
-    color: white;
+.required-badge,
+.multiple-badge,
+.expired-badge,
+.expiring-badge {
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 500;
+}
+
+.required-badge {
+    background: #dc3545;
+    color: white;
+}
+
+.multiple-badge {
+    background: #17a2b8;
+    color: white;
 }
 
 .expired-badge {
     background: #6c757d;
     color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 500;
 }
 
 .expiring-badge {
     background: #ffc107;
     color: #212529;
+}
+
+/* ✅ Enhanced file display styles */
+.file-display {
+    padding: 0.5rem !important;
+}
+
+.multiple-files {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.file-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #e9ecef;
+    color: #495057;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 500;
+    align-self: flex-start;
 }
 
+.files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.file-item,
+.single-file {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.file-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.875rem;
+}
+
+.file-size,
+.file-version,
+.expiry-info {
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+.file-status {
+    display: flex;
+    align-items: center;
+    margin-left: 0.5rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.status-secondary {
+    background: #6c757d;
+}
+.status-dot.status-info {
+    background: #17a2b8;
+}
+.status-dot.status-warning {
+    background: #ffc107;
+}
+.status-dot.status-success {
+    background: #28a745;
+}
+.status-dot.status-danger {
+    background: #dc3545;
+}
+
+.file-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.no-file,
+.no-expiry {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+/* ✅ Status badges */
 .status-badge {
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
@@ -958,37 +2270,25 @@ function showAlert(type, message) {
     background: #e9ecef;
     color: #6c757d;
 }
-
 .status-info {
     background: #d1ecf1;
     color: #0c5460;
 }
-
 .status-warning {
     background: #fff3cd;
     color: #856404;
 }
-
 .status-success {
     background: #d4edda;
     color: #155724;
 }
-
 .status-danger {
     background: #f8d7da;
     color: #721c24;
 }
-
 .status-dark {
     background: #d6d8db;
     color: #1b1e21;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 0.25rem;
-    flex-wrap: wrap;
-    justify-content: center;
 }
 
 .btn {
@@ -1005,9 +2305,14 @@ function showAlert(type, message) {
     text-decoration: none;
 }
 
+.btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
 .btn-sm {
     padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
 }
 
 .btn-primary {
@@ -1048,35 +2353,77 @@ function showAlert(type, message) {
     cursor: not-allowed;
 }
 
-.file-details {
+/* ✅ Template download button styling */
+.btn-info {
+    background: #17a2b8;
+    color: white;
+    border: 1px solid #17a2b8;
+}
+
+.btn-info:hover {
+    background: #138496;
+    border-color: #138496;
+}
+
+/* Enhanced template section */
+.template-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f0f9ff;
+    border-radius: 6px;
+    border: 1px solid #bee5eb;
+}
+
+.template-info {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.875rem;
-}
-
-.file-name {
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: #0c5460;
     font-weight: 500;
-    color: #495057;
 }
 
-.file-size {
-    color: #6c757d;
-    font-size: 0.75rem;
+.template-download-btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
 }
 
-.file-version {
-    color: #6c757d;
-    font-size: 0.75rem;
-}
-
-.no-file,
-.no-expiry {
+.template-help {
+    display: block;
     color: #6c757d;
     font-style: italic;
-    font-size: 0.875rem;
+    line-height: 1.4;
 }
 
+.template-text {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+    margin-top: 5px;
+}
+
+/* Action buttons spacing fix */
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Responsive design for action buttons */
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .btn-sm {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ✅ Row styling */
 .required-row {
     background: #fff5f5;
 }
@@ -1095,6 +2442,10 @@ function showAlert(type, message) {
 
 .expiring-row {
     background: #fff8e1;
+}
+
+.multiple-row {
+    border-left: 4px solid #17a2b8;
 }
 
 .admin-notes,
@@ -1118,7 +2469,7 @@ function showAlert(type, message) {
     color: #dc3545;
 }
 
-/* Modal Styles */
+/* ✅ Enhanced Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -1137,7 +2488,7 @@ function showAlert(type, message) {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     width: 90%;
-    max-width: 500px;
+    max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -1153,6 +2504,9 @@ function showAlert(type, message) {
 .modal-header h4 {
     margin: 0;
     color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .modal-close {
@@ -1180,8 +2534,42 @@ function showAlert(type, message) {
     border-top: 1px solid #dee2e6;
 }
 
+/* ✅ Enhanced form styles */
+.document-info-modal h5 {
+    margin: 0 0 1rem 0;
+    color: #495057;
+}
+
+.document-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.required-text,
+.multiple-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.required-text {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.multiple-text {
+    background: #e7f3ff;
+    color: #0056b3;
+    border: 1px solid #bee5eb;
+}
+
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
@@ -1191,7 +2579,63 @@ function showAlert(type, message) {
     margin-bottom: 0.5rem;
 }
 
-.file-input,
+/* ✅ Enhanced file input */
+.file-input-container {
+    position: relative;
+    border: 2px dashed #ced4da;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.file-input-container:hover {
+    border-color: #fd7e14;
+    background: #fff8f0;
+}
+
+.file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-input.has-files + .file-input-overlay {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.file-input-overlay {
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+}
+
+.file-input-overlay i {
+    font-size: 2rem;
+}
+
+.file-requirements {
+    margin-top: 0.5rem;
+}
+
+.file-requirements p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .date-input {
     width: 100%;
     padding: 0.75rem;
@@ -1200,13 +2644,131 @@ function showAlert(type, message) {
     font-size: 0.875rem;
 }
 
-.file-input:focus,
 .date-input:focus {
     outline: none;
     border-color: #fd7e14;
     box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
 }
 
+.form-help {
+    display: block;
+    margin-top: 0.25rem;
+    color: #6c757d;
+    font-size: 0.8125rem;
+}
+
+/* ✅ Selected files preview */
+.selected-files {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.selected-files h6 {
+    margin: 0 0 1rem 0;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.files-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.file-preview-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.file-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.file-preview i {
+    font-size: 1.5rem;
+}
+
+.file-preview .file-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.file-preview .file-name {
+    font-weight: 500;
+    color: #495057;
+}
+
+.file-preview .file-size,
+.file-preview .file-type {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.remove-file-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+
+.remove-file-btn:hover {
+    background: #c82333;
+}
+
+/* ✅ Upload progress */
+.upload-progress {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #e7f3ff;
+    border-radius: 6px;
+    border: 1px solid #bee5eb;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #0056b3;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #17a2b8;
+    transition: width 0.3s ease;
+}
+
+/* ✅ Requirements section */
 .requirements-section {
     margin-top: 2rem;
     padding-top: 2rem;
@@ -1216,11 +2778,14 @@ function showAlert(type, message) {
 .requirements-section h4 {
     color: #495057;
     margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .requirements-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
 }
 
@@ -1229,6 +2794,12 @@ function showAlert(type, message) {
     border: 1px solid #dee2e6;
     border-radius: 8px;
     padding: 1.5rem;
+    transition: transform 0.2s ease;
+}
+
+.requirement-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .requirement-item h5 {
@@ -1266,9 +2837,15 @@ function showAlert(type, message) {
     border-bottom: none;
 }
 
+/* ✅ Responsive design */
 @media (max-width: 768px) {
+    .subcontractor-documents {
+        padding: 0.5rem;
+    }
+
     .summary-cards {
         grid-template-columns: 1fr;
+        gap: 0.5rem;
     }
 
     .requirements-grid {
@@ -1284,5 +2861,175 @@ function showAlert(type, message) {
         gap: 1rem;
         align-items: flex-start;
     }
+
+    .documents-table {
+        min-width: 700px;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+
+    .file-input-container {
+        padding: 1.5rem;
+    }
+
+    .files-preview {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .documents-table {
+        min-width: 600px;
+    }
+
+    .file-col {
+        width: 200px;
+    }
+
+    .actions-col {
+        width: 150px;
+    }
+}
+
+.attachment-tabs {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.tabs-header {
+    display: flex;
+    border-bottom: 1px solid #dee2e6;
+    background: #f8f9fa;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.tab-btn.active {
+    color: #fd7e14;
+    background: white;
+    border-bottom-color: #fd7e14;
+}
+
+.tab-count {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-left: 0.5rem;
+}
+
+.tab-content {
+    padding: 0;
+}
+
+.attachment-content {
+    min-height: 400px;
+}
+
+/* Styling untuk tampilan dokumen bertingkat */
+.document-group {
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.group-header {
+    background: #f2f7fb;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.group-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #495057;
+}
+
+.document-subtitle {
+    display: block;
+    font-style: italic;
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.no-files-multiple {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px dashed #dee2e6;
+}
+
+.no-file-text {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.875rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.upload-hint {
+    color: #858585;
+    font-size: 0.75rem;
+}
+
+/* PDF Only Notice */
+.pdf-only-notice {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #fff5f5;
+    border-radius: 6px;
+    border: 1px solid #f8d7da;
+}
+
+.pdf-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #721c24;
+    font-weight: 500;
+}
+
+.pdf-help {
+    display: block;
+    color: #6c757d;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* PDF Only Badge */
+.pdf-only-text {
+    background: #dc3545;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 </style>

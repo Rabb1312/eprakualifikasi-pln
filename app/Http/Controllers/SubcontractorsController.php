@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Subcontractors;
+use App\Models\Subcontractor;
 use Illuminate\Http\Request;
 
 class SubcontractorsController extends Controller
@@ -34,7 +34,7 @@ class SubcontractorsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Subcontractors $subcontractors)
+    public function show(Subcontractor $subcontractors)
     {
         //
     }
@@ -42,7 +42,7 @@ class SubcontractorsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Subcontractors $subcontractors)
+    public function edit(Subcontractor $subcontractors)
     {
         //
     }
@@ -50,7 +50,7 @@ class SubcontractorsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Subcontractors $subcontractors)
+    public function update(Request $request, Subcontractor $subcontractors)
     {
         //
     }
@@ -58,7 +58,7 @@ class SubcontractorsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Subcontractors $subcontractors)
+    public function destroy(Subcontractor $subcontractors)
     {
         //
     }

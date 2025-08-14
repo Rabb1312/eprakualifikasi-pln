@@ -39,7 +39,7 @@ Example:
       </div>
 
       <!-- Predefined Categories -->
-      <div class="categories-section">
+      <!-- <div class="categories-section">
         <h4>Common Scope Categories</h4>
         <p class="section-description">Check the categories that apply to your company's scope of work:</p>
         
@@ -63,10 +63,10 @@ Example:
             </label>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Additional Notes -->
-      <div class="notes-section">
+      <!-- <div class="notes-section">
         <div class="form-group">
           <label>Additional Notes / Catatan Tambahan</label>
           <textarea 
@@ -75,7 +75,7 @@ Example:
             placeholder="Any additional information about your scope of work, special certifications, or unique capabilities..."
           ></textarea>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <div class="form-actions">
@@ -84,10 +84,10 @@ Example:
         {{ loading ? 'Saving...' : 'Save Scope of Work' }}
       </button>
       
-      <button @click="clearForm" class="btn btn-outline">
+      <!-- <button @click="clearForm" class="btn btn-outline">
         <i class="fas fa-trash"></i>
         Clear Form
-      </button>
+      </button> -->
     </div>
 
     <!-- Alert -->

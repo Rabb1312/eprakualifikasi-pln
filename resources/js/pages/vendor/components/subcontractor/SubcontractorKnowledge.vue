@@ -27,7 +27,7 @@
             </div>
           </label>
           
-          <label class="radio-option">
+          <!-- <label class="radio-option">
             <input 
               type="radio" 
               value="no" 
@@ -38,7 +38,7 @@
               <strong>No, we need guidance</strong>
               <span>Tidak, kami memerlukan bimbingan</span>
             </div>
-          </label>
+          </label> -->
         </div>
       </div>
 
@@ -56,7 +56,7 @@
       </div>
 
       <!-- Knowledge Areas Assessment -->
-      <div class="knowledge-areas" v-if="formData.local_regulation_knowledge === 'yes'">
+      <!-- <div class="knowledge-areas" v-if="formData.local_regulation_knowledge === 'yes'">
         <h4>Knowledge Areas Assessment</h4>
         <p class="section-description">Please rate your company's knowledge level in the following areas:</p>
         
@@ -89,10 +89,10 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Compliance Checklist -->
-      <div class="compliance-section">
+      <!-- <div class="compliance-section">
         <h4>Regulatory Compliance Checklist</h4>
         <p class="section-description">Check all regulations that your company is familiar with and complies with:</p>
         
@@ -116,10 +116,10 @@
             </label>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Training & Certification -->
-      <div class="training-section" v-if="formData.local_regulation_knowledge === 'yes'">
+      <!-- <div class="training-section" v-if="formData.local_regulation_knowledge === 'yes'">
         <h4>Training & Certification</h4>
         
         <div class="form-row">
@@ -141,10 +141,10 @@
             ></textarea>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Support Needed -->
-      <div class="support-section" v-if="formData.local_regulation_knowledge === 'no'">
+      <!-- <div class="support-section" v-if="formData.local_regulation_knowledge === 'no'">
         <h4>Support and Guidance Needed</h4>
         
         <div class="form-group">
@@ -174,7 +174,7 @@
             </label>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <div class="form-actions">
@@ -183,10 +183,10 @@
         {{ loading ? 'Saving...' : 'Save Knowledge Assessment' }}
       </button>
       
-      <button @click="resetForm" class="btn btn-outline">
+      <!-- <button @click="resetForm" class="btn btn-outline">
         <i class="fas fa-undo"></i>
         Reset Form
-      </button>
+      </button> -->
     </div>
 
     <!-- Alert -->

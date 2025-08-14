@@ -24,7 +24,7 @@ class Subcontractor extends Model
         // Knowledgeable
         'local_regulation_knowledge', 'regulation_knowledge_details',
         // Documents
-        'documents'
+        // 'documents'
     ];
 
     protected $casts = [
@@ -33,8 +33,8 @@ class Subcontractor extends Model
         'holding_contact_person' => 'array',
         'facilities' => 'array',
         'employees' => 'array',
-        'major_projects' => 'array',
-        'documents' => 'array'
+        'major_projects' => 'array'
+        // 'documents' => 'array'
     ];
 
     public function vendor()

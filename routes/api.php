@@ -41,9 +41,15 @@ Route::middleware(['api'])->group(function () {
         Route::put('/subcontractor', [VendorController::class, 'updateSubcontractor']);
     });
 
+    // ✅ FIXED: Document routes with proper structure
     Route::prefix('vendor/documents')->group(function () {
         Route::get('/', [VendorController::class, 'getVendorDocuments'])->name('vendor.documents.index');
         Route::post('/upload', [VendorController::class, 'uploadDocument'])->name('vendor.documents.upload');
+        
+        // ✅ CORRECT: Cleanup route BEFORE parameterized routes
+        // Route::delete('/cleanup-empty', [VendorController::class, 'cleanupEmptyDocumentSlots'])->name('vendor.documents.cleanup');
+        
+        // ✅ Parameterized routes AFTER specific routes
         Route::get('/{documentId}/download', [VendorController::class, 'downloadDocument'])->name('vendor.documents.download');
         Route::delete('/{documentId}', [VendorController::class, 'deleteDocument'])->name('vendor.documents.delete');
     });

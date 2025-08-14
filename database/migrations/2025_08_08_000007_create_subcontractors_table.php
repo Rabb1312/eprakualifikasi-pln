@@ -45,7 +45,7 @@ return new class extends Migration
             $table->text('regulation_knowledge_details')->nullable();
             
             // ✅ TAB 8: Documents/Attachments (JSON array untuk document checklist)
-            $table->json('documents')->nullable(); // Array of document submission status
+            // $table->json('documents')->nullable(); // Array of document submission status
             
             $table->timestamps();
         });

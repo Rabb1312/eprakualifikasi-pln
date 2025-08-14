@@ -13,9 +13,20 @@ return new class extends Migration
             $table->id();
             $table->foreignId('vendor_id')->constrained()->onDelete('cascade');
             $table->string('document_type'); // e.g., 'validity_sheet', 'iso_9001', etc.
+            $table->string('document_number')->nullable();
+            $table->string('parent_type')->nullable(); // For sub-documents
+            $table->string('group')->nullable();
+            $table->string('group_name')->nullable();
+            $table->string('document_subtitle')->nullable();
+            $table->integer('sub_index')->default(0);// For multiple files under same type
+            $table->boolean('allows_multiple')->default(false); // Can have multiple files
             $table->string('document_name'); // Human readable name
             $table->boolean('is_required')->default(false);
             $table->boolean('has_expiry_date')->default(false); // Does this document expire?
+            $table->boolean('has_template')->default(false);
+            $table->string('template_url')->nullable(); // URL to download template
+            $table->string('template_download_url')->nullable(); // URL to download template file
+            $table->string('template_filename')->nullable();
             
             // File information
             $table->string('file_name')->nullable(); // Original filename
@@ -50,9 +61,11 @@ return new class extends Migration
             $table->timestamps();
             
             // Indexes
-            $table->index(['vendor_id', 'document_type']);
+            $table->index(['vendor_id', 'document_type', 'sub_index']);
             $table->index(['status']);
             $table->index(['expiry_date']);
+            $table->index(['parent_type']);
+            
         });
     }
 

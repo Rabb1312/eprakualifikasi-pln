@@ -20,10 +20,14 @@
       </div>
       
       <div class="header-actions">
-        <button class="btn btn-primary" @click="saveAllData" :disabled="loading">
-          <i class="fas fa-save"></i>
-          {{ loading ? 'Saving...' : 'Save All' }}
-        </button>
+        <button class="btn btn-secondary" @click="logout">
+    <i class="fas fa-sign-out-alt"></i>
+    Logout
+  </button>
+  <button class="btn btn-primary" @click="saveAllData" :disabled="loading">
+    <i class="fas fa-save"></i>
+    {{ loading ? 'Saving...' : 'Save All' }}
+  </button>
       </div>
     </div>
 
@@ -181,6 +185,25 @@ onMounted(async () => {
   await loadData()
 })
 
+async function logout() {
+  try {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      await axios.post("/api/logout", null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+  } catch (error) {
+    console.error("Logout error:", error);
+  } finally {
+    // Bersihkan local storage dan redirect ke halaman login
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
+  }
+}
+
 async function loadData() {
   loading.value = true
   error.value = ''
@@ -248,14 +271,14 @@ async function loadSubcontractorTabs() {
       subcontractorData.value = data.subcontractor_data || {}
       facilitiesOptions.value = data.facilities_options || {}
       employeeClassifications.value = data.employee_classifications || []
-      documentChecklist.value = data.document_checklist || []
+      // documentChecklist.value = data.document_checklist || []
 
       console.log('✅ Subcontractor data loaded:', {
         tabs: subcontractorTabs.value.length,
         hasData: !!subcontractorData.value.id,
         facilitiesCount: Object.keys(facilitiesOptions.value).length,
         employeeTypes: employeeClassifications.value.length,
-        documentsCount: documentChecklist.value.length
+        // documentsCount: documentChecklist.value.length
       })
     } else {
       throw new Error(response.data.message || 'Failed to load subcontractor tabs')
@@ -479,5 +502,15 @@ function showAlert(type, message) {
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  margin-right: 10px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #ff0000;
 }
 </style>
