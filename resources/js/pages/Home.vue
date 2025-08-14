@@ -103,7 +103,7 @@
 
       <div class="hero-content">
         <h1>E-Prakualifikasi</h1>
-        <p>Portal online registrasi dan pengelolaan vendor untuk mendapatkan vendor <br>yang berkompeten dan terkualifikasi <strong>PLN Nusantara Power Construction</strong> </p>
+        <p>Portal online registrasi dan pengelolaan vendor untuk mendapatkan vendor <br>yang berkompeten dan terkualifikasi <strong> PT PLN Nusantara Power Construction</strong> </p>
         <div class="cta-buttons">
           <router-link to="/registration" class="btn btn-primary">
             <i class="fas fa-user-plus"></i> Daftar Sebagai Vendor

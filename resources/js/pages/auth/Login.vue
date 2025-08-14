@@ -194,7 +194,7 @@ onMounted(() => {
         if (userData.level === "admin") {
             router.push("/admin/dashboard");
         } else {
-            router.push("/user/dashboard");
+            router.push("/vendor/dashboard");
         }
     }
 });
@@ -275,7 +275,7 @@ async function login() {
                 if (response.data.data.user.level === "admin") {
                     router.push("/admin/dashboard");
                 } else {
-                    router.push("/user/dashboard");
+                    router.push("/vendor/dashboard");
                 }
             }, 1500);
         } else {

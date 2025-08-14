@@ -62,20 +62,31 @@ class AuthController extends Controller
 
             // Generate nomor vendor
             $nomorVendor = Vendor::generateNomorVendor($vendorType);
+            $sumberInformasi = $request->knownFrom;
+        $rekomendasiDari = null;
+        $lainnya = null;
+
+        // Handle special cases
+        if ($request->knownFrom === 'other') {
+            $sumberInformasi = 'lainnya';
+            $lainnya = $request->other;
+        } elseif ($request->knownFrom === 'rekomendasi') {
+            $rekomendasiDari = $request->other; // assuming 'other' field contains recommendation source
+        }
 
             // Create vendor profile dengan data dari registrasi
-            $vendor = Vendor::create([
-                'user_id' => $user->id,
-                'nomor_vendor' => $nomorVendor,
-                'tipe_perusahaan' => $vendorType,
-                'nama_perusahaan' => $request->companyName,
-                'npwp' => $request->npwp,
-                'sumber_informasi' => $request->knownFrom === 'other' ? 'lainnya' : $request->knownFrom,
-                'rekomendasi_dari' => $request->knownFrom === 'rekomendasi' ? $request->other : null,
-                'lainnya' => $request->knownFrom === 'other' ? $request->other : null,
-                'profile_completed' => false,
-                'completion_percentage' => 0
-            ]);
+             $vendor = Vendor::create([
+            'user_id' => $user->id,
+            'nomor_vendor' => $nomorVendor,
+            'tipe_perusahaan' => $vendorType,
+            'nama_perusahaan' => $request->companyName,
+            'npwp' => $request->npwp,
+            'sumber_informasi' => $sumberInformasi, 
+            'rekomendasi_dari' => $rekomendasiDari,
+            'lainnya' => $lainnya,
+            'profile_completed' => false,
+            'completion_percentage' => 0
+        ]);
 
             // Calculate initial completion
             $vendor->calculateCompletion();
@@ -520,47 +531,95 @@ private function sendPasswordResetEmail(User $user, $token)
 
     // FIXED METHOD ME
     public function me(Request $request)
-    {
-        $user = $this->authenticateToken($request);
+{
+    $user = $this->authenticateToken($request);
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized'
-            ], 401);
-        }
-
-        $vendorProfile = null;
-        if ($user->level === 'user') {
-            $vendorProfile = $user->vendor;
-        }
-
+    if (!$user) {
         return response()->json([
-            'success' => true,
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'username' => $user->username,
-                    'email' => $user->email,
-                    'fullname' => $user->fullname,
-                    'level' => $user->level,
-                    'type' => $user->type,
-                    'status' => $user->status,
-                    'email_verified_at' => $user->email_verified_at,
-                    'last_login' => $user->last_login
-                ],
-                'vendor' => $vendorProfile ? [
-                    'id' => $vendorProfile->id,
-                    'nomor_vendor' => $vendorProfile->nomor_vendor,
-                    'tipe_perusahaan' => $vendorProfile->tipe_perusahaan,
-                    'nama_perusahaan' => $vendorProfile->nama_perusahaan,
-                    'profile_completed' => $vendorProfile->profile_completed,
-                    'completion_percentage' => $vendorProfile->completion_percentage,
-                    'verified_at' => $vendorProfile->verified_at
-                ] : null
-            ]
-        ]);
+            'success' => false,
+            'message' => 'Unauthorized'
+        ], 401);
     }
+
+    $vendorProfile = null;
+    if ($user->level === 'user') {
+        $vendorProfile = $user->vendor;
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'fullname' => $user->fullname,
+                'level' => $user->level,
+                'type' => $user->type,
+                'status' => $user->status,
+                'email_verified_at' => $user->email_verified_at,
+                'last_login' => $user->last_login
+            ],
+            'vendor' => $vendorProfile ? [
+                // ✅ Basic fields
+                'id' => $vendorProfile->id,
+                'nomor_vendor' => $vendorProfile->nomor_vendor,
+                'tipe_perusahaan' => $vendorProfile->tipe_perusahaan,
+                'nama_perusahaan' => $vendorProfile->nama_perusahaan,
+                
+                // ✅ Legal fields
+                'npwp' => $vendorProfile->npwp,
+                
+                // ✅ Address fields
+                'alamat' => $vendorProfile->alamat,
+                'alamat_kantor_pusat' => $vendorProfile->alamat_kantor_pusat,
+                'alamat_kantor_operasional' => $vendorProfile->alamat_kantor_operasional,
+                'alamat_perusahaan_induk' => $vendorProfile->alamat_perusahaan_induk,
+                'kode_pos' => $vendorProfile->kode_pos,
+                
+                // ✅ Contact fields
+                'phone' => $vendorProfile->phone,
+                'phone_pusat' => $vendorProfile->phone_pusat,
+                'website' => $vendorProfile->website,
+                
+                // ✅ Company fields
+                'nama_perusahaan_induk' => $vendorProfile->nama_perusahaan_induk,
+                'tanggal_berdiri' => $vendorProfile->tanggal_berdiri,
+                'tanggal_beroperasi' => $vendorProfile->tanggal_beroperasi,
+                'bagian_grup' => $vendorProfile->bagian_grup,
+                'jumlah_karyawan' => $vendorProfile->jumlah_karyawan,
+                
+                // ✅ Financial fields
+                'modal_dasar' => $vendorProfile->modal_dasar,
+                'modal_dikeluarkan' => $vendorProfile->modal_dikeluarkan,
+                'pemegang_saham' => $vendorProfile->pemegang_saham,
+                
+                // ✅ Management fields
+                'nama_direktur' => $vendorProfile->nama_direktur,
+                
+                // ✅ Personnel fields (JSON)
+                'contact_person' => $vendorProfile->contact_person,
+                'top_level' => $vendorProfile->top_level,
+                'mid_level' => $vendorProfile->mid_level,
+                'sales_marketing' => $vendorProfile->sales_marketing,
+                
+                // ✅ Source fields
+                'sumber_informasi' => $vendorProfile->sumber_informasi,
+                'rekomendasi_dari' => $vendorProfile->rekomendasi_dari,
+                'lainnya' => $vendorProfile->lainnya,
+                
+                // ✅ Assets fields
+                'kepemilikan' => $vendorProfile->kepemilikan,
+                'kepemilikan_armada' => $vendorProfile->kepemilikan_armada,
+                
+                // ✅ Status fields
+                'profile_completed' => $vendorProfile->profile_completed,
+                'completion_percentage' => $vendorProfile->completion_percentage,
+                'verified_at' => $vendorProfile->verified_at
+            ] : null
+        ]
+    ]);
+}
 
     // FIXED EMAIL SENDING
     private function sendVerificationEmail(User $user)

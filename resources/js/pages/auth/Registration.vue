@@ -296,7 +296,7 @@ onMounted(() => {
     if (userData.level === "admin") {
       router.push("/admin/dashboard");
     } else {
-      router.push("/user/dashboard");
+      router.push("/vendor/dashboard");
     }
   }
 });

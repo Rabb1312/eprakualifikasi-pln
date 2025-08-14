@@ -14,6 +14,11 @@ const routes = [
   { path: '/login', component: () => import('@/pages/auth/Login.vue'), name: 'login', meta: { guest: true } },
   { path: '/registration', component: () => import('@/pages/auth/Registration.vue'), name: 'registration', meta: { guest: true } },
   { path: '/forgot-password', component: () => import('@/pages/auth/ForgotPassword.vue'), name: 'forgot-password', meta: { guest: true } },
+
+  // Vendor Dashboard (User level)
+  { path: '/vendor/dashboard', component: () => import('@/pages/vendor/VendorDashboard.vue'), name: 'vendor-dashboard', meta: { requiresAuth: true, requiresVendor: true } },
+  
+  // Admin Dashboard
   { path: '/admin/dashboard', component: () => import('@/pages/admin/AdminDashboard.vue'), name: 'admin-dashboard', meta: { requiresAuth: true, requiresAdmin: true } },
   { path: '/admin/users', component: () => import('@/pages/admin/UserManagement.vue'), name: 'admin-users', meta: { requiresAuth: true, requiresAdmin: true } },
 ];
@@ -26,6 +31,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const loggedIn = isLoggedIn();
   const admin = isAdmin();
+  const vendor = isVendor();
 
   if (to.meta.requiresAuth && !loggedIn) {
     next('/login');
@@ -40,6 +46,8 @@ router.beforeEach((to, from, next) => {
   if (to.meta.guest && loggedIn) {
     if (admin) {
       next('/admin/dashboard');
+    } else if (vendor) {
+      next('/vendor/dashboard');
     } else {
       next('/');
     }
@@ -48,5 +56,10 @@ router.beforeEach((to, from, next) => {
 
   next();
 });
+
+function isVendor() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  return user.level === 'user';
+}
 
 export default router;

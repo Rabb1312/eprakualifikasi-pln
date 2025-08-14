@@ -1,4 +1,5 @@
 <?php
+// File: app/Models/VendorFieldMapping.php
 
 namespace App\Models;
 
@@ -7,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class VendorFieldMapping extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'tipe_perusahaan',
         'field_name',
@@ -22,20 +25,15 @@ class VendorFieldMapping extends Model
         'field_options' => 'array'
     ];
 
-    // Get required fields by vendor type
-    public static function getRequiredFieldsByType($tipe)
+    // Scope untuk mendapatkan field berdasarkan tipe perusahaan
+    public function scopeForVendorType($query, $vendorType)
     {
-        return static::where('tipe_perusahaan', $tipe)
-            ->where('is_required', true)
-            ->orderBy('field_order')
-            ->get();
+        return $query->where('tipe_perusahaan', $vendorType);
     }
 
-    // Get all fields by vendor type
-    public static function getFieldsByType($tipe)
+    // Scope untuk field yang required
+    public function scopeRequired($query)
     {
-        return static::where('tipe_perusahaan', $tipe)
-            ->orderBy('field_order')
-            ->get();
+        return $query->where('is_required', true);
     }
 }

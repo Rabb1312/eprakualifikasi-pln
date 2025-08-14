@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\VendorController; 
+use App\Http\Controllers\VendorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,28 +22,38 @@ Route::prefix('auth')->group(function () {
 });
 
 // Protected routes (require authentication)
-Route::middleware(['api', 'cors'])->group(function () {
-    
+Route::middleware(['api'])->group(function () {
+
     // Auth routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']); // Get current user info
-    
+
     // Dashboard routes
     Route::get('/dashboard/stats', [UserController::class, 'dashboard']);
-    
+
     // Vendor routes (untuk level user)
     Route::prefix('vendor')->group(function () {
         Route::get('/profile', [VendorController::class, 'show']);
         Route::put('/profile', [VendorController::class, 'update']);
         Route::get('/field-mappings', [VendorController::class, 'getFieldMappings']);
+        // ✅  Subcontractor specific routes
+        Route::get('/subcontractor/tabs', [VendorController::class, 'getSubcontractorTabs']);
+        Route::put('/subcontractor', [VendorController::class, 'updateSubcontractor']);
     });
-    
+
+    Route::prefix('vendor/documents')->group(function () {
+        Route::get('/', [VendorController::class, 'getVendorDocuments'])->name('vendor.documents.index');
+        Route::post('/upload', [VendorController::class, 'uploadDocument'])->name('vendor.documents.upload');
+        Route::get('/{documentId}/download', [VendorController::class, 'downloadDocument'])->name('vendor.documents.download');
+        Route::delete('/{documentId}', [VendorController::class, 'deleteDocument'])->name('vendor.documents.delete');
+    });
+
     // Admin only routes
     Route::middleware('admin')->group(function () {
         // User management
         Route::apiResource('users', UserController::class);
         Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus']);
-        
+
         // Vendor management
         Route::prefix('admin/vendors')->group(function () {
             Route::get('/', [VendorController::class, 'index']);
@@ -51,7 +61,7 @@ Route::middleware(['api', 'cors'])->group(function () {
             Route::patch('/{id}/verify', [VendorController::class, 'verify']);
             Route::patch('/{id}/reject', [VendorController::class, 'reject']);
         });
-        
+
         // Admin dashboard
         Route::get('/admin/dashboard/stats', [UserController::class, 'adminDashboard']);
     });
