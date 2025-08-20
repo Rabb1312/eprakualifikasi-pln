@@ -721,7 +721,7 @@ window.logout = logout;
 }
 
 .resend-btn {
-    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    background: linear-gradient(135deg, #ffc107 0%, #007bff 100%);
     color: #212529;
     border: none;
     padding: 12px 20px;

@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `migrations` (
   `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table eprakualifikasi.migrations: ~0 rows (approximately)
 DELETE FROM `migrations`;
@@ -55,7 +55,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(4, '2025_08_07_000003_create_email_verification_tokens_table', 1),
 	(5, '2025_08_07_000004_create_user_login_histories_table', 1),
 	(6, '2025_08_07_000005_create_vendors_table', 1),
-	(7, '2025_08_07_000006_vendor_field_mapping', 1);
+	(7, '2025_08_07_000006_vendor_field_mapping', 1),
+	(8, '2025_08_08_000007_create_subcontractors_table', 1),
+	(9, '2025_08_14_000008_create_vendor_documents_table', 1);
 
 -- Dumping structure for table eprakualifikasi.password_reset_tokens
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
@@ -96,6 +98,36 @@ CREATE TABLE IF NOT EXISTS `personal_access_tokens` (
 -- Dumping data for table eprakualifikasi.personal_access_tokens: ~0 rows (approximately)
 DELETE FROM `personal_access_tokens`;
 
+-- Dumping structure for table eprakualifikasi.subcontractors
+CREATE TABLE IF NOT EXISTS `subcontractors` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `vendor_id` bigint unsigned NOT NULL,
+  `holding_nama_perusahaan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `holding_tanggal_berdiri` date DEFAULT NULL,
+  `holding_alamat` text COLLATE utf8mb4_unicode_ci,
+  `holding_phone` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `holding_modal_dasar` decimal(15,2) DEFAULT NULL,
+  `holding_modal_dikeluarkan` decimal(15,2) DEFAULT NULL,
+  `holding_pemegang_saham` text COLLATE utf8mb4_unicode_ci,
+  `holding_contact_person` json DEFAULT NULL,
+  `holding_nama_direktur` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `facilities` json DEFAULT NULL,
+  `other_services` text COLLATE utf8mb4_unicode_ci,
+  `employees` json DEFAULT NULL,
+  `scope_of_work` text COLLATE utf8mb4_unicode_ci,
+  `major_projects` json DEFAULT NULL,
+  `local_regulation_knowledge` enum('yes','no') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `regulation_knowledge_details` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `subcontractors_vendor_id_foreign` (`vendor_id`),
+  CONSTRAINT `subcontractors_vendor_id_foreign` FOREIGN KEY (`vendor_id`) REFERENCES `vendors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table eprakualifikasi.subcontractors: ~0 rows (approximately)
+DELETE FROM `subcontractors`;
+
 -- Dumping structure for table eprakualifikasi.users
 CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -114,14 +146,13 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `users_username_unique` (`username`),
   UNIQUE KEY `users_email_unique` (`email`),
   KEY `users_level_status_index` (`level`,`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table eprakualifikasi.users: ~3 rows (approximately)
+-- Dumping data for table eprakualifikasi.users: ~2 rows (approximately)
 DELETE FROM `users`;
 INSERT INTO `users` (`id`, `username`, `fullname`, `email`, `email_verified_at`, `password`, `level`, `type`, `status`, `last_login`, `created_at`, `updated_at`) VALUES
-	(1, 'admin', 'Administrator PLN', 'admin@pln.co.id', '2025-08-07 19:13:03', '$2y$12$522qdtIMVA3Gca6w3EqOPer9ckumO2VLuR6zdsO12M0mScWLN7sf6', 'admin', NULL, 'aktif', NULL, '2025-08-07 19:13:03', '2025-08-07 19:13:03'),
-	(2, 'user_test', 'User Test PLN', 'user@pln.co.id', '2025-08-07 19:13:03', '$2y$12$.W.V7aOL6oDtkT9G3/tkce11GKMg/DcEs1o36Lq787dOkhy8bh1d.', 'user', 'DS', 'aktif', NULL, '2025-08-07 19:13:03', '2025-08-07 19:13:03'),
-	(3, 'amar', 'PT Amar Rabbany', 'andag5700@gmail.com', '2025-08-07 19:14:10', '$2y$12$N7StYKsPqbB/0EYJkVcVUepHvhrlJiDURK81p9NbOCdcIrwE60ay.', 'user', 'DS', 'aktif', '2025-08-07 19:18:20', '2025-08-07 19:13:44', '2025-08-07 19:18:20');
+	(1, 'admin', 'Administrator PLN', 'admin@pln.co.id', '2025-08-14 16:30:58', '$2y$12$n56rKySZj4ZK8qRgGPOtjO4QXZvOFYPvTqnlqgf.LGkO30KZIO9iy', 'admin', NULL, 'aktif', NULL, '2025-08-14 16:30:58', '2025-08-14 16:30:58'),
+	(2, 'user_test', 'User Test PLN', 'user@pln.co.id', '2025-08-14 16:30:58', '$2y$12$zj03IOuiA2n/O5.wDAnwROOBpa0TU9yEch9sLdbLQu.LKSfXsq2Bu', 'user', 'DS', 'aktif', NULL, '2025-08-14 16:30:58', '2025-08-14 16:30:58');
 
 -- Dumping structure for table eprakualifikasi.user_login_histories
 CREATE TABLE IF NOT EXISTS `user_login_histories` (
@@ -185,12 +216,57 @@ CREATE TABLE IF NOT EXISTS `vendors` (
   KEY `idx_vendors_tipe_created` (`tipe_perusahaan`,`created_at`),
   CONSTRAINT `vendors_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `vendors_verified_by_foreign` FOREIGN KEY (`verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table eprakualifikasi.vendors: ~1 rows (approximately)
+-- Dumping data for table eprakualifikasi.vendors: ~0 rows (approximately)
 DELETE FROM `vendors`;
-INSERT INTO `vendors` (`id`, `user_id`, `nomor_vendor`, `tipe_perusahaan`, `nama_perusahaan`, `npwp`, `sumber_informasi`, `rekomendasi_dari`, `lainnya`, `nama_perusahaan_induk`, `alamat_perusahaan_induk`, `alamat`, `alamat_kantor_pusat`, `alamat_kantor_operasional`, `kode_pos`, `phone`, `phone_pusat`, `website`, `contact_person`, `top_level`, `mid_level`, `sales_marketing`, `tanggal_berdiri`, `bagian_grup`, `tanggal_beroperasi`, `modal_dasar`, `modal_dikeluarkan`, `pemegang_saham`, `nama_direktur`, `jumlah_karyawan`, `kepemilikan`, `kepemilikan_armada`, `profile_completed`, `completion_percentage`, `verified_at`, `verified_by`, `created_at`, `updated_at`) VALUES
-	(1, 3, 'DS-0001', 'DS', 'PT Amar Rabbany', '11.111.111.1-111.111', 'website', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 7.14, NULL, NULL, '2025-08-07 19:13:44', '2025-08-07 19:13:44');
+
+-- Dumping structure for table eprakualifikasi.vendor_documents
+CREATE TABLE IF NOT EXISTS `vendor_documents` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `vendor_id` bigint unsigned NOT NULL,
+  `document_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `document_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `parent_type` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `group` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `group_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `document_subtitle` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sub_index` int NOT NULL DEFAULT '0',
+  `allows_multiple` tinyint(1) NOT NULL DEFAULT '0',
+  `document_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_required` tinyint(1) NOT NULL DEFAULT '0',
+  `has_expiry_date` tinyint(1) NOT NULL DEFAULT '0',
+  `has_template` tinyint(1) NOT NULL DEFAULT '0',
+  `template_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `template_download_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `template_filename` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_size` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_type` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `expiry_date` date DEFAULT NULL,
+  `expires_soon` tinyint(1) NOT NULL DEFAULT '0',
+  `status` enum('not_uploaded','uploaded','under_review','approved','rejected','expired') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'not_uploaded',
+  `admin_notes` text COLLATE utf8mb4_unicode_ci,
+  `rejection_reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `reviewed_by` bigint unsigned DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `uploaded_at` timestamp NULL DEFAULT NULL,
+  `version` int NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `vendor_documents_reviewed_by_foreign` (`reviewed_by`),
+  KEY `vendor_documents_vendor_id_document_type_sub_index_index` (`vendor_id`,`document_type`,`sub_index`),
+  KEY `vendor_documents_status_index` (`status`),
+  KEY `vendor_documents_expiry_date_index` (`expiry_date`),
+  KEY `vendor_documents_parent_type_index` (`parent_type`),
+  CONSTRAINT `vendor_documents_reviewed_by_foreign` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`),
+  CONSTRAINT `vendor_documents_vendor_id_foreign` FOREIGN KEY (`vendor_id`) REFERENCES `vendors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table eprakualifikasi.vendor_documents: ~0 rows (approximately)
+DELETE FROM `vendor_documents`;
 
 -- Dumping structure for table eprakualifikasi.vendor_field_mappings
 CREATE TABLE IF NOT EXISTS `vendor_field_mappings` (
@@ -207,66 +283,69 @@ CREATE TABLE IF NOT EXISTS `vendor_field_mappings` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_tipe_field` (`tipe_perusahaan`,`field_name`),
   KEY `idx_field_tipe` (`tipe_perusahaan`)
-) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table eprakualifikasi.vendor_field_mappings: ~55 rows (approximately)
+-- Dumping data for table eprakualifikasi.vendor_field_mappings: ~2 rows (approximately)
 DELETE FROM `vendor_field_mappings`;
 INSERT INTO `vendor_field_mappings` (`id`, `tipe_perusahaan`, `field_name`, `field_label`, `is_required`, `field_order`, `field_type`, `field_options`, `created_at`, `updated_at`) VALUES
-	(1, 'SC', 'nama_perusahaan', 'Nama Perusahaan', 1, 1, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(2, 'SC', 'kode_pos', 'Kode Pos', 1, 2, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(3, 'SC', 'phone', 'Telepon', 1, 3, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(4, 'SC', 'website', 'Website', 1, 4, 'url', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(5, 'SC', 'contact_person', 'Contact Person', 1, 5, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(6, 'SC', 'top_level', 'Top Level Management', 1, 6, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(7, 'SC', 'mid_level', 'Mid Level Management', 1, 7, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(8, 'SC', 'sales_marketing', 'Sales & Marketing', 1, 8, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(9, 'SC', 'tanggal_berdiri', 'Tanggal Berdiri', 1, 9, 'date', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(10, 'SC', 'bagian_grup', 'Bagian Grup', 1, 10, 'select', '["ya", "tidak"]', '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(11, 'SC', 'tanggal_beroperasi', 'Tanggal Beroperasi', 1, 11, 'date', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(12, 'SC', 'modal_dasar', 'Modal Dasar', 1, 12, 'number', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(13, 'SC', 'modal_dikeluarkan', 'Modal Dikeluarkan', 1, 13, 'number', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(14, 'SC', 'pemegang_saham', 'Pemegang Saham', 1, 14, 'textarea', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(15, 'SC', 'nama_direktur', 'Nama Direktur', 1, 15, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(16, 'SC', 'jumlah_karyawan', 'Jumlah Karyawan', 1, 16, 'number', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(17, 'FW', 'nama_perusahaan', 'Nama Perusahaan', 1, 1, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(18, 'FW', 'npwp', 'NPWP', 1, 2, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(19, 'FW', 'tanggal_berdiri', 'Tanggal Berdiri', 1, 3, 'date', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(20, 'FW', 'tanggal_beroperasi', 'Tanggal Beroperasi', 1, 4, 'date', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(21, 'FW', 'contact_person', 'Contact Person', 1, 5, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(22, 'FW', 'top_level', 'Top Level Management', 1, 6, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(23, 'FW', 'mid_level', 'Mid Level Management', 1, 7, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(24, 'FW', 'sales_marketing', 'Sales & Marketing', 1, 8, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(25, 'FW', 'alamat_kantor_pusat', 'Alamat Kantor Pusat', 1, 9, 'textarea', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(26, 'FW', 'kode_pos', 'Kode Pos', 1, 10, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(27, 'FW', 'phone_pusat', 'Telepon Pusat', 1, 11, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(28, 'FW', 'phone', 'Telepon', 1, 12, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(29, 'FW', 'website', 'Website', 1, 13, 'url', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(30, 'FW', 'kepemilikan', 'Kepemilikan', 1, 14, 'select', '["tidak", "satu", "lebih dari satu"]', '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(31, 'FW', 'kepemilikan_armada', 'Kepemilikan Armada', 1, 15, 'select', '["sewa", "miliki pribadi"]', '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(32, 'DS', 'nama_perusahaan', 'Nama Perusahaan', 1, 1, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(33, 'DS', 'tanggal_berdiri', 'Tanggal Berdiri', 1, 2, 'date', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(34, 'DS', 'tanggal_beroperasi', 'Tanggal Beroperasi', 1, 3, 'date', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(35, 'DS', 'alamat', 'Alamat', 1, 4, 'textarea', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(36, 'DS', 'kode_pos', 'Kode Pos', 1, 5, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(37, 'DS', 'alamat_kantor_operasional', 'Alamat Kantor Operasional', 1, 6, 'textarea', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(38, 'DS', 'phone', 'Telepon', 1, 7, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(39, 'DS', 'website', 'Website', 1, 8, 'url', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(40, 'DS', 'contact_person', 'Contact Person', 1, 9, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(41, 'DS', 'top_level', 'Top Level Management', 1, 10, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(42, 'DS', 'mid_level', 'Mid Level Management', 1, 11, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(43, 'DS', 'sales_marketing', 'Sales & Marketing', 1, 12, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(44, 'DS', 'nama_perusahaan_induk', 'Nama Perusahaan Induk', 1, 13, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(45, 'DS', 'alamat_perusahaan_induk', 'Alamat Perusahaan Induk', 1, 14, 'textarea', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(46, 'MF', 'nama_perusahaan', 'Nama Perusahaan', 1, 1, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(47, 'MF', 'npwp', 'NPWP', 1, 2, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(48, 'MF', 'tanggal_berdiri', 'Tanggal Berdiri', 1, 3, 'date', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(49, 'MF', 'tanggal_beroperasi', 'Tanggal Beroperasi', 1, 4, 'date', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(50, 'MF', 'alamat', 'Alamat', 1, 5, 'textarea', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(51, 'MF', 'phone', 'Telepon', 1, 6, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(52, 'MF', 'top_level', 'Top Level Management', 1, 7, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(53, 'MF', 'mid_level', 'Mid Level Management', 1, 8, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(54, 'MF', 'sales_marketing', 'Sales & Marketing', 1, 9, 'json', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02'),
-	(55, 'MF', 'nama_perusahaan_induk', 'Nama Perusahaan Induk', 1, 10, 'text', NULL, '2025-08-07 19:13:02', '2025-08-07 19:13:02');
+	(1, 'SC', 'nama_perusahaan', 'Nama Perusahaan', 1, 1, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(2, 'SC', 'alamat', 'Alamat', 1, 2, 'textarea', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(3, 'SC', 'kode_pos', 'Kode Pos', 1, 3, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(4, 'SC', 'phone', 'Telepon', 1, 4, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(5, 'SC', 'website', 'Website', 1, 5, 'url', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(6, 'SC', 'contact_person', 'Contact Person', 1, 6, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(7, 'SC', 'top_level', 'Top Level Management', 1, 7, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(8, 'SC', 'mid_level', 'Mid Level Management', 1, 8, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(9, 'SC', 'sales_marketing', 'Sales & Marketing', 1, 9, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(10, 'SC', 'tanggal_berdiri', 'Tanggal Berdiri', 1, 10, 'date', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(11, 'SC', 'bagian_grup', 'Bagian Grup', 1, 11, 'select', '["ya", "tidak"]', '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(12, 'SC', 'tanggal_beroperasi', 'Tanggal Beroperasi', 1, 12, 'date', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(13, 'SC', 'modal_dasar', 'Modal Dasar', 1, 13, 'number', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(14, 'SC', 'modal_dikeluarkan', 'Modal Dikeluarkan', 1, 14, 'number', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(15, 'SC', 'pemegang_saham', 'Pemegang Saham', 1, 15, 'textarea', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(16, 'SC', 'nama_direktur', 'Nama Direktur', 1, 16, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(17, 'SC', 'jumlah_karyawan', 'Jumlah Karyawan', 1, 17, 'number', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(18, 'FW', 'nama_perusahaan', 'Nama Perusahaan', 1, 1, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(19, 'FW', 'npwp', 'NPWP', 1, 2, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(20, 'FW', 'tanggal_berdiri', 'Tanggal Berdiri', 1, 3, 'date', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(21, 'FW', 'tanggal_beroperasi', 'Tanggal Beroperasi', 1, 4, 'date', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(22, 'FW', 'contact_person', 'Contact Person', 1, 5, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(23, 'FW', 'top_level', 'Top Level Management', 1, 6, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(24, 'FW', 'mid_level', 'Mid Level Management', 1, 7, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(25, 'FW', 'sales_marketing', 'Sales & Marketing', 1, 8, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(26, 'FW', 'alamat_kantor_pusat', 'Alamat Kantor Pusat', 1, 9, 'textarea', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(27, 'FW', 'kode_pos', 'Kode Pos', 1, 10, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(28, 'FW', 'phone_pusat', 'Telepon Pusat', 1, 11, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(29, 'FW', 'phone', 'Telepon', 1, 12, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(30, 'FW', 'website', 'Website', 1, 13, 'url', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(31, 'FW', 'kepemilikan', 'Kepemilikan', 1, 14, 'select', '["tidak", "satu", "lebih dari satu"]', '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(32, 'FW', 'kepemilikan_armada', 'Kepemilikan Armada', 1, 15, 'select', '["sewa", "miliki pribadi"]', '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(33, 'DS', 'nama_perusahaan', 'Nama Perusahaan', 1, 1, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(34, 'DS', 'npwp', 'NPWP', 1, 2, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(35, 'DS', 'tanggal_berdiri', 'Tanggal Berdiri', 1, 3, 'date', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(36, 'DS', 'tanggal_beroperasi', 'Tanggal Beroperasi', 1, 4, 'date', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(37, 'DS', 'alamat', 'Alamat', 1, 5, 'textarea', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(38, 'DS', 'kode_pos', 'Kode Pos', 1, 6, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(39, 'DS', 'alamat_kantor_operasional', 'Alamat Kantor Operasional', 1, 7, 'textarea', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(40, 'DS', 'phone', 'Telepon', 1, 8, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(41, 'DS', 'website', 'Website', 1, 9, 'url', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(42, 'DS', 'contact_person', 'Contact Person', 1, 10, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(43, 'DS', 'top_level', 'Top Level Management', 1, 11, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(44, 'DS', 'mid_level', 'Mid Level Management', 1, 12, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(45, 'DS', 'sales_marketing', 'Sales & Marketing', 1, 13, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(46, 'DS', 'nama_perusahaan_induk', 'Nama Perusahaan Induk', 1, 14, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(47, 'DS', 'alamat_perusahaan_induk', 'Alamat Perusahaan Induk', 1, 15, 'textarea', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(48, 'MF', 'nama_perusahaan', 'Nama Perusahaan', 1, 1, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(49, 'MF', 'npwp', 'NPWP', 1, 2, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(50, 'MF', 'tanggal_berdiri', 'Tanggal Berdiri', 1, 3, 'date', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(51, 'MF', 'tanggal_beroperasi', 'Tanggal Beroperasi', 1, 4, 'date', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(52, 'MF', 'alamat', 'Alamat', 1, 5, 'textarea', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(53, 'MF', 'kode_pos', 'Kode Pos', 1, 6, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(54, 'MF', 'phone', 'Telepon', 1, 7, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(55, 'MF', 'top_level', 'Top Level Management', 1, 8, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(56, 'MF', 'mid_level', 'Mid Level Management', 1, 9, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(57, 'MF', 'sales_marketing', 'Sales & Marketing', 1, 10, 'json', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57'),
+	(58, 'MF', 'nama_perusahaan_induk', 'Nama Perusahaan Induk', 1, 11, 'text', NULL, '2025-08-14 16:30:57', '2025-08-14 16:30:57');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

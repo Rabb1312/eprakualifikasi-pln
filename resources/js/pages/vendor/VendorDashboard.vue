@@ -1,4 +1,3 @@
-<!-- resources/js/views/VendorDashboard.vue -->
 <template>
   <div class="vendor-dashboard">
     <!-- Header -->
@@ -21,20 +20,16 @@
       
       <div class="header-actions">
         <button class="btn btn-secondary" @click="logout">
-    <i class="fas fa-sign-out-alt"></i>
-    Logout
-  </button>
-  <!-- <button class="btn btn-primary" @click="saveAllData" :disabled="loading">
-    <i class="fas fa-save"></i>
-    {{ loading ? 'Saving...' : 'Save All' }}
-  </button> -->
+          <i class="fas fa-sign-out-alt"></i>
+          Logout
+        </button>
       </div>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
       <div class="spinner"></div>
-      <p>Loading subcontractor data...</p>
+      <p>Loading vendor data...</p>
     </div>
 
     <!-- Error State -->
@@ -45,11 +40,74 @@
     </div>
 
     <!-- Tab System for Subcontractor -->
-    <div v-else class="dashboard-main">
-      <!-- Tab Navigation -->
+    <div v-else-if="vendor.tipe_perusahaan === 'SC'">
+      <!-- Tab navigation & content: SUBCONTRACTOR - HARDCODE -->
+       <div class="dashboard-main">
       <div class="tab-navigation">
         <button 
           v-for="tab in subcontractorTabs" 
+          :key="tab.id"
+          :class="['tab-btn', { active: activeTab === tab.id }]"
+          @click="activeTab = tab.id"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <div class="tab-content">
+        <SubcontractorGeneral 
+          v-if="activeTab === 'general'"
+          :vendor="vendor"
+          @updated="onVendorUpdated"
+        />
+        <SubcontractorHolding 
+          v-if="activeTab === 'holding'"
+          :subcontractor-data="subcontractorData"
+          @updated="onSubcontractorUpdated"
+        />
+        <SubcontractorFacilities 
+          v-if="activeTab === 'facilities'"
+          :subcontractor-data="subcontractorData"
+          :facilities-options="facilitiesOptions"
+          @updated="onSubcontractorUpdated"
+        />
+        <SubcontractorEmployees 
+          v-if="activeTab === 'employees'"
+          :subcontractor-data="subcontractorData"
+          :employee-classifications="employeeClassifications"
+          @updated="onSubcontractorUpdated"
+        />
+        <SubcontractorScope 
+          v-if="activeTab === 'scope'"
+          :subcontractor-data="subcontractorData"
+          @updated="onSubcontractorUpdated"
+        />
+        <SubcontractorProjects 
+          v-if="activeTab === 'projects'"
+          :subcontractor-data="subcontractorData"
+          @updated="onSubcontractorUpdated"
+        />
+        <SubcontractorKnowledge 
+          v-if="activeTab === 'knowledge'"
+          :subcontractor-data="subcontractorData"
+          @updated="onSubcontractorUpdated"
+        />
+        <SubcontractorDocuments 
+          v-if="activeTab === 'documents'"
+          :subcontractor-data="subcontractorData"
+          :document-checklist="documentChecklist"
+          @updated="onSubcontractorUpdated"
+        />
+      </div>
+    </div>
+    </div>
+
+    <!-- Tab System for Distributor -->
+    <div v-else-if="vendor.tipe_perusahaan === 'DS'">
+      <div class="dashboard-main">
+      <div class="tab-navigation">
+        <button
+          v-for="tab in distributorTabs"
           :key="tab.id"
           :class="['tab-btn', { active: activeTab === tab.id }]"
           @click="activeTab = tab.id"
@@ -58,68 +116,16 @@
           <span>{{ tab.label }}</span>
         </button>
       </div>
-
-      <!-- Tab Content -->
       <div class="tab-content">
-        <!-- TAB 1: General Information -->
-        <SubcontractorGeneral 
-          v-if="activeTab === 'general'"
+        <component
+          :is="getDistributorComponent(activeTab)"
           :vendor="vendor"
-          @updated="onVendorUpdated"
-        />
-
-        <!-- TAB 2: Holding Company -->
-        <SubcontractorHolding 
-          v-if="activeTab === 'holding'"
-          :subcontractor-data="subcontractorData"
-          @updated="onSubcontractorUpdated"
-        />
-
-        <!-- TAB 3: Facilities Company -->
-        <SubcontractorFacilities 
-          v-if="activeTab === 'facilities'"
-          :subcontractor-data="subcontractorData"
-          :facilities-options="facilitiesOptions"
-          @updated="onSubcontractorUpdated"
-        />
-
-        <!-- TAB 4: Total Permanent Construction Employees -->
-        <SubcontractorEmployees 
-          v-if="activeTab === 'employees'"
-          :subcontractor-data="subcontractorData"
-          :employee-classifications="employeeClassifications"
-          @updated="onSubcontractorUpdated"
-        />
-
-        <!-- TAB 5: Scope of Work -->
-        <SubcontractorScope 
-          v-if="activeTab === 'scope'"
-          :subcontractor-data="subcontractorData"
-          @updated="onSubcontractorUpdated"
-        />
-
-        <!-- TAB 6: Major Projects 3-5 -->
-        <SubcontractorProjects 
-          v-if="activeTab === 'projects'"
-          :subcontractor-data="subcontractorData"
-          @updated="onSubcontractorUpdated"
-        />
-
-        <!-- TAB 7: Knowledgeable -->
-        <SubcontractorKnowledge 
-          v-if="activeTab === 'knowledge'"
-          :subcontractor-data="subcontractorData"
-          @updated="onSubcontractorUpdated"
-        />
-
-        <!-- TAB 8: Documents/Attachments -->
-        <SubcontractorDocuments 
-          v-if="activeTab === 'documents'"
-          :subcontractor-data="subcontractorData"
-          :document-checklist="documentChecklist"
-          @updated="onSubcontractorUpdated"
+          :distributor="distributor"
+          :options="options"
+          @save="handleDistributorSave"
         />
       </div>
+    </div>
     </div>
 
     <!-- Alert Component -->
@@ -146,6 +152,12 @@ import SubcontractorScope from './components/subcontractor/SubcontractorScope.vu
 import SubcontractorProjects from './components/subcontractor/SubcontractorProjects.vue'
 import SubcontractorKnowledge from './components/subcontractor/SubcontractorKnowledge.vue'
 import SubcontractorDocuments from './components/subcontractor/SubcontractorDocuments.vue'
+
+import DistributorGeneral from './components/distributor/DistributorGeneral.vue'
+import DistributorEngineering from './components/distributor/DistributorEngineering.vue'
+import DistributorAfterSales from './components/distributor/DistributorAfterSales.vue'
+import DistributorDocuments from './components/distributor/DistributorDocuments.vue'
+
 import AlertComponent from './components/AlertComponent.vue'
 
 const router = useRouter()
@@ -157,19 +169,34 @@ const activeTab = ref('general')
 const user = ref({})
 const vendor = ref({})
 const subcontractorData = ref({})
-const subcontractorTabs = ref([])
+const subcontractorTabs = ref([
+  {id: 'general', label: 'General Information'},
+  {id: 'holding', label: 'Holding Company'},
+  {id: 'facilities', label: 'Facilities Company'},
+  {id: 'employees', label: 'Total Permanent Construction Employees'},
+  {id: 'scope', label: 'Scope of Work'},
+  {id: 'projects', label: 'Major Projects 3-5'},
+  {id: 'knowledge', label: 'Knowledgeable'},
+  {id: 'documents', label: 'Documents/Attachments'}
+])
 const facilitiesOptions = ref({})
 const employeeClassifications = ref([])
 const documentChecklist = ref([])
 const alertMsg = ref('')
 const alertType = ref('success')
+const distributorTabs = ref([])
+const distributor = ref({})
+const options = ref({})
 
-// Axios config
 axios.defaults.baseURL = "http://eprakualifikasi-pln.test"
 
 // Computed
 const vendorTypeName = computed(() => {
-  return vendor.value.tipe_perusahaan === 'SC' ? 'Subcontractor' : 'Unknown'
+  switch (vendor.value.tipe_perusahaan) {
+    case 'SC': return 'Subcontractor'
+    case 'DS': return 'Distributor'
+    default: return 'Unknown Type'
+  }
 })
 
 const completionClass = computed(() => {
@@ -179,30 +206,10 @@ const completionClass = computed(() => {
   return 'low'
 })
 
-// Methods
+// Lifecycle & Data Load
 onMounted(async () => {
-  console.log('🚀 VendorDashboard mounted for Subcontractor')
   await loadData()
 })
-
-async function logout() {
-  try {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      await axios.post("/api/logout", null, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    }
-  } catch (error) {
-    console.error("Logout error:", error);
-  } finally {
-    // Bersihkan local storage dan redirect ke halaman login
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    router.push("/login");
-  }
-}
 
 async function loadData() {
   loading.value = true
@@ -210,8 +217,13 @@ async function loadData() {
   
   try {
     await loadUserData()
-    await loadSubcontractorTabs()
-    console.log('✅ All subcontractor data loaded successfully')
+    if (vendor.value.tipe_perusahaan === 'SC') {
+      await loadSubcontractorTabs()
+    } else if (vendor.value.tipe_perusahaan === 'DS') {
+      await loadDistributorTabs()
+    }
+    // Add more if you support other vendor types
+    console.log('✅ Vendor data loaded successfully')
   } catch (err) {
     console.error('❌ Error loading data:', err)
     error.value = err.message || 'Failed to load data'
@@ -232,21 +244,13 @@ async function loadUserData() {
       headers: { Authorization: `Bearer ${token}` }
     })
 
-    console.log('📥 User data response:', response.data)
-
     if (response.data.success) {
       user.value = response.data.data.user
       vendor.value = response.data.data.vendor || {}
-
-      // Verify this is a subcontractor
-      if (vendor.value.tipe_perusahaan !== 'SC') {
-        throw new Error('This user is not a subcontractor')
-      }
     } else {
       throw new Error('Failed to load user data')
     }
   } catch (error) {
-    console.error('❌ Load user data error:', error)
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       router.push('/login')
@@ -262,58 +266,101 @@ async function loadSubcontractorTabs() {
     const response = await axios.get('/api/vendor/subcontractor/tabs', {
       headers: { Authorization: `Bearer ${token}` }
     })
-
-    console.log('📋 Subcontractor tabs response:', response.data)
-
     if (response.data.success) {
       const data = response.data.data
-      subcontractorTabs.value = data.tabs
+      subcontractorTabs.value = data.tabs || subcontractorTabs.value
       subcontractorData.value = data.subcontractor_data || {}
       facilitiesOptions.value = data.facilities_options || {}
       employeeClassifications.value = data.employee_classifications || []
       // documentChecklist.value = data.document_checklist || []
-
-      console.log('✅ Subcontractor data loaded:', {
-        tabs: subcontractorTabs.value.length,
-        hasData: !!subcontractorData.value.id,
-        facilitiesCount: Object.keys(facilitiesOptions.value).length,
-        employeeTypes: employeeClassifications.value.length,
-        // documentsCount: documentChecklist.value.length
-      })
     } else {
       throw new Error(response.data.message || 'Failed to load subcontractor tabs')
     }
   } catch (error) {
-    console.error('❌ Load subcontractor tabs error:', error)
     throw error
   }
 }
 
+async function loadDistributorTabs() {
+  try {
+    const token = localStorage.getItem('token')
+    const res = await axios.post('/api/vendor/distributor/tabs', {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (res.data.success) {
+      distributorTabs.value = res.data.data.tabs
+      distributor.value = res.data.data.distributor
+      options.value = res.data.data.options
+      // You may want to load checklist/documents if needed
+    } else {
+      throw new Error(res.data.message || 'Failed to load distributor tabs')
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
+// Mapping distributor tab id to component
+function getDistributorComponent(tabId) {
+  switch (tabId) {
+    case 'general': return DistributorGeneral
+    case 'engineering': return DistributorEngineering
+    case 'after_sales': return DistributorAfterSales
+    case 'documents': return DistributorDocuments
+    default: return null
+  }
+}
+
+// Handler for save distributor data
+async function handleDistributorSave(data) {
+  try {
+    const token = localStorage.getItem('token')
+    const res = await axios.post('/api/vendor/distributor/update', data, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (res.data.success) {
+      distributor.value = res.data.data.distributor
+      vendor.value.completion_percentage = res.data.data.completion_percentage
+      showAlert('success', 'Distributor data updated successfully')
+      await loadDistributorTabs() // refresh tabs and completed status
+    } else {
+      showAlert('error', res.data.message)
+    }
+  } catch (err) {
+    showAlert('error', err.message || 'Failed to save distributor data')
+  }
+}
+
+// Handler for save subcontractor data
 async function onVendorUpdated(updatedVendor) {
-  console.log('🔄 Vendor data updated:', updatedVendor)
   vendor.value = { ...vendor.value, ...updatedVendor }
   showAlert('success', 'Vendor data updated successfully')
 }
 
 async function onSubcontractorUpdated(updatedData) {
-  console.log('🔄 Subcontractor data updated:', updatedData)
   subcontractorData.value = { ...subcontractorData.value, ...updatedData }
   showAlert('success', 'Subcontractor data updated successfully')
 }
 
-async function saveAllData() {
-  loading.value = true
+// Logout
+async function logout() {
   try {
-    // This would save all pending changes
-    showAlert('success', 'All data saved successfully')
+    const token = localStorage.getItem("token");
+    if (token) {
+      await axios.post("/api/logout", null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
   } catch (error) {
-    console.error('❌ Save all data error:', error)
-    showAlert('error', 'Failed to save data')
+    console.error("Logout error:", error);
   } finally {
-    loading.value = false
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
   }
 }
 
+// Alert utility
 function showAlert(type, message) {
   alertType.value = type
   alertMsg.value = message
@@ -347,7 +394,7 @@ function showAlert(type, message) {
 .vendor-avatar {
   width: 60px;
   height: 60px;
-  background: #fd7e14;
+  background: #007bff;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -376,7 +423,7 @@ function showAlert(type, message) {
 }
 
 .vendor-type {
-  background: #fd7e14;
+  background: #007bff;
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -419,7 +466,7 @@ function showAlert(type, message) {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #fd7e14;
+  border-top: 4px solid #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -431,7 +478,7 @@ function showAlert(type, message) {
 
 .dashboard-main {
   display: flex;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px); 
 }
 
 .tab-navigation {
@@ -461,9 +508,9 @@ function showAlert(type, message) {
 }
 
 .tab-btn.active {
-  background: #fd7e14;
+  background: #007bff;
   color: white;
-  border-right: 3px solid #e56b00;
+  border-right: 3px solid #0056b3;
 }
 
 .tab-btn i {
@@ -491,12 +538,12 @@ function showAlert(type, message) {
 }
 
 .btn-primary {
-  background: #fd7e14;
+  background: #007bff;
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #e56b00;
+  background: #0056b3;
 }
 
 .btn:disabled {

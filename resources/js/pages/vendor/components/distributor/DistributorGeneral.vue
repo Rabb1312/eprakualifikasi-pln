@@ -1,5 +1,5 @@
 <template>
-    <div class="subcontractor-general">
+    <div class="distributor-general">
         <div class="tab-header">
             <h3>
                 <i class="fas fa-info-circle"></i>
@@ -26,7 +26,7 @@
                     <label>Tipe Perusahaan</label>
                     <input
                         type="text"
-                        value="Subcontractor"
+                        value="Distributor"
                         readonly
                         class="readonly-input"
                     />
@@ -133,18 +133,6 @@
                     ></textarea>
                 </div>
             </div>
-
-            <!-- Contact Person Simple -->
-            <!-- <div class="form-row">
-        <div class="form-group full-width">
-          <label>Contact Person (simple)</label>
-          <input 
-            v-model="formData.contact_person"
-            type="text"
-            placeholder="Nama dan kontak yang dapat dihubungi"
-          />
-        </div>
-      </div> -->
 
             <!-- Contact Person  -->
             <div class="form-row">
@@ -403,7 +391,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, reactive, watch } from "vue";
 import axios from "axios";
 import AlertComponent from "../AlertComponent.vue";
 
@@ -426,8 +414,6 @@ const formData = reactive({
     kode_pos: "",
     website: "",
     alamat_kantor_operasional: "",
-    // Tambahan baru:
-    // contact_person: '',
     contact_person: [],
     top_level: [],
     mid_level: [],
@@ -461,8 +447,6 @@ function initializeFormData() {
     formData.website = props.vendor.website || "";
     formData.alamat_kantor_operasional =
         props.vendor.alamat_kantor_operasional || "";
-    // Tambahan:
-    // formData.contact_person = props.vendor.contact_person || ''
     formData.contact_person = props.vendor.contact_person || [];
     formData.top_level = props.vendor.top_level || [];
     formData.mid_level = props.vendor.mid_level || [];
@@ -529,7 +513,6 @@ async function saveGeneral() {
             );
         }
     } catch (error) {
-        console.error("Save general error:", error);
         showAlert(
             "error",
             error.response?.data?.message ||
@@ -550,7 +533,7 @@ function showAlert(type, message) {
 </script>
 
 <style scoped>
-.subcontractor-general {
+.distributor-general {
     max-width: 800px;
 }
 .management-row,
@@ -637,7 +620,7 @@ function showAlert(type, message) {
     color: white;
 }
 .btn-primary:hover:not(:disabled) {
-    background: #e56b00;
+    background: #0056b3;
 }
 .btn:disabled {
     opacity: 0.6;

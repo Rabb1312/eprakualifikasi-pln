@@ -503,27 +503,13 @@
 
                                                         <!-- Upload Button -->
                                                         <button
-                                                            @click="
-                                                                openUploadModal(
-                                                                    doc
-                                                                )
-                                                            "
-                                                            class="btn btn-sm btn-primary"
-                                                            :disabled="
-                                                                uploadingDocuments[
-                                                                    doc.id
-                                                                ]
-                                                            "
-                                                        >
-                                                            <i
-                                                                class="fas fa-upload"
-                                                            ></i>
-                                                            {{
-                                                                getUploadButtonText(
-                                                                    doc
-                                                                )
-                                                            }}
-                                                        </button>
+  @click="openUploadModal(doc)"
+  class="btn btn-sm btn-primary"
+  :disabled="uploadingDocuments[doc.id || doc.document_type]"
+>
+  <i class="fas fa-upload"></i>
+  {{ getUploadButtonText(doc) }}
+</button>
 
                                                         <!-- Download Button -->
                                                         <button
@@ -978,32 +964,21 @@
 
                                                     <!-- Delete Button -->
                                                     <button
-                                                        v-if="
-                                                            hasFiles(
-                                                                document
-                                                            ) &&
-                                                            canDeleteDocument(
-                                                                document
-                                                            )
-                                                        "
-                                                        @click="
-                                                            deleteDocument(
-                                                                document
-                                                            )
-                                                        "
-                                                        class="btn btn-sm btn-danger"
-                                                    >
-                                                        <i
-                                                            class="fas fa-trash"
-                                                        ></i>
-                                                        {{
-                                                            document.allows_multiple &&
-                                                            document.file_count >
-                                                                1
-                                                                ? "Delete All"
-                                                                : "Delete"
-                                                        }}
-                                                    </button>
+  v-if="hasFiles(doc) && canDeleteDocument(doc)"
+  @click="deleteDocument(doc)"
+  class="btn btn-sm btn-danger"
+  :disabled="uploadingDocuments[doc.id || doc.document_type]"
+>
+  <i class="fas fa-spinner fa-spin" v-if="uploadingDocuments[doc.id || doc.document_type]"></i>
+  <i class="fas fa-trash" v-else></i>
+  {{
+    uploadingDocuments[doc.id || doc.document_type]
+      ? 'Deleting...'
+      : doc.allows_multiple && doc.file_count > 1
+        ? 'Delete All'
+        : 'Delete'
+  }}
+</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -1052,58 +1027,83 @@
 
                     <div class="modal-body">
                         <div class="document-info-modal">
-        <h5>{{ selectedDocument?.document_name }}</h5>
-        
-        <!-- ✅ Template Instructions (Only for template documents) -->
-        <div v-if="selectedDocument?.has_template" class="template-section">
-            <div class="template-info">
-                <i class="fas fa-file-excel text-success"></i>
-                <span>Template tersedia - Anda dapat upload PDF atau Excel</span>
-            </div>
-            <a 
-                :href="selectedDocument.template_download_url" 
-                target="_blank"
-                class="btn btn-sm btn-success template-download-btn"
-            >
-                <i class="fas fa-download"></i>
-                Download Template: {{ selectedDocument.template_filename }}
-            </a>
-            <small class="template-help">
-                Untuk Excel: Download template, isi sesuai format, lalu upload. <br>
-                Untuk PDF: Upload dokumen PDF langsung.
-            </small>
-        </div>
+                            <h5>{{ selectedDocument?.document_name }}</h5>
 
-        <!-- ✅ Non-template Notice -->
-        <div v-else class="pdf-only-notice">
-            <div class="pdf-info">
-                <i class="fas fa-file-pdf text-danger"></i>
-                <span>Dokumen ini hanya menerima format PDF</span>
-            </div>
-            <small class="pdf-help">
-                Pastikan dokumen Anda dalam format PDF sebelum upload.
-            </small>
-        </div>
+                            <!-- ✅ Template Instructions (Only for template documents) -->
+                            <div
+                                v-if="selectedDocument?.has_template"
+                                class="template-section"
+                            >
+                                <div class="template-info">
+                                    <i
+                                        class="fas fa-file-excel text-success"
+                                    ></i>
+                                    <span
+                                        >Template tersedia - Anda dapat upload
+                                        PDF atau Excel</span
+                                    >
+                                </div>
+                                <a
+                                    :href="
+                                        selectedDocument.template_download_url
+                                    "
+                                    target="_blank"
+                                    class="btn btn-sm btn-success template-download-btn"
+                                >
+                                    <i class="fas fa-download"></i>
+                                    Download Template:
+                                    {{ selectedDocument.template_filename }}
+                                </a>
+                                <small class="template-help">
+                                    Untuk Excel: Download template, isi sesuai
+                                    format, lalu upload. <br />
+                                    Untuk PDF: Upload dokumen PDF langsung.
+                                </small>
+                            </div>
 
-        <div class="document-badges">
-            <span v-if="selectedDocument?.is_required" class="required-text">
-                <i class="fas fa-exclamation-circle"></i>
-                Required Document
-            </span>
-            <span v-if="selectedDocument?.allows_multiple" class="multiple-text">
-                <i class="fas fa-files"></i>
-                Multiple Files Allowed (Max {{ maxFiles }})
-            </span>
-            <span v-if="selectedDocument?.has_template" class="template-text">
-                <i class="fas fa-file-excel"></i>
-                PDF/Excel Accepted
-            </span>
-            <span v-else class="pdf-only-text">
-                <i class="fas fa-file-pdf"></i>
-                PDF Only
-            </span>
-        </div>
-    </div>
+                            <!-- ✅ Non-template Notice -->
+                            <div v-else class="pdf-only-notice">
+                                <div class="pdf-info">
+                                    <i class="fas fa-file-pdf text-danger"></i>
+                                    <span
+                                        >Dokumen ini hanya menerima format
+                                        PDF</span
+                                    >
+                                </div>
+                                <small class="pdf-help">
+                                    Pastikan dokumen Anda dalam format PDF
+                                    sebelum upload.
+                                </small>
+                            </div>
+
+                            <div class="document-badges">
+                                <span
+                                    v-if="selectedDocument?.is_required"
+                                    class="required-text"
+                                >
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    Required Document
+                                </span>
+                                <span
+                                    v-if="selectedDocument?.allows_multiple"
+                                    class="multiple-text"
+                                >
+                                    <i class="fas fa-files"></i>
+                                    Multiple Files Allowed (Max {{ maxFiles }})
+                                </span>
+                                <span
+                                    v-if="selectedDocument?.has_template"
+                                    class="template-text"
+                                >
+                                    <i class="fas fa-file-excel"></i>
+                                    PDF/Excel Accepted
+                                </span>
+                                <span v-else class="pdf-only-text">
+                                    <i class="fas fa-file-pdf"></i>
+                                    PDF Only
+                                </span>
+                            </div>
+                        </div>
 
                         <div class="upload-form">
                             <!-- Enhanced file input -->
@@ -1294,22 +1294,22 @@
                             Cancel
                         </button>
                         <button
-                            @click="uploadDocumentFiles"
-                            :disabled="
-                                !selectedFiles.length ||
-                                uploadingDocuments[selectedDocument?.id]
-                            "
-                            class="btn btn-primary"
-                        >
-                            <i class="fas fa-upload"></i>
-                            {{
-                                uploadingDocuments[selectedDocument?.id]
-                                    ? "Uploading..."
-                                    : `Upload ${selectedFiles.length} File${
-                                          selectedFiles.length > 1 ? "s" : ""
-                                      }`
-                            }}
-                        </button>
+  @click="uploadDocumentFiles"
+  :disabled="
+    !selectedFiles.length ||
+    uploadingDocuments[selectedDocument?.id || selectedDocument?.document_type]
+  "
+  class="btn btn-primary"
+>
+  <i class="fas fa-upload"></i>
+  {{
+    uploadingDocuments[selectedDocument?.id || selectedDocument?.document_type]
+      ? "Uploading..."
+      : `Upload ${selectedFiles.length} File${
+          selectedFiles.length > 1 ? "s" : ""
+        }`
+  }}
+</button>
                     </div>
                 </div>
             </div>
@@ -1322,18 +1322,36 @@
                 </h4>
                 <div class="requirements-grid">
                     <div class="requirement-item">
-    <h5>
-        <i class="fas fa-file-pdf"></i> Format Requirements
-    </h5>
-    <ul>
-        <li><strong>Default:</strong> PDF format only (max 10MB per file)</li>
-        <li><strong>Template documents:</strong> PDF or Excel (XLSX, XLS) allowed</li>
-        <li>Template documents are marked with <span class="template-badge-small">Template Available</span> badge</li>
-        <li>Use provided Excel templates for structured data documents</li>
-        <li>Multiple files allowed for certain document types</li>
-        <li>Ensure documents are clear and readable</li>
-    </ul>
-</div>
+                        <h5>
+                            <i class="fas fa-file-pdf"></i> Format Requirements
+                        </h5>
+                        <ul>
+                            <li>
+                                <strong>Default:</strong> PDF format only (max
+                                10MB per file)
+                            </li>
+                            <li>
+                                <strong>Template documents:</strong> PDF or
+                                Excel (XLSX, XLS) allowed
+                            </li>
+                            <li>
+                                Template documents are marked with
+                                <span class="template-badge-small"
+                                    >Template Available</span
+                                >
+                                badge
+                            </li>
+                            <li>
+                                Use provided Excel templates for structured data
+                                documents
+                            </li>
+                            <li>
+                                Multiple files allowed for certain document
+                                types
+                            </li>
+                            <li>Ensure documents are clear and readable</li>
+                        </ul>
+                    </div>
 
                     <div class="requirement-item">
                         <h5>
@@ -1457,52 +1475,46 @@ onMounted(async () => {
 // ✅ Enhanced methods
 // Update loadDocuments untuk auto-cleanup
 async function loadDocuments() {
-    loading.value = true;
+  loading.value = true
+  
+  // ✅ RESET: Clear upload states
+  resetAllUploadStates()
 
-    try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            showAlert("error", "Authentication required");
-            return;
-        }
-
-        // ✅ First, cleanup empty slots
-        // await cleanupEmptySlots();
-
-        const response = await axios.get(
-            `${API_BASE_URL}/api/vendor/documents?t=${Date.now()}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                    "Cache-Control": "no-cache",
-                },
-            }
-        );
-
-        console.log("📥 Documents response:", response.data);
-
-        if (response.data.success) {
-            if (response.data.data.attachments) {
-                attachments.value = response.data.data.attachments || {};
-                stats.value = response.data.data.stats || {};
-            } else {
-                documents.value = response.data.data.documents || [];
-                stats.value = response.data.data.stats || {};
-            }
-            console.log("✅ Documents loaded");
-        } else {
-            showAlert(
-                "error",
-                response.data.message || "Failed to load documents"
-            );
-        }
-    } catch (error) {
-        console.error("❌ Load documents error:", error);
-        handleApiError(error);
-    } finally {
-        loading.value = false;
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      showAlert('error', 'Authentication required')
+      return
     }
+
+    const response = await axios.get(`${API_BASE_URL}/api/vendor/documents?t=${Date.now()}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'Cache-Control': 'no-cache'
+      }
+    })
+
+    console.log('📥 Documents response:', response.data)
+
+    if (response.data.success) {
+      if (response.data.data.attachments) {
+        attachments.value = response.data.data.attachments || {}
+        stats.value = response.data.data.stats || {}
+      } else {
+        documents.value = response.data.data.documents || []
+        stats.value = response.data.data.stats || {}
+      }
+      console.log('✅ Documents loaded')
+    } else {
+      showAlert('error', response.data.message || 'Failed to load documents')
+    }
+  } catch (error) {
+    console.error('❌ Load documents error:', error)
+    handleApiError(error)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function refreshDocuments() {
@@ -1511,26 +1523,36 @@ async function refreshDocuments() {
 }
 
 function openUploadModal(document) {
-    selectedDocument.value = document;
-    selectedFiles.value = []; // ✅ Reset to empty array
-    uploadForm.expiry_date = document.expiry_date || "";
-    showUploadModal.value = true;
+  // ✅ RESET: Clear any lingering states
+  resetAllUploadStates()
+  
+  selectedDocument.value = document
+  selectedFiles.value = []
+  uploadForm.expiry_date = document.expiry_date || ''
+  showUploadModal.value = true
 
-    // Reset file input
-    if (modalFileInput.value) {
-        modalFileInput.value.value = "";
-    }
+  // Reset file input
+  if (modalFileInput.value) {
+    modalFileInput.value.value = ''
+  }
+  
+  console.log('✅ Upload modal opened for:', document.document_name)
 }
 
 function closeUploadModal() {
-    showUploadModal.value = false;
-    selectedDocument.value = null;
-    selectedFiles.value = [];
-    uploadForm.expiry_date = "";
-    uploadProgress.show = false;
-    uploadProgress.current = 0;
-    uploadProgress.total = 0;
-    uploadProgress.percentage = 0;
+  showUploadModal.value = false
+  selectedDocument.value = null
+  selectedFiles.value = []
+  uploadForm.expiry_date = ''
+  uploadProgress.show = false
+  uploadProgress.current = 0
+  uploadProgress.total = 0
+  uploadProgress.percentage = 0
+  
+  // ✅ RESET: Upload states
+  uploadingDocuments.value = {}
+  
+  console.log('✅ Modal closed and all states reset')
 }
 
 // ✅ Enhanced file selection handler
@@ -1617,78 +1639,84 @@ function removeFile(index) {
 
 // ✅ Enhanced upload function for multiple files
 async function uploadDocumentFiles() {
-    if (!selectedFiles.value.length || !selectedDocument.value) return;
+  if (!selectedFiles.value.length || !selectedDocument.value) return
 
-    const documentId = selectedDocument.value.id;
-    uploadingDocuments.value[documentId] = true;
+  // ✅ FLEXIBLE: Use either id or document_type for identifier (sama seperti DistributorDocuments)
+  const documentIdentifier = selectedDocument.value.id || selectedDocument.value.document_type
+  
+  // ✅ SET: Upload state
+  uploadingDocuments.value[documentIdentifier] = true
 
-    // Initialize progress
-    uploadProgress.show = true;
-    uploadProgress.current = 0;
-    uploadProgress.total = selectedFiles.value.length;
-    uploadProgress.percentage = 0;
+  // Initialize progress
+  uploadProgress.show = true
+  uploadProgress.current = 0
+  uploadProgress.total = selectedFiles.value.length
+  uploadProgress.percentage = 0
 
-    try {
-        const formData = new FormData();
-        formData.append("document_id", documentId);
-
-        // ✅ Append multiple files
-        selectedFiles.value.forEach((file, index) => {
-            formData.append("files[]", file); // Array notation
-
-            if (
-                selectedDocument.value.has_expiry_date &&
-                uploadForm.expiry_date
-            ) {
-                formData.append(
-                    `expiry_dates[${index}]`,
-                    uploadForm.expiry_date
-                );
-            }
-        });
-
-        const token = localStorage.getItem("token");
-        const response = await axios.post(
-            `${API_BASE_URL}/api/vendor/documents/upload`,
-            formData,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "multipart/form-data",
-                },
-                onUploadProgress: (progressEvent) => {
-                    const percentCompleted = Math.round(
-                        (progressEvent.loaded * 100) / progressEvent.total
-                    );
-                    uploadProgress.percentage = percentCompleted;
-                },
-            }
-        );
-
-        if (response.data.success) {
-            const fileCount = selectedFiles.value.length;
-            showAlert(
-                "success",
-                `${fileCount} file(s) uploaded successfully and submitted for review!`
-            );
-            closeUploadModal();
-            await loadDocuments(); // Refresh documents
-        } else {
-            showAlert(
-                "error",
-                response.data.message || "Failed to upload files"
-            );
-        }
-    } catch (error) {
-        console.error("Upload error:", error);
-        showAlert(
-            "error",
-            error.response?.data?.message || "Failed to upload files"
-        );
-    } finally {
-        uploadingDocuments.value[documentId] = false;
-        uploadProgress.show = false;
+  try {
+    const formData = new FormData()
+    
+    // ✅ SMART: Send appropriate identifier (sama seperti DistributorDocuments)
+    if (selectedDocument.value.id) {
+      // ✅ EXISTING DOCUMENT: Use document_id
+      formData.append('document_id', selectedDocument.value.id)
+    } else {
+      // ✅ TEMPLATE: Use document_type
+      formData.append('document_type', selectedDocument.value.document_type)
     }
+
+    // Append files
+    selectedFiles.value.forEach((file, index) => {
+      formData.append('files[]', file)
+
+      if (selectedDocument.value.has_expiry_date && uploadForm.expiry_date) {
+        formData.append(`expiry_dates[${index}]`, uploadForm.expiry_date)
+      }
+    })
+
+    const token = localStorage.getItem('token')
+    const response = await axios.post(`${API_BASE_URL}/api/vendor/documents/upload`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      },
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        uploadProgress.percentage = percentCompleted
+      }
+    })
+
+    if (response.data.success) {
+      const fileCount = selectedFiles.value.length
+      showAlert('success', `${fileCount} file(s) uploaded successfully and submitted for review!`)
+      
+      // ✅ CLEANUP: Close modal and reset states
+      closeUploadModal()
+      
+      // ✅ REFRESH: Load documents
+      await loadDocuments()
+    } else {
+      showAlert('error', response.data.message || 'Failed to upload files')
+    }
+  } catch (error) {
+    console.error('Upload error:', error)
+    showAlert('error', error.response?.data?.message || 'Failed to upload files')
+  } finally {
+    // ✅ CRITICAL: Always reset upload state
+    uploadingDocuments.value[documentIdentifier] = false
+    uploadProgress.show = false
+    
+    // ✅ FORCE: Reactivity update
+    uploadingDocuments.value = { ...uploadingDocuments.value }
+    
+    console.log('✅ Upload state reset for:', documentIdentifier)
+  }
+}
+
+
+function resetAllUploadStates() {
+  uploadingDocuments.value = {}
+  console.log('✅ All upload states reset')
 }
 
 // ✅ Download document (works for both single and multiple files)
@@ -1721,42 +1749,89 @@ async function downloadDocument(doc) {
 
 // ✅ Delete document (handle both single and multiple)
 async function deleteDocument(document) {
-    const message =
-        document.allows_multiple && document.file_count > 1
-            ? `Are you sure you want to delete all ${document.file_count} files for "${document.document_name}"?`
-            : `Are you sure you want to delete "${document.document_name}"?`;
-
-    if (!confirm(message)) return;
-
     try {
-        const token = localStorage.getItem("token");
-        const response = await axios.delete(
-            `${API_BASE_URL}/api/vendor/documents/${document.id}`,
-            {
-                headers: { Authorization: `Bearer ${token}` },
+        // ✅ ENHANCED: Get accurate count of deleteable files
+        const deleteableCount = await getDeleteableFilesCount(document)
+        
+        let message
+        if (document.allows_multiple) {
+            if (deleteableCount > 1) {
+                message = `Are you sure you want to delete all ${deleteableCount} files for "${document.document_name}"? This action cannot be undone.`
+            } else if (deleteableCount === 1) {
+                message = `Are you sure you want to delete the file for "${document.document_name}"?`
+            } else {
+                showAlert('info', 'No files to delete')
+                return
             }
-        );
+        } else {
+            message = `Are you sure you want to delete "${document.document_name}"?`
+        }
+
+        if (!confirm(message)) return
+
+        // ✅ LOADING STATE: Show loading during deletion
+        const deleteButtonKey = document.id || document.document_type
+        uploadingDocuments.value[deleteButtonKey] = true
+
+        const token = localStorage.getItem('token')
+        const response = await axios.delete(`${API_BASE_URL}/api/vendor/documents/${document.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
 
         if (response.data.success) {
-            showAlert(
-                "success",
-                response.data.message || "Document(s) deleted successfully"
-            );
-            await loadDocuments();
+            let successMessage = response.data.message || 'Document(s) deleted successfully'
+            
+            // ✅ ENHANCED: Show specific message for multiple files
+            if (response.data.data?.deleted_count) {
+                const count = response.data.data.deleted_count
+                successMessage = `Successfully deleted ${count} file${count > 1 ? 's' : ''} for "${document.document_name}"`
+            }
+
+            showAlert('success', successMessage)
+            await loadDocuments()
         } else {
-            showAlert(
-                "error",
-                response.data.message || "Failed to delete document"
-            );
+            showAlert('error', response.data.message || 'Failed to delete document')
         }
     } catch (error) {
-        console.error("Delete error:", error);
-        showAlert(
-            "error",
-            error.response?.data?.message || "Failed to delete document"
-        );
+        console.error('Delete error:', error)
+        showAlert('error', error.response?.data?.message || 'Failed to delete document')
+    } finally {
+        // ✅ RESET: Loading state
+        const deleteButtonKey = document.id || document.document_type
+        uploadingDocuments.value[deleteButtonKey] = false
     }
 }
+
+// ✅ TAMBAH: Helper function untuk get deleteable files count
+async function getDeleteableFilesCount(document) {
+    try {
+        if (!document.allows_multiple) {
+            return document.file_name ? 1 : 0
+        }
+
+        // For multiple files, get accurate count from server
+        const token = localStorage.getItem('token')
+        const response = await axios.get(`${API_BASE_URL}/api/vendor/documents/${document.id}/deleteable-count`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+
+        if (response.data.success) {
+            return response.data.data.deleteable_count
+        }
+
+        // Fallback to client-side count
+        return document.all_files?.filter(file => file.status !== 'approved').length || 0
+
+    } catch (error) {
+        console.error('Error getting deleteable count:', error)
+        // Fallback to client-side count
+        if (document.allows_multiple) {
+            return document.all_files?.filter(file => file.status !== 'approved').length || 0
+        }
+        return document.file_name ? 1 : 0
+    }
+}
+
 
 // ✅ Delete specific file (for multiple upload documents)
 async function deleteSpecificFile(file) {
@@ -1803,29 +1878,31 @@ function getRowClass(document) {
 }
 
 function getUploadButtonText(document) {
-    if (document.allows_multiple) {
-        return document.file_count > 0 ? "Add More" : "Upload Files";
-    } else {
-        return document.file_name ? "Re-upload" : "Upload";
-    }
+  if (document.allows_multiple) {
+    return (document.file_count > 0 || document.all_files?.length > 0) ? 'Add More' : 'Upload Files'
+  } else {
+    return document.file_name ? 'Re-upload' : 'Upload'
+  }
 }
 
 function hasFiles(document) {
-    if (document.allows_multiple) {
-        return document.file_count > 0;
-    } else {
-        return document.file_name;
-    }
+  if (document.allows_multiple) {
+    return (document.file_count > 0) || (document.all_files?.length > 0)
+  } else {
+    return !!document.file_name
+  }
 }
 
 function canDeleteDocument(document) {
+    // Template documents (no ID) cannot be deleted
+    if (!document.id) return false
+    
     if (document.allows_multiple) {
-        return (
-            document.all_files?.some((file) => file.status !== "approved") ||
-            false
-        );
+        // For multiple files, check if any non-approved files exist
+        return document.all_files?.some(file => file.status !== 'approved') || false
     } else {
-        return document.status !== "approved";
+        // For single files, check if not approved
+        return document.status !== 'approved'
     }
 }
 
@@ -1887,6 +1964,19 @@ function showAlert(type, message) {
         alertMsg.value = "";
     }, 5000);
 }
+
+function checkButtonState(document) {
+  const identifier = document.id || document.document_type
+  const isUploading = uploadingDocuments.value[identifier]
+  
+  console.log(`🔲 Button state for ${document.document_name}:`, {
+    identifier,
+    isUploading,
+    disabled: isUploading
+  })
+  
+  return isUploading
+}
 </script>
 
 <style scoped>
@@ -1932,7 +2022,7 @@ function showAlert(type, message) {
     width: 40px;
     height: 40px;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #fd7e14;
+    border-top: 4px solid #007bff;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -2316,9 +2406,9 @@ function showAlert(type, message) {
 }
 
 .btn-primary {
-    background: #fd7e14;
+    background: #007bff;
     color: white;
-    border: 1px solid #fd7e14;
+    border: 1px solid #007bff;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -2591,7 +2681,7 @@ function showAlert(type, message) {
 }
 
 .file-input-container:hover {
-    border-color: #fd7e14;
+    border-color: #007bff;
     background: #fff8f0;
 }
 
@@ -2646,7 +2736,7 @@ function showAlert(type, message) {
 
 .date-input:focus {
     outline: none;
-    border-color: #fd7e14;
+    border-color: #007bff;
     box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
 }
 
@@ -2827,7 +2917,7 @@ function showAlert(type, message) {
 
 .requirement-item li:before {
     content: "•";
-    color: #fd7e14;
+    color: #007bff;
     position: absolute;
     left: 0;
     font-weight: bold;
@@ -2927,9 +3017,9 @@ function showAlert(type, message) {
 }
 
 .tab-btn.active {
-    color: #fd7e14;
+    color: #007bff;
     background: white;
-    border-bottom-color: #fd7e14;
+    border-bottom-color: #007bff;
 }
 
 .tab-count {

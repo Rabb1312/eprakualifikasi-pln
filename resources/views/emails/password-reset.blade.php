@@ -6,66 +6,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password PLN E-Prakualifikasi</title>
     <style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
 
-    .container {
-        max-width: 600px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
-    .header {
-        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
-        color: white;
-        padding: 30px;
-        text-align: center;
-    }
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #007bff 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
 
-    .content {
-        padding: 40px 30px;
-    }
+        .content {
+            padding: 40px 30px;
+        }
 
-    .btn {
-        display: inline-block;
-        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
-        color: white !important;
-        padding: 15px 30px;
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: bold;
-        text-align: center;
-        margin: 20px 0;
-    }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #dc3545 0%, #007bff 100%);
+            color: white !important;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
 
-    .btn:hover {
-        background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);
-    }
+        .btn:hover {
+            background: linear-gradient(135deg, #007bff 0%, #dc3545 100%);
+        }
 
-    .warning {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        color: #856404;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 20px 0;
-    }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
 
-    .footer {
-        background-color: #f8f9fa;
-        padding: 20px 30px;
-        text-align: center;
-        font-size: 12px;
-        color: #666;
-    }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
     </style>
 </head>
 
