@@ -36,12 +36,18 @@ Route::middleware(['api'])->group(function () {
         Route::get('/profile', [VendorController::class, 'show']);
         Route::put('/profile', [VendorController::class, 'update']);
         Route::get('/field-mappings', [VendorController::class, 'getFieldMappings']);
-        // ✅  Subcontractor specific routes
+        // Subcontractor specific routes
         Route::get('/subcontractor/tabs', [VendorController::class, 'getSubcontractorTabs']);
         Route::put('/subcontractor', [VendorController::class, 'updateSubcontractor']);
         //Distributor specific routes
-        Route::post('/distributor/tabs', [VendorController::class, 'getDistributorTabs']);
-        Route::post('/distributor/update', [VendorController::class, 'updateDistributorData']);
+        Route::get('/distributor/tabs', [VendorController::class, 'getDistributorTabs']);
+        Route::put('/distributor', [VendorController::class, 'updateDistributor']);
+        // Forwarder specific routes
+        Route::get('/forwarder/tabs', [VendorController::class, 'getForwarderTabs']);
+        Route::put('/forwarder', [VendorController::class, 'updateForwarder']);
+        // Manufacture specific routes
+        Route::get('/manufacture/tabs', [VendorController::class, 'getManufactureTabs']);
+        Route::put('/manufacture', [VendorController::class, 'updateManufacture']);
     });
 
     // ✅ FIXED: Document routes with proper structure

@@ -1,13 +1,13 @@
 <template>
-  <div class="subcontractor-documents">
+  <div class="manufacture-documents">
     <div class="tab-header">
       <h3>
         <i class="fas fa-file-alt"></i>
         Attachment/Documents
       </h3>
       <p>
-        Document checklist and submission status for subcontractor qualification.<br>
-        Daftar dokumen dan status pengajuan untuk kualifikasi subcontractor.
+        Document checklist and submission status for manufacture qualification.<br>
+        Daftar dokumen dan status pengajuan untuk kualifikasi manufacture.
       </p>
     </div>
     <div v-if="loading" class="loading-container">

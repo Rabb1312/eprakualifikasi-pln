@@ -154,20 +154,6 @@ class Subcontractor extends Model
             ];
         }
 
-        // Initialize documents checklist
-        // if (empty($this->documents)) {
-        //     $documents = [];
-        //     foreach (self::getDocumentChecklist() as $doc) {
-        //         $documents[] = [
-        //             'name' => $doc['name'],
-        //             'required' => $doc['required'],
-        //             'submitted' => false,
-        //             'remark' => ''
-        //         ];
-        //     }
-        //     $this->documents = $documents;
-        // }
-
         $this->save();
     }
 }

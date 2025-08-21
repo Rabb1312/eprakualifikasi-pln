@@ -57,7 +57,7 @@ export default {
   },
   methods: {
     async fetchTabs() {
-      const res = await this.$axios.post('/api/vendor/distributor/tabs')
+      const res = await this.$axios.get('/api/vendor/distributor/tabs')
       if (res.data.success) {
         this.tabs = res.data.data.tabs
         this.vendor = res.data.data.vendor
@@ -67,7 +67,7 @@ export default {
       }
     },
     async updateDistributor(formData) {
-      const res = await this.$axios.post('/api/vendor/distributor/update', formData)
+      const res = await this.$axios.put('/api/vendor/distributor', formData)
       if (res.data.success) {
         this.distributor = res.data.data.distributor
         this.completion_percentage = res.data.data.completion_percentage

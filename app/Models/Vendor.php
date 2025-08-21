@@ -350,14 +350,14 @@ class Vendor extends Model
         return $totalFields > 0 ? round(($filledFields / $totalFields) * 100, 2) : 0;
     }
 
-    public function manufacturer()
+    public function manufacture()
     {
-        // return $this->hasOne(Manufacturer::class); // untuk future implementation
+        return $this->hasOne(Manufacture::class);
     }
 
     public function forwarder()
     {
-        // return $this->hasOne(Forwarder::class); // untuk future implementation
+        return $this->hasOne(Forwarder::class);
     }
 
     public function getTypeSpecificData()

@@ -6,6 +6,7 @@ use App\Models\Vendor;
 use App\Models\User;
 use App\Models\Subcontractor;
 use App\Models\Distributor;
+use App\Models\Forwarder;
 use App\Models\VendorDocument;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -827,22 +828,32 @@ class VendorController extends Controller
     }
 
     // ✅ TAMBAH: Method untuk merge templates dengan uploaded documents
-private function mergeTemplatesWithUploaded($templates, $uploadedDocuments)
-{
-    $uploadedByType = $uploadedDocuments->groupBy('document_type');
-    $merged = [];
+    private function mergeTemplatesWithUploaded($templates, $uploadedDocuments)
+    {
+        $uploadedByType = $uploadedDocuments->groupBy('document_type');
+        $merged = [];
 
-    foreach ($templates as $template) {
-        $documentType = $template['type'];
-        
-        if (isset($uploadedByType[$documentType])) {
-            // ✅ ADA DOKUMEN: Use uploaded document data
-            $uploaded = $uploadedByType[$documentType];
-            
-            if ($template['allows_multiple'] ?? false) {
-                // Multiple files - process each one
-                foreach ($uploaded as $doc) {
-                    $mapped = $this->mapDocumentData($doc);
+        foreach ($templates as $template) {
+            $documentType = $template['type'];
+
+            if (isset($uploadedByType[$documentType])) {
+                // ✅ ADA DOKUMEN: Use uploaded document data
+                $uploaded = $uploadedByType[$documentType];
+
+                if ($template['allows_multiple'] ?? false) {
+                    // Multiple files - process each one
+                    foreach ($uploaded as $doc) {
+                        $mapped = $this->mapDocumentData($doc);
+                        // ✅ ENSURE: Template info is preserved
+                        $mapped['has_template'] = $template['has_template'] ?? false;
+                        $mapped['template_url'] = $template['template_url'] ?? null;
+                        $mapped['template_download_url'] = $template['template_download_url'] ?? null;
+                        $mapped['template_filename'] = $template['template_filename'] ?? null;
+                        $merged[] = $mapped;
+                    }
+                } else {
+                    // Single file
+                    $mapped = $this->mapDocumentData($uploaded->first());
                     // ✅ ENSURE: Template info is preserved
                     $mapped['has_template'] = $template['has_template'] ?? false;
                     $mapped['template_url'] = $template['template_url'] ?? null;
@@ -851,278 +862,269 @@ private function mergeTemplatesWithUploaded($templates, $uploadedDocuments)
                     $merged[] = $mapped;
                 }
             } else {
-                // Single file
-                $mapped = $this->mapDocumentData($uploaded->first());
-                // ✅ ENSURE: Template info is preserved
-                $mapped['has_template'] = $template['has_template'] ?? false;
-                $mapped['template_url'] = $template['template_url'] ?? null;
-                $mapped['template_download_url'] = $template['template_download_url'] ?? null;
-                $mapped['template_filename'] = $template['template_filename'] ?? null;
-                $merged[] = $mapped;
-            }
-        } else {
-            // ✅ BELUM ADA: Use template placeholder
-            $merged[] = [
-                // ✅ NO ID - indicates it's a template
-                'document_type' => $template['type'],
-                'document_name' => $template['name'],
-                'document_subtitle' => $template['subtitle'] ?? '',
-                'document_number' => $template['number'],
-                'is_required' => $template['required'] ?? false,
-                'has_expiry_date' => $template['has_expiry'] ?? false,
-                'allows_multiple' => $template['allows_multiple'] ?? false,
-                'has_template' => $template['has_template'] ?? false,
-                'template_url' => $template['template_url'] ?? null,
-                'template_download_url' => $template['template_download_url'] ?? null,
-                'template_filename' => $template['template_filename'] ?? null,
-                'status' => 'not_uploaded',
-                'status_badge' => ['class' => 'secondary', 'icon' => 'fa-upload', 'text' => 'Not Uploaded'],
-                'file_name' => null,
-                'file_size' => null,
-                'file_url' => null,
-                'expiry_date' => null,
-                'is_expired' => false,
-                'is_expiring_soon' => false,
-                'admin_notes' => null,
-                'rejection_reason' => null,
-                'version' => 1,
-                'sub_index' => 0,
-                'group' => $template['group'] ?? null,
-                'group_name' => $template['group_name'] ?? null,
-                'parent_type' => $template['parent_type'] ?? null,
-                'all_files' => [],
-                'file_count' => 0
-            ];
-        }
-    }
-
-    Log::info('Merged documents', [
-        'total_merged' => count($merged),
-        'with_id' => collect($merged)->filter(function($doc) { return isset($doc['id']); })->count(),
-        'templates' => collect($merged)->filter(function($doc) { return !isset($doc['id']); })->count()
-    ]);
-
-    return $merged;
-}
-
-private function processMergedDocumentsByGroup($docs, &$attachment)
-{
-    try {
-        $documentsByGroup = collect($docs)->groupBy('group');
-        $groupedDocuments = [];
-        $allDocuments = [];
-
-        foreach ($documentsByGroup as $group => $groupDocs) {
-            if (empty($group)) continue;
-
-            $groupDocuments = [];
-
-            // ✅ PROCESS: Each document in group (both template and uploaded)
-            foreach ($groupDocs as $doc) {
-                if (is_array($doc)) {
-                    // ✅ ARRAY: Already processed document
-                    $processedDoc = $doc;
-                } else {
-                    // ✅ MODEL: Uploaded document
-                    $processedDoc = $this->mapDocumentData($doc);
-                }
-
-                $groupDocuments[] = $processedDoc;
-                $allDocuments[] = $processedDoc;
-            }
-
-            // Sort by document number within the group
-            usort($groupDocuments, function ($a, $b) {
-                return version_compare($a['document_number'], $b['document_number']);
-            });
-
-            $groupName = $groupDocs->first()['group_name'] ?? 
-                         (is_array($groupDocs->first()) ? $groupDocs->first()['group_name'] : $groupDocs->first()->group_name) ?? 
-                         "Group $group";
-            
-            if (!empty($groupDocuments)) {
-                $groupedDocuments[$group] = [
-                    'group_number' => $group,
-                    'group_name' => $groupName,
-                    'documents' => $groupDocuments
+                // ✅ BELUM ADA: Use template placeholder
+                $merged[] = [
+                    // ✅ NO ID - indicates it's a template
+                    'document_type' => $template['type'],
+                    'document_name' => $template['name'],
+                    'document_subtitle' => $template['subtitle'] ?? '',
+                    'document_number' => $template['number'],
+                    'is_required' => $template['required'] ?? false,
+                    'has_expiry_date' => $template['has_expiry'] ?? false,
+                    'allows_multiple' => $template['allows_multiple'] ?? false,
+                    'has_template' => $template['has_template'] ?? false,
+                    'template_url' => $template['template_url'] ?? null,
+                    'template_download_url' => $template['template_download_url'] ?? null,
+                    'template_filename' => $template['template_filename'] ?? null,
+                    'status' => 'not_uploaded',
+                    'status_badge' => ['class' => 'secondary', 'icon' => 'fa-upload', 'text' => 'Not Uploaded'],
+                    'file_name' => null,
+                    'file_size' => null,
+                    'file_url' => null,
+                    'expiry_date' => null,
+                    'is_expired' => false,
+                    'is_expiring_soon' => false,
+                    'admin_notes' => null,
+                    'rejection_reason' => null,
+                    'version' => 1,
+                    'sub_index' => 0,
+                    'group' => $template['group'] ?? null,
+                    'group_name' => $template['group_name'] ?? null,
+                    'parent_type' => $template['parent_type'] ?? null,
+                    'all_files' => [],
+                    'file_count' => 0
                 ];
             }
         }
 
-        // Sort groups by their number
-        ksort($groupedDocuments);
-
-        $attachment['documents'] = $allDocuments;
-        $attachment['grouped_documents'] = $groupedDocuments;
-
-        Log::info('Processed merged documents', [
-            'groups' => count($groupedDocuments),
-            'total_documents' => count($allDocuments)
-        ]);
-        
-    } catch (\Exception $e) {
-        Log::error('Error processing merged documents by group: ' . $e->getMessage());
-        $attachment['documents'] = [];
-        $attachment['grouped_documents'] = [];
-    }
-}
-
-
-// ✅ TAMBAH: Process grouped documents untuk template
-private function processTemplateGroupedDocuments($docs, &$attachment)
-{
-    try {
-        $documentsByGroup = collect($docs)->groupBy('group');
-        $groupedDocuments = [];
-        $allDocuments = [];
-
-        foreach ($documentsByGroup as $group => $groupDocs) {
-            if (empty($group)) continue;
-
-            $groupDocuments = [];
-
-            foreach ($groupDocs as $doc) {
-                $groupDocuments[] = $doc;
-                $allDocuments[] = $doc;
-            }
-
-            // Sort by document number within the group
-            usort($groupDocuments, function ($a, $b) {
-                return version_compare($a['document_number'], $b['document_number']);
-            });
-
-            $groupName = $groupDocs->first()['group_name'] ?? "Group $group";
-            
-            if (!empty($groupDocuments)) {
-                $groupedDocuments[$group] = [
-                    'group_number' => $group,
-                    'group_name' => $groupName,
-                    'documents' => $groupDocuments
-                ];
-            }
-        }
-
-        // Sort groups by their number
-        ksort($groupedDocuments);
-
-        $attachment['documents'] = $allDocuments;
-        $attachment['grouped_documents'] = $groupedDocuments;
-        
-    } catch (\Exception $e) {
-        Log::error('Error processing template grouped documents: ' . $e->getMessage());
-        $attachment['documents'] = [];
-        $attachment['grouped_documents'] = [];
-    }
-}
-
-// ✅ UBAH: Upload method untuk create document saat upload
-public function uploadDocument(Request $request)
-{
-    try {
-        $user = $this->authenticateToken($request);
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $vendor = $user->vendor;
-        if (!$vendor) {
-            return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
-        }
-
-        // ✅ FLEXIBLE: Handle both document_id and document_type
-        $documentId = $request->input('document_id');
-        $documentType = $request->input('document_type');
-
-        if (!$documentId && !$documentType) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Either document_id or document_type is required'
-            ], 422);
-        }
-
-        // ✅ GET OR CREATE: Document
-        if ($documentId) {
-            // ✅ EXISTING: Get existing document
-            $baseDocument = VendorDocument::where('id', $documentId)
-                ->where('vendor_id', $vendor->id)
-                ->first();
-
-            if (!$baseDocument) {
-                return response()->json(['success' => false, 'message' => 'Document not found'], 404);
-            }
-        } else {
-            // ✅ NEW: Create document from template
-            $baseDocument = VendorDocument::createDocumentOnUpload(
-                $vendor->id, 
-                $documentType, 
-                $vendor->tipe_perusahaan
-            );
-        }
-
-        // ✅ DYNAMIC VALIDATION: Based on template
-        $allowedMimes = $baseDocument->has_template ? 'pdf,xlsx,xls' : 'pdf';
-        
-        $validator = Validator::make($request->all(), [
-            'files' => 'required|array|min:1',
-            'files.*' => "required|file|max:10240|mimes:$allowedMimes",
-            'expiry_dates' => 'sometimes|array',
-            'expiry_dates.*' => 'nullable|date|after:today',
-            'descriptions' => 'sometimes|array',
-            'descriptions.*' => 'nullable|string|max:500'
+        Log::info('Merged documents', [
+            'total_merged' => count($merged),
+            'with_id' => collect($merged)->filter(function ($doc) {
+                return isset($doc['id']);
+            })->count(),
+            'templates' => collect($merged)->filter(function ($doc) {
+                return !isset($doc['id']);
+            })->count()
         ]);
 
-        if ($validator->fails()) {
-            $errorMessage = $baseDocument->has_template
-                ? 'Only PDF and Excel files (XLSX, XLS) are allowed for template documents. Max 10MB per file.'
-                : 'Only PDF files are allowed. Max 10MB per file.';
+        return $merged;
+    }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed: ' . $errorMessage,
-                'errors' => $validator->errors()
-            ], 422);
-        }
+    private function processMergedDocumentsByGroup($docs, &$attachment)
+    {
+        try {
+            $documentsByGroup = collect($docs)->groupBy('group');
+            $groupedDocuments = [];
+            $allDocuments = [];
 
-        $files = $request->file('files');
-        $expiryDates = $request->input('expiry_dates', []);
-        $descriptions = $request->input('descriptions', []);
-        $uploadedDocuments = [];
+            foreach ($documentsByGroup as $group => $groupDocs) {
+                if (empty($group)) continue;
 
-        // ✅ UPLOAD LOGIC: Same as before
-        if ($baseDocument->allows_multiple) {
-            foreach ($files as $index => $file) {
-                if ($index == 0 && !$baseDocument->isUploaded()) {
-                    $document = $baseDocument;
-                } else {
-                    $document = $this->createMultipleDocumentSlot($baseDocument, $index);
+                $groupDocuments = [];
+
+                // ✅ PROCESS: Each document in group (both template and uploaded)
+                foreach ($groupDocs as $doc) {
+                    if (is_array($doc)) {
+                        // ✅ ARRAY: Already processed document
+                        $processedDoc = $doc;
+                    } else {
+                        // ✅ MODEL: Uploaded document
+                        $processedDoc = $this->mapDocumentData($doc);
+                    }
+
+                    $groupDocuments[] = $processedDoc;
+                    $allDocuments[] = $processedDoc;
                 }
 
-                $this->uploadSingleFile($document, $file, $vendor->id, $expiryDates[$index] ?? null, $descriptions[$index] ?? null);
-                $uploadedDocuments[] = $this->formatDocumentResponse($document->fresh());
-            }
-        } else {
-            if (count($files) > 1) {
-                return response()->json(['success' => false, 'message' => 'This document type only allows single file upload'], 400);
+                // Sort by document number within the group
+                usort($groupDocuments, function ($a, $b) {
+                    return version_compare($a['document_number'], $b['document_number']);
+                });
+
+                $groupName = $groupDocs->first()['group_name'] ??
+                    (is_array($groupDocs->first()) ? $groupDocs->first()['group_name'] : $groupDocs->first()->group_name) ??
+                    "Group $group";
+
+                if (!empty($groupDocuments)) {
+                    $groupedDocuments[$group] = [
+                        'group_number' => $group,
+                        'group_name' => $groupName,
+                        'documents' => $groupDocuments
+                    ];
+                }
             }
 
-            $this->uploadSingleFile($baseDocument, $files[0], $vendor->id, $expiryDates[0] ?? null, $descriptions[0] ?? null);
-            $uploadedDocuments[] = $this->formatDocumentResponse($baseDocument->fresh());
+            // Sort groups by their number
+            ksort($groupedDocuments);
+
+            $attachment['documents'] = $allDocuments;
+            $attachment['grouped_documents'] = $groupedDocuments;
+
+            Log::info('Processed merged documents', [
+                'groups' => count($groupedDocuments),
+                'total_documents' => count($allDocuments)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error processing merged documents by group: ' . $e->getMessage());
+            $attachment['documents'] = [];
+            $attachment['grouped_documents'] = [];
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => count($uploadedDocuments) . ' file(s) uploaded successfully',
-            'data' => $uploadedDocuments
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Upload document error: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to upload documents: ' . $e->getMessage()
-        ], 500);
     }
-}
+
+
+    // ✅ TAMBAH: Process grouped documents untuk template
+    private function processTemplateGroupedDocuments($docs, &$attachment)
+    {
+        try {
+            $documentsByGroup = collect($docs)->groupBy('group');
+            $groupedDocuments = [];
+            $allDocuments = [];
+
+            foreach ($documentsByGroup as $group => $groupDocs) {
+                if (empty($group)) continue;
+
+                $groupDocuments = [];
+
+                foreach ($groupDocs as $doc) {
+                    $groupDocuments[] = $doc;
+                    $allDocuments[] = $doc;
+                }
+
+                // Sort by document number within the group
+                usort($groupDocuments, function ($a, $b) {
+                    return version_compare($a['document_number'], $b['document_number']);
+                });
+
+                $groupName = $groupDocs->first()['group_name'] ?? "Group $group";
+
+                if (!empty($groupDocuments)) {
+                    $groupedDocuments[$group] = [
+                        'group_number' => $group,
+                        'group_name' => $groupName,
+                        'documents' => $groupDocuments
+                    ];
+                }
+            }
+
+            // Sort groups by their number
+            ksort($groupedDocuments);
+
+            $attachment['documents'] = $allDocuments;
+            $attachment['grouped_documents'] = $groupedDocuments;
+        } catch (\Exception $e) {
+            Log::error('Error processing template grouped documents: ' . $e->getMessage());
+            $attachment['documents'] = [];
+            $attachment['grouped_documents'] = [];
+        }
+    }
+
+    // ✅ UBAH: Upload method untuk create document saat upload
+    public function uploadDocument(Request $request)
+    {
+        try {
+            $user = $this->authenticateToken($request);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $vendor = $user->vendor;
+            if (!$vendor) {
+                return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
+            }
+
+            // ✅ FLEXIBLE: Handle both document_id and document_type
+            $documentId = $request->input('document_id');
+            $documentType = $request->input('document_type');
+
+            if (!$documentId && !$documentType) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Either document_id or document_type is required'
+                ], 422);
+            }
+
+            // ✅ GET OR CREATE: Document
+            if ($documentId) {
+                // ✅ EXISTING: Get existing document
+                $baseDocument = VendorDocument::where('id', $documentId)
+                    ->where('vendor_id', $vendor->id)
+                    ->first();
+
+                if (!$baseDocument) {
+                    return response()->json(['success' => false, 'message' => 'Document not found'], 404);
+                }
+            } else {
+                // ✅ NEW: Create document from template
+                $baseDocument = VendorDocument::createDocumentOnUpload(
+                    $vendor->id,
+                    $documentType,
+                    $vendor->tipe_perusahaan
+                );
+            }
+
+            // ✅ DYNAMIC VALIDATION: Based on template
+            $allowedMimes = $baseDocument->has_template ? 'pdf,xlsx,xls' : 'pdf';
+
+            $validator = Validator::make($request->all(), [
+                'files' => 'required|array|min:1',
+                'files.*' => "required|file|max:10240|mimes:$allowedMimes",
+                'expiry_dates' => 'sometimes|array',
+                'expiry_dates.*' => 'nullable|date|after:today',
+                'descriptions' => 'sometimes|array',
+                'descriptions.*' => 'nullable|string|max:500'
+            ]);
+
+            if ($validator->fails()) {
+                $errorMessage = $baseDocument->has_template
+                    ? 'Only PDF and Excel files (XLSX, XLS) are allowed for template documents. Max 10MB per file.'
+                    : 'Only PDF files are allowed. Max 10MB per file.';
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed: ' . $errorMessage,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $files = $request->file('files');
+            $expiryDates = $request->input('expiry_dates', []);
+            $descriptions = $request->input('descriptions', []);
+            $uploadedDocuments = [];
+
+            // ✅ UPLOAD LOGIC: Same as before
+            if ($baseDocument->allows_multiple) {
+                foreach ($files as $index => $file) {
+                    if ($index == 0 && !$baseDocument->isUploaded()) {
+                        $document = $baseDocument;
+                    } else {
+                        $document = $this->createMultipleDocumentSlot($baseDocument, $index);
+                    }
+
+                    $this->uploadSingleFile($document, $file, $vendor->id, $expiryDates[$index] ?? null, $descriptions[$index] ?? null);
+                    $uploadedDocuments[] = $this->formatDocumentResponse($document->fresh());
+                }
+            } else {
+                if (count($files) > 1) {
+                    return response()->json(['success' => false, 'message' => 'This document type only allows single file upload'], 400);
+                }
+
+                $this->uploadSingleFile($baseDocument, $files[0], $vendor->id, $expiryDates[0] ?? null, $descriptions[0] ?? null);
+                $uploadedDocuments[] = $this->formatDocumentResponse($baseDocument->fresh());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => count($uploadedDocuments) . ' file(s) uploaded successfully',
+                'data' => $uploadedDocuments
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Upload document error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload documents: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function downloadDocument(Request $request, $documentId)
     {
@@ -1187,175 +1189,172 @@ public function uploadDocument(Request $request)
     }
 
     public function deleteDocument(Request $request, $documentId)
-{
-    try {
-        $user = $this->authenticateToken($request);
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $vendor = $user->vendor;
-        if (!$vendor) {
-            return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
-        }
-
-        $document = VendorDocument::where('id', $documentId)
-            ->where('vendor_id', $vendor->id)
-            ->first();
-
-        if (!$document) {
-            return response()->json(['success' => false, 'message' => 'Document not found'], 404);
-        }
-
-        if ($document->status === 'approved') {
-            return response()->json(['success' => false, 'message' => 'Cannot delete approved document'], 400);
-        }
-
-        // ✅ NEW LOGIC: Handle multiple files deletion
-        if ($document->allows_multiple) {
-            // Get all documents with same document_type and vendor_id
-            $allDocuments = VendorDocument::where('vendor_id', $document->vendor_id)
-                ->where('document_type', $document->document_type)
-                ->get();
-
-            $deletedCount = 0;
-            $filesDeleted = [];
-
-            foreach ($allDocuments as $doc) {
-                // Skip approved documents
-                if ($doc->status === 'approved') {
-                    continue;
-                }
-
-                // Delete file from storage if exists
-                if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
-                    Storage::disk('public')->delete($doc->file_path);
-                    $filesDeleted[] = $doc->file_name;
-                }
-
-                // Delete the document record
-                $doc->delete();
-                $deletedCount++;
+    {
+        try {
+            $user = $this->authenticateToken($request);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
             }
 
-            Log::info('Multiple documents deleted', [
-                'vendor_id' => $vendor->id,
-                'document_type' => $document->document_type,
-                'deleted_count' => $deletedCount,
-                'files_deleted' => $filesDeleted
-            ]);
+            $vendor = $user->vendor;
+            if (!$vendor) {
+                return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
+            }
 
-            $message = $deletedCount > 1 
-                ? "Successfully deleted {$deletedCount} files for \"{$document->document_name}\""
-                : "Successfully deleted 1 file for \"{$document->document_name}\"";
+            $document = VendorDocument::where('id', $documentId)
+                ->where('vendor_id', $vendor->id)
+                ->first();
 
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'data' => [
+            if (!$document) {
+                return response()->json(['success' => false, 'message' => 'Document not found'], 404);
+            }
+
+            if ($document->status === 'approved') {
+                return response()->json(['success' => false, 'message' => 'Cannot delete approved document'], 400);
+            }
+
+            // ✅ NEW LOGIC: Handle multiple files deletion
+            if ($document->allows_multiple) {
+                // Get all documents with same document_type and vendor_id
+                $allDocuments = VendorDocument::where('vendor_id', $document->vendor_id)
+                    ->where('document_type', $document->document_type)
+                    ->get();
+
+                $deletedCount = 0;
+                $filesDeleted = [];
+
+                foreach ($allDocuments as $doc) {
+                    // Skip approved documents
+                    if ($doc->status === 'approved') {
+                        continue;
+                    }
+
+                    // Delete file from storage if exists
+                    if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                        Storage::disk('public')->delete($doc->file_path);
+                        $filesDeleted[] = $doc->file_name;
+                    }
+
+                    // Delete the document record
+                    $doc->delete();
+                    $deletedCount++;
+                }
+
+                Log::info('Multiple documents deleted', [
+                    'vendor_id' => $vendor->id,
+                    'document_type' => $document->document_type,
                     'deleted_count' => $deletedCount,
                     'files_deleted' => $filesDeleted
-                ]
+                ]);
+
+                $message = $deletedCount > 1
+                    ? "Successfully deleted {$deletedCount} files for \"{$document->document_name}\""
+                    : "Successfully deleted 1 file for \"{$document->document_name}\"";
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'data' => [
+                        'deleted_count' => $deletedCount,
+                        'files_deleted' => $filesDeleted
+                    ]
+                ]);
+            } else {
+                // ✅ EXISTING LOGIC: Single file deletion
+                // Delete file from storage
+                if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
+                    Storage::disk('public')->delete($document->file_path);
+                }
+
+                if ($document->sub_index > 0) {
+                    // Delete the specific file slot
+                    $document->delete();
+                    $message = 'File deleted successfully';
+                } else {
+                    // Reset main document to initial state
+                    $document->update([
+                        'file_name' => null,
+                        'file_path' => null,
+                        'file_size' => null,
+                        'file_type' => null,
+                        'status' => 'not_uploaded',
+                        'uploaded_at' => null,
+                        'admin_notes' => null,
+                        'rejection_reason' => null,
+                        'reviewed_by' => null,
+                        'reviewed_at' => null,
+                        'expiry_date' => null,
+                        'version' => 1
+                    ]);
+                    $message = 'Document reset successfully';
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $message
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Delete document error: ' . $e->getMessage(), [
+                'document_id' => $documentId,
+                'trace' => $e->getTraceAsString()
             ]);
 
-        } else {
-            // ✅ EXISTING LOGIC: Single file deletion
-            // Delete file from storage
-            if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
-                Storage::disk('public')->delete($document->file_path);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete document: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ✅ TAMBAH: Method untuk get count of deletable files
+    public function getDeleteableFilesCount(Request $request, $documentId)
+    {
+        try {
+            $user = $this->authenticateToken($request);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
             }
 
-            if ($document->sub_index > 0) {
-                // Delete the specific file slot
-                $document->delete();
-                $message = 'File deleted successfully';
+            $vendor = $user->vendor;
+            if (!$vendor) {
+                return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
+            }
+
+            $document = VendorDocument::where('id', $documentId)
+                ->where('vendor_id', $vendor->id)
+                ->first();
+
+            if (!$document) {
+                return response()->json(['success' => false, 'message' => 'Document not found'], 404);
+            }
+
+            if ($document->allows_multiple) {
+                $count = VendorDocument::where('vendor_id', $document->vendor_id)
+                    ->where('document_type', $document->document_type)
+                    ->where('status', '!=', 'approved')
+                    ->whereNotNull('file_name')
+                    ->count();
             } else {
-                // Reset main document to initial state
-                $document->update([
-                    'file_name' => null,
-                    'file_path' => null,
-                    'file_size' => null,
-                    'file_type' => null,
-                    'status' => 'not_uploaded',
-                    'uploaded_at' => null,
-                    'admin_notes' => null,
-                    'rejection_reason' => null,
-                    'reviewed_by' => null,
-                    'reviewed_at' => null,
-                    'expiry_date' => null,
-                    'version' => 1
-                ]);
-                $message = 'Document reset successfully';
+                $count = $document->file_name ? 1 : 0;
             }
 
             return response()->json([
                 'success' => true,
-                'message' => $message
+                'data' => [
+                    'deleteable_count' => $count,
+                    'document_name' => $document->document_name,
+                    'allows_multiple' => $document->allows_multiple
+                ]
             ]);
+        } catch (\Exception $e) {
+            Log::error('Get deleteable files count error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get deleteable files count'
+            ], 500);
         }
-
-    } catch (\Exception $e) {
-        Log::error('Delete document error: ' . $e->getMessage(), [
-            'document_id' => $documentId,
-            'trace' => $e->getTraceAsString()
-        ]);
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to delete document: ' . $e->getMessage()
-        ], 500);
     }
-}
-
-// ✅ TAMBAH: Method untuk get count of deletable files
-public function getDeleteableFilesCount(Request $request, $documentId)
-{
-    try {
-        $user = $this->authenticateToken($request);
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $vendor = $user->vendor;
-        if (!$vendor) {
-            return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
-        }
-
-        $document = VendorDocument::where('id', $documentId)
-            ->where('vendor_id', $vendor->id)
-            ->first();
-
-        if (!$document) {
-            return response()->json(['success' => false, 'message' => 'Document not found'], 404);
-        }
-
-        if ($document->allows_multiple) {
-            $count = VendorDocument::where('vendor_id', $document->vendor_id)
-                ->where('document_type', $document->document_type)
-                ->where('status', '!=', 'approved')
-                ->whereNotNull('file_name')
-                ->count();
-        } else {
-            $count = $document->file_name ? 1 : 0;
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'deleteable_count' => $count,
-                'document_name' => $document->document_name,
-                'allows_multiple' => $document->allows_multiple
-            ]
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Get deleteable files count error: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to get deleteable files count'
-        ], 500);
-    }
-}
 
     private function createMultipleDocumentSlot($baseDocument, $index)
     {
@@ -1428,74 +1427,74 @@ public function getDeleteableFilesCount(Request $request, $documentId)
      * Map document data helper
      */
     private function mapDocumentData($doc)
-{
-    $mapped = [
-        'id' => $doc->id,
-        'document_type' => $doc->document_type,
-        'document_name' => $doc->document_name ?? '',
-        'document_subtitle' => $doc->document_subtitle ?? '',
-        'document_number' => $doc->document_number ?? '',
-        'is_required' => $doc->is_required ?? false,
-        'has_expiry_date' => $doc->has_expiry_date ?? false,
-        'allows_multiple' => $doc->allows_multiple ?? false,
-        'has_template' => $doc->has_template ?? false,
-        'template_url' => $doc->template_url ?? null,
-        'template_download_url' => $doc->template_download_url ?? null,
-        'template_filename' => $doc->template_filename ?? null,
-        'status' => $doc->status ?? 'not_uploaded',
-        'status_badge' => $doc->getStatusBadge(),
-        'file_name' => $doc->file_name,
-        'file_size' => $doc->getFormattedFileSize(),
-        'file_url' => $doc->getFileUrl(),
-        'expiry_date' => $doc->expiry_date?->format('Y-m-d'),
-        'is_expired' => $doc->isExpired(),
-        'is_expiring_soon' => $doc->isExpiringSoon(),
-        'admin_notes' => $doc->admin_notes,
-        'rejection_reason' => $doc->rejection_reason,
-        'version' => $doc->version ?? 1,
-        'sub_index' => $doc->sub_index ?? 0,
-        'group' => $doc->group ?? null,
-        'group_name' => $doc->group_name ?? null,
-        'parent_type' => $doc->parent_type ?? null
-    ];
+    {
+        $mapped = [
+            'id' => $doc->id,
+            'document_type' => $doc->document_type,
+            'document_name' => $doc->document_name ?? '',
+            'document_subtitle' => $doc->document_subtitle ?? '',
+            'document_number' => $doc->document_number ?? '',
+            'is_required' => $doc->is_required ?? false,
+            'has_expiry_date' => $doc->has_expiry_date ?? false,
+            'allows_multiple' => $doc->allows_multiple ?? false,
+            'has_template' => $doc->has_template ?? false,
+            'template_url' => $doc->template_url ?? null,
+            'template_download_url' => $doc->template_download_url ?? null,
+            'template_filename' => $doc->template_filename ?? null,
+            'status' => $doc->status ?? 'not_uploaded',
+            'status_badge' => $doc->getStatusBadge(),
+            'file_name' => $doc->file_name,
+            'file_size' => $doc->getFormattedFileSize(),
+            'file_url' => $doc->getFileUrl(),
+            'expiry_date' => $doc->expiry_date?->format('Y-m-d'),
+            'is_expired' => $doc->isExpired(),
+            'is_expiring_soon' => $doc->isExpiringSoon(),
+            'admin_notes' => $doc->admin_notes,
+            'rejection_reason' => $doc->rejection_reason,
+            'version' => $doc->version ?? 1,
+            'sub_index' => $doc->sub_index ?? 0,
+            'group' => $doc->group ?? null,
+            'group_name' => $doc->group_name ?? null,
+            'parent_type' => $doc->parent_type ?? null
+        ];
 
-    // ✅ HANDLE: Multiple files aggregation
-    if ($doc->allows_multiple) {
-        // Get all files for this document type
-        $allFiles = VendorDocument::where('vendor_id', $doc->vendor_id)
-            ->where('document_type', $doc->document_type)
-            ->whereNotNull('file_name')
-            ->get();
+        // ✅ HANDLE: Multiple files aggregation
+        if ($doc->allows_multiple) {
+            // Get all files for this document type
+            $allFiles = VendorDocument::where('vendor_id', $doc->vendor_id)
+                ->where('document_type', $doc->document_type)
+                ->whereNotNull('file_name')
+                ->get();
 
-        $mapped['all_files'] = $allFiles->map(function($file) {
-            return [
-                'id' => $file->id,
-                'file_name' => $file->file_name,
-                'file_size' => $file->getFormattedFileSize(),
-                'file_url' => $file->getFileUrl(),
-                'status' => $file->status,
-                'status_badge' => $file->getStatusBadge(),
-                'version' => $file->version ?? 1,
-                'expiry_date' => $file->expiry_date?->format('Y-m-d'),
-                'is_expired' => $file->isExpired(),
-                'is_expiring_soon' => $file->isExpiringSoon()
-            ];
-        })->toArray();
+            $mapped['all_files'] = $allFiles->map(function ($file) {
+                return [
+                    'id' => $file->id,
+                    'file_name' => $file->file_name,
+                    'file_size' => $file->getFormattedFileSize(),
+                    'file_url' => $file->getFileUrl(),
+                    'status' => $file->status,
+                    'status_badge' => $file->getStatusBadge(),
+                    'version' => $file->version ?? 1,
+                    'expiry_date' => $file->expiry_date?->format('Y-m-d'),
+                    'is_expired' => $file->isExpired(),
+                    'is_expiring_soon' => $file->isExpiringSoon()
+                ];
+            })->toArray();
 
-        $mapped['file_count'] = $allFiles->count();
-        
-        // ✅ OVERALL STATUS: untuk multiple files
-        if ($allFiles->count() > 0) {
-            $mapped['status'] = $this->getOverallStatus($allFiles);
-            $mapped['status_badge'] = $this->getOverallStatusBadge($allFiles);
+            $mapped['file_count'] = $allFiles->count();
+
+            // ✅ OVERALL STATUS: untuk multiple files
+            if ($allFiles->count() > 0) {
+                $mapped['status'] = $this->getOverallStatus($allFiles);
+                $mapped['status_badge'] = $this->getOverallStatusBadge($allFiles);
+            }
+        } else {
+            $mapped['all_files'] = [];
+            $mapped['file_count'] = $doc->file_name ? 1 : 0;
         }
-    } else {
-        $mapped['all_files'] = [];
-        $mapped['file_count'] = $doc->file_name ? 1 : 0;
-    }
 
-    return $mapped;
-}
+        return $mapped;
+    }
 
     /**
      * Get overall status for multiple files
@@ -1536,372 +1535,367 @@ public function getDeleteableFilesCount(Request $request, $documentId)
     }
 
     public function getVendorDocuments(Request $request)
-{
-    try {
-        $user = $this->authenticateToken($request);
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+    {
+        try {
+            $user = $this->authenticateToken($request);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $vendor = $user->vendor;
+            if (!$vendor) {
+                return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
+            }
+
+            // ✅ ALWAYS USE HYBRID MODE: Template + Uploaded
+            return $this->getDocumentsHybridMode($vendor);
+        } catch (\Exception $e) {
+            Log::error('Get vendor documents error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load documents: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function getDocumentsHybridMode($vendor)
+    {
+        // Get templates for this vendor type
+        $templates = VendorDocument::getDocumentTemplatesForVendor($vendor->tipe_perusahaan);
+
+        // Get uploaded documents
+        $uploadedDocuments = VendorDocument::where('vendor_id', $vendor->id)
+            ->with('reviewer:id,fullname')
+            ->get();
+
+        Log::info('Hybrid mode data', [
+            'vendor_id' => $vendor->id,
+            'vendor_type' => $vendor->tipe_perusahaan,
+            'templates_count' => count($templates),
+            'uploaded_count' => $uploadedDocuments->count()
+        ]);
+
+        // ✅ MERGE: Templates with uploaded documents
+        $mergedDocuments = $this->mergeTemplatesWithUploaded($templates, $uploadedDocuments);
+
+        // Group by attachment type
+        $groupedByAttachment = collect($mergedDocuments)->groupBy('parent_type');
+
+        $attachments = [
+            'attachment_1' => [
+                'title' => 'ATTACHMENT 1',
+                'tab_id' => 'attachment_1',
+                'documents' => [],
+                'grouped_documents' => []
+            ],
+            'attachment_2' => [
+                'title' => 'ATTACHMENT 2',
+                'tab_id' => 'attachment_2',
+                'documents' => [],
+                'grouped_documents' => []
+            ]
+        ];
+
+        foreach ($groupedByAttachment as $attachmentType => $docs) {
+            if (!isset($attachments[$attachmentType])) continue;
+
+            // Process merged documents
+            $this->processMergedDocumentsByGroup($docs, $attachments[$attachmentType]);
         }
 
-        $vendor = $user->vendor;
-        if (!$vendor) {
-            return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
-        }
+        // Calculate stats
+        $uploadedDocsCollection = collect($mergedDocuments)->filter(function ($doc) {
+            return isset($doc['id']); // Only count uploaded documents
+        });
 
-        // ✅ ALWAYS USE HYBRID MODE: Template + Uploaded
-        return $this->getDocumentsHybridMode($vendor);
+        $stats = [
+            'total' => count($templates),
+            'required' => collect($templates)->where('required', true)->count(),
+            'uploaded' => $uploadedDocsCollection->where('status', '!=', 'not_uploaded')->count(),
+            'approved' => $uploadedDocsCollection->where('status', 'approved')->count(),
+            'rejected' => $uploadedDocsCollection->where('status', 'rejected')->count(),
+            'pending_review' => $uploadedDocsCollection->whereIn('status', ['uploaded', 'under_review'])->count(),
+        ];
 
-    } catch (\Exception $e) {
-        Log::error('Get vendor documents error: ' . $e->getMessage());
         return response()->json([
-            'success' => false,
-            'message' => 'Failed to load documents: ' . $e->getMessage()
-        ], 500);
-    }
-}
-
-private function getDocumentsHybridMode($vendor)
-{
-    // Get templates for this vendor type
-    $templates = VendorDocument::getDocumentTemplatesForVendor($vendor->tipe_perusahaan);
-    
-    // Get uploaded documents
-    $uploadedDocuments = VendorDocument::where('vendor_id', $vendor->id)
-        ->with('reviewer:id,fullname')
-        ->get();
-
-    Log::info('Hybrid mode data', [
-        'vendor_id' => $vendor->id,
-        'vendor_type' => $vendor->tipe_perusahaan,
-        'templates_count' => count($templates),
-        'uploaded_count' => $uploadedDocuments->count()
-    ]);
-
-    // ✅ MERGE: Templates with uploaded documents
-    $mergedDocuments = $this->mergeTemplatesWithUploaded($templates, $uploadedDocuments);
-
-    // Group by attachment type
-    $groupedByAttachment = collect($mergedDocuments)->groupBy('parent_type');
-
-    $attachments = [
-        'attachment_1' => [
-            'title' => 'ATTACHMENT 1',
-            'tab_id' => 'attachment_1',
-            'documents' => [],
-            'grouped_documents' => []
-        ],
-        'attachment_2' => [
-            'title' => 'ATTACHMENT 2',
-            'tab_id' => 'attachment_2',
-            'documents' => [],
-            'grouped_documents' => []
-        ]
-    ];
-
-    foreach ($groupedByAttachment as $attachmentType => $docs) {
-        if (!isset($attachments[$attachmentType])) continue;
-
-        // Process merged documents
-        $this->processMergedDocumentsByGroup($docs, $attachments[$attachmentType]);
+            'success' => true,
+            'data' => [
+                'attachments' => $attachments,
+                'stats' => $stats,
+                'mode' => 'hybrid' // ✅ DEBUG
+            ]
+        ]);
     }
 
-    // Calculate stats
-    $uploadedDocsCollection = collect($mergedDocuments)->filter(function($doc) {
-        return isset($doc['id']); // Only count uploaded documents
-    });
 
-    $stats = [
-        'total' => count($templates),
-        'required' => collect($templates)->where('required', true)->count(),
-        'uploaded' => $uploadedDocsCollection->where('status', '!=', 'not_uploaded')->count(),
-        'approved' => $uploadedDocsCollection->where('status', 'approved')->count(),
-        'rejected' => $uploadedDocsCollection->where('status', 'rejected')->count(),
-        'pending_review' => $uploadedDocsCollection->whereIn('status', ['uploaded', 'under_review'])->count(),
-    ];
+    private function getDocumentsTemplateMode($vendor)
+    {
+        // Get templates for this vendor type
+        $templates = VendorDocument::getDocumentTemplatesForVendor($vendor->tipe_perusahaan);
 
-    return response()->json([
-        'success' => true,
-        'data' => [
-            'attachments' => $attachments,
-            'stats' => $stats,
-            'mode' => 'hybrid' // ✅ DEBUG
-        ]
-    ]);
-}
+        // Group templates by attachment type
+        $templatesByAttachment = collect($templates)->groupBy('parent_type');
 
+        $attachments = [
+            'attachment_1' => [
+                'title' => 'ATTACHMENT 1',
+                'tab_id' => 'attachment_1',
+                'documents' => [],
+                'grouped_documents' => []
+            ],
+            'attachment_2' => [
+                'title' => 'ATTACHMENT 2',
+                'tab_id' => 'attachment_2',
+                'documents' => [],
+                'grouped_documents' => []
+            ]
+        ];
 
-private function getDocumentsTemplateMode($vendor)
-{
-    // Get templates for this vendor type
-    $templates = VendorDocument::getDocumentTemplatesForVendor($vendor->tipe_perusahaan);
-    
-    // Group templates by attachment type
-    $templatesByAttachment = collect($templates)->groupBy('parent_type');
+        foreach ($templatesByAttachment as $attachmentType => $templates) {
+            if (!isset($attachments[$attachmentType])) continue;
 
-    $attachments = [
-        'attachment_1' => [
-            'title' => 'ATTACHMENT 1',
-            'tab_id' => 'attachment_1',
-            'documents' => [],
-            'grouped_documents' => []
-        ],
-        'attachment_2' => [
-            'title' => 'ATTACHMENT 2',
-            'tab_id' => 'attachment_2',
-            'documents' => [],
-            'grouped_documents' => []
-        ]
-    ];
-
-    foreach ($templatesByAttachment as $attachmentType => $templates) {
-        if (!isset($attachments[$attachmentType])) continue;
-
-        // Process templates into display format
-        $this->processTemplatesByGroup($templates, $attachments[$attachmentType]);
-    }
-
-    // Calculate stats from templates
-    $totalTemplates = count($templates);
-    $requiredTemplates = collect($templates)->where('required', true)->count();
-
-    $stats = [
-        'total' => $totalTemplates,
-        'required' => $requiredTemplates,
-        'uploaded' => 0,
-        'approved' => 0,
-        'rejected' => 0,
-        'pending_review' => 0,
-    ];
-
-    return response()->json([
-        'success' => true,
-        'data' => [
-            'attachments' => $attachments,
-            'stats' => $stats,
-            'mode' => 'template' // ✅ DEBUG
-        ]
-    ]);
-}
-
-// ✅ TAMBAH: Process templates by group
-private function processTemplatesByGroup($templates, &$attachment)
-{
-    try {
-        $templatesByGroup = collect($templates)->groupBy('group');
-        $groupedDocuments = [];
-        $allDocuments = [];
-
-        foreach ($templatesByGroup as $group => $groupTemplates) {
-            if (empty($group)) continue;
-
-            $groupDocuments = [];
-
-            foreach ($groupTemplates as $template) {
-                $templateDoc = [
-                    // ✅ NO ID for templates - this signals it's not uploaded yet
-                    'document_type' => $template['type'],
-                    'document_name' => $template['name'],
-                    'document_subtitle' => $template['subtitle'] ?? '',
-                    'document_number' => $template['number'],
-                    'is_required' => $template['required'] ?? false,
-                    'has_expiry_date' => $template['has_expiry'] ?? false,
-                    'allows_multiple' => $template['allows_multiple'] ?? false,
-                    'has_template' => $template['has_template'] ?? false,
-                    'template_url' => $template['template_url'] ?? null,
-                    'template_download_url' => $template['template_download_url'] ?? null,
-                    'template_filename' => $template['template_filename'] ?? null,
-                    'status' => 'not_uploaded',
-                    'status_badge' => ['class' => 'secondary', 'icon' => 'fa-upload', 'text' => 'Not Uploaded'],
-                    'file_name' => null,
-                    'file_size' => null,
-                    'file_url' => null,
-                    'expiry_date' => null,
-                    'is_expired' => false,
-                    'is_expiring_soon' => false,
-                    'admin_notes' => null,
-                    'rejection_reason' => null,
-                    'version' => 1,
-                    'sub_index' => 0,
-                    'group' => $template['group'] ?? null,
-                    'group_name' => $template['group_name'] ?? null,
-                    'parent_type' => $template['parent_type'] ?? null,
-                    'all_files' => [],
-                    'file_count' => 0
-                ];
-
-                $groupDocuments[] = $templateDoc;
-                $allDocuments[] = $templateDoc;
-            }
-
-            // Sort by document number
-            usort($groupDocuments, function ($a, $b) {
-                return version_compare($a['document_number'], $b['document_number']);
-            });
-
-            $groupName = $groupTemplates->first()['group_name'] ?? "Group $group";
-            
-            if (!empty($groupDocuments)) {
-                $groupedDocuments[$group] = [
-                    'group_number' => $group,
-                    'group_name' => $groupName,
-                    'documents' => $groupDocuments
-                ];
-            }
+            // Process templates into display format
+            $this->processTemplatesByGroup($templates, $attachments[$attachmentType]);
         }
 
-        // Sort groups by their number
-        ksort($groupedDocuments);
+        // Calculate stats from templates
+        $totalTemplates = count($templates);
+        $requiredTemplates = collect($templates)->where('required', true)->count();
 
-        $attachment['documents'] = $allDocuments;
-        $attachment['grouped_documents'] = $groupedDocuments;
-        
-    } catch (\Exception $e) {
-        Log::error('Error processing templates by group: ' . $e->getMessage());
-        $attachment['documents'] = [];
-        $attachment['grouped_documents'] = [];
+        $stats = [
+            'total' => $totalTemplates,
+            'required' => $requiredTemplates,
+            'uploaded' => 0,
+            'approved' => 0,
+            'rejected' => 0,
+            'pending_review' => 0,
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'attachments' => $attachments,
+                'stats' => $stats,
+                'mode' => 'template' // ✅ DEBUG
+            ]
+        ]);
     }
-}
 
+    // ✅ TAMBAH: Process templates by group
+    private function processTemplatesByGroup($templates, &$attachment)
+    {
+        try {
+            $templatesByGroup = collect($templates)->groupBy('group');
+            $groupedDocuments = [];
+            $allDocuments = [];
 
+            foreach ($templatesByGroup as $group => $groupTemplates) {
+                if (empty($group)) continue;
+
+                $groupDocuments = [];
+
+                foreach ($groupTemplates as $template) {
+                    $templateDoc = [
+                        // ✅ NO ID for templates - this signals it's not uploaded yet
+                        'document_type' => $template['type'],
+                        'document_name' => $template['name'],
+                        'document_subtitle' => $template['subtitle'] ?? '',
+                        'document_number' => $template['number'],
+                        'is_required' => $template['required'] ?? false,
+                        'has_expiry_date' => $template['has_expiry'] ?? false,
+                        'allows_multiple' => $template['allows_multiple'] ?? false,
+                        'has_template' => $template['has_template'] ?? false,
+                        'template_url' => $template['template_url'] ?? null,
+                        'template_download_url' => $template['template_download_url'] ?? null,
+                        'template_filename' => $template['template_filename'] ?? null,
+                        'status' => 'not_uploaded',
+                        'status_badge' => ['class' => 'secondary', 'icon' => 'fa-upload', 'text' => 'Not Uploaded'],
+                        'file_name' => null,
+                        'file_size' => null,
+                        'file_url' => null,
+                        'expiry_date' => null,
+                        'is_expired' => false,
+                        'is_expiring_soon' => false,
+                        'admin_notes' => null,
+                        'rejection_reason' => null,
+                        'version' => 1,
+                        'sub_index' => 0,
+                        'group' => $template['group'] ?? null,
+                        'group_name' => $template['group_name'] ?? null,
+                        'parent_type' => $template['parent_type'] ?? null,
+                        'all_files' => [],
+                        'file_count' => 0
+                    ];
+
+                    $groupDocuments[] = $templateDoc;
+                    $allDocuments[] = $templateDoc;
+                }
+
+                // Sort by document number
+                usort($groupDocuments, function ($a, $b) {
+                    return version_compare($a['document_number'], $b['document_number']);
+                });
+
+                $groupName = $groupTemplates->first()['group_name'] ?? "Group $group";
+
+                if (!empty($groupDocuments)) {
+                    $groupedDocuments[$group] = [
+                        'group_number' => $group,
+                        'group_name' => $groupName,
+                        'documents' => $groupDocuments
+                    ];
+                }
+            }
+
+            // Sort groups by their number
+            ksort($groupedDocuments);
+
+            $attachment['documents'] = $allDocuments;
+            $attachment['grouped_documents'] = $groupedDocuments;
+        } catch (\Exception $e) {
+            Log::error('Error processing templates by group: ' . $e->getMessage());
+            $attachment['documents'] = [];
+            $attachment['grouped_documents'] = [];
+        }
+    }
 
     /**
      * Process documents with group structure - FIXED VERSION
      */
     private function processGroupedDocuments($docs, &$attachment)
-{
-    try {
-        // ✅ DEBUG: Log document structure
-        Log::info('Processing grouped documents', [
-            'total_docs' => $docs->count(),
-            'sample_doc' => $docs->first() ? [
-                'id' => $docs->first()->id,
-                'type' => $docs->first()->document_type,
-                'group' => $docs->first()->group,
-                'group_name' => $docs->first()->group_name,
-                'number' => $docs->first()->document_number
-            ] : null
-        ]);
+    {
+        try {
+            // ✅ DEBUG: Log document structure
+            Log::info('Processing grouped documents', [
+                'total_docs' => $docs->count(),
+                'sample_doc' => $docs->first() ? [
+                    'id' => $docs->first()->id,
+                    'type' => $docs->first()->document_type,
+                    'group' => $docs->first()->group,
+                    'group_name' => $docs->first()->group_name,
+                    'number' => $docs->first()->document_number
+                ] : null
+            ]);
 
-        // ✅ CHECK: Apakah ada kolom group
-        $hasGroupColumn = $docs->first() && !is_null($docs->first()->group);
-        
-        if (!$hasGroupColumn) {
-            Log::warning('No group column found, falling back to simple structure');
-            return $this->processSimpleDocuments($docs, $attachment);
-        }
+            // ✅ CHECK: Apakah ada kolom group
+            $hasGroupColumn = $docs->first() && !is_null($docs->first()->group);
 
-        $documentsByGroup = $docs->groupBy('group');
-        $groupedDocuments = [];
-        $allDocuments = [];
-        
-        Log::info('Documents by group', [
-            'groups' => $documentsByGroup->keys()->toArray(),
-            'group_counts' => $documentsByGroup->map->count()->toArray()
-        ]);
-
-        foreach ($documentsByGroup as $group => $groupDocs) {
-            if (empty($group)) {
-                Log::warning('Empty group found, skipping', ['doc_ids' => $groupDocs->pluck('id')->toArray()]);
-                continue;
+            if (!$hasGroupColumn) {
+                Log::warning('No group column found, falling back to simple structure');
+                return $this->processSimpleDocuments($docs, $attachment);
             }
 
-            $documentsByType = $groupDocs->groupBy('document_type');
-            $groupDocuments = [];
+            $documentsByGroup = $docs->groupBy('group');
+            $groupedDocuments = [];
+            $allDocuments = [];
 
-            foreach ($documentsByType as $docType => $docGroup) {
-                $baseDoc = $docGroup->first();
+            Log::info('Documents by group', [
+                'groups' => $documentsByGroup->keys()->toArray(),
+                'group_counts' => $documentsByGroup->map->count()->toArray()
+            ]);
 
-                if ($baseDoc->allows_multiple) {
-                    // Handle multiple files logic...
-                    $documentsWithFiles = $docGroup->filter(function ($doc) {
-                        return $doc->file_name || $doc->sub_index === 0;
-                    });
-
-                    $allFiles = $documentsWithFiles
-                        ->filter(function ($doc) {
-                            return $doc->file_name;
-                        })
-                        ->map(function ($doc) {
-                            return $this->mapDocumentData($doc);
-                        })
-                        ->values()
-                        ->toArray();
-
-                    $processedDoc = [
-                        'id' => $baseDoc->id,
-                        'document_type' => $baseDoc->document_type,
-                        'document_name' => $baseDoc->document_name,
-                        'document_subtitle' => $baseDoc->document_subtitle ?? '',
-                        'document_number' => $baseDoc->document_number,
-                        'is_required' => $baseDoc->is_required,
-                        'has_expiry_date' => $baseDoc->has_expiry_date,
-                        'allows_multiple' => true,
-                        'status' => count($allFiles) > 0 ? $this->getOverallStatus($documentsWithFiles) : 'not_uploaded',
-                        'status_badge' => count($allFiles) > 0 ? $this->getOverallStatusBadge($documentsWithFiles) : $baseDoc->getStatusBadge(),
-                        'all_files' => $allFiles,
-                        'file_count' => count($allFiles),
-                        'group' => $baseDoc->group,
-                        'group_name' => $baseDoc->group_name,
-                        // Add other required fields...
-                        'has_template' => $baseDoc->has_template ?? false,
-                        'template_download_url' => $baseDoc->template_download_url,
-                        'template_filename' => $baseDoc->template_filename,
-                        'file_name' => $baseDoc->file_name,
-                        'file_size' => $baseDoc->getFormattedFileSize(),
-                        'file_url' => $baseDoc->getFileUrl(),
-                        'expiry_date' => $baseDoc->expiry_date?->format('Y-m-d'),
-                        'is_expired' => $baseDoc->isExpired(),
-                        'is_expiring_soon' => $baseDoc->isExpiringSoon(),
-                        'admin_notes' => $baseDoc->admin_notes,
-                        'rejection_reason' => $baseDoc->rejection_reason,
-                        'version' => $baseDoc->version ?? 1,
-                        'sub_index' => $baseDoc->sub_index ?? 0
-                    ];
-                } else {
-                    // Single file document
-                    $processedDoc = $this->mapDocumentData($baseDoc);
+            foreach ($documentsByGroup as $group => $groupDocs) {
+                if (empty($group)) {
+                    Log::warning('Empty group found, skipping', ['doc_ids' => $groupDocs->pluck('id')->toArray()]);
+                    continue;
                 }
 
-                $groupDocuments[] = $processedDoc;
-                $allDocuments[] = $processedDoc;
+                $documentsByType = $groupDocs->groupBy('document_type');
+                $groupDocuments = [];
+
+                foreach ($documentsByType as $docType => $docGroup) {
+                    $baseDoc = $docGroup->first();
+
+                    if ($baseDoc->allows_multiple) {
+                        // Handle multiple files logic...
+                        $documentsWithFiles = $docGroup->filter(function ($doc) {
+                            return $doc->file_name || $doc->sub_index === 0;
+                        });
+
+                        $allFiles = $documentsWithFiles
+                            ->filter(function ($doc) {
+                                return $doc->file_name;
+                            })
+                            ->map(function ($doc) {
+                                return $this->mapDocumentData($doc);
+                            })
+                            ->values()
+                            ->toArray();
+
+                        $processedDoc = [
+                            'id' => $baseDoc->id,
+                            'document_type' => $baseDoc->document_type,
+                            'document_name' => $baseDoc->document_name,
+                            'document_subtitle' => $baseDoc->document_subtitle ?? '',
+                            'document_number' => $baseDoc->document_number,
+                            'is_required' => $baseDoc->is_required,
+                            'has_expiry_date' => $baseDoc->has_expiry_date,
+                            'allows_multiple' => true,
+                            'status' => count($allFiles) > 0 ? $this->getOverallStatus($documentsWithFiles) : 'not_uploaded',
+                            'status_badge' => count($allFiles) > 0 ? $this->getOverallStatusBadge($documentsWithFiles) : $baseDoc->getStatusBadge(),
+                            'all_files' => $allFiles,
+                            'file_count' => count($allFiles),
+                            'group' => $baseDoc->group,
+                            'group_name' => $baseDoc->group_name,
+                            // Add other required fields...
+                            'has_template' => $baseDoc->has_template ?? false,
+                            'template_download_url' => $baseDoc->template_download_url,
+                            'template_filename' => $baseDoc->template_filename,
+                            'file_name' => $baseDoc->file_name,
+                            'file_size' => $baseDoc->getFormattedFileSize(),
+                            'file_url' => $baseDoc->getFileUrl(),
+                            'expiry_date' => $baseDoc->expiry_date?->format('Y-m-d'),
+                            'is_expired' => $baseDoc->isExpired(),
+                            'is_expiring_soon' => $baseDoc->isExpiringSoon(),
+                            'admin_notes' => $baseDoc->admin_notes,
+                            'rejection_reason' => $baseDoc->rejection_reason,
+                            'version' => $baseDoc->version ?? 1,
+                            'sub_index' => $baseDoc->sub_index ?? 0
+                        ];
+                    } else {
+                        // Single file document
+                        $processedDoc = $this->mapDocumentData($baseDoc);
+                    }
+
+                    $groupDocuments[] = $processedDoc;
+                    $allDocuments[] = $processedDoc;
+                }
+
+                // ✅ SORT: Sort by document number within the group
+                usort($groupDocuments, function ($a, $b) {
+                    return version_compare($a['document_number'], $b['document_number']);
+                });
+
+                // ✅ ADD: Ensure group name is populated
+                $groupName = $groupDocs->first()->group_name ?? "Group $group";
+
+                if (!empty($groupDocuments)) {
+                    $groupedDocuments[$group] = [
+                        'group_number' => $group,
+                        'group_name' => $groupName,
+                        'documents' => $groupDocuments
+                    ];
+                }
             }
 
-            // ✅ SORT: Sort by document number within the group
-            usort($groupDocuments, function ($a, $b) {
-                return version_compare($a['document_number'], $b['document_number']);
-            });
+            // ✅ SORT: Sort groups by their number
+            ksort($groupedDocuments);
 
-            // ✅ ADD: Ensure group name is populated
-            $groupName = $groupDocs->first()->group_name ?? "Group $group";
-            
-            if (!empty($groupDocuments)) {
-                $groupedDocuments[$group] = [
-                    'group_number' => $group,
-                    'group_name' => $groupName,
-                    'documents' => $groupDocuments
-                ];
-            }
+            Log::info('Grouped documents processed', [
+                'total_groups' => count($groupedDocuments),
+                'group_numbers' => array_keys($groupedDocuments),
+                'total_documents' => count($allDocuments)
+            ]);
+
+            // Store both formats
+            $attachment['documents'] = $allDocuments;
+            $attachment['grouped_documents'] = $groupedDocuments;
+        } catch (\Exception $e) {
+            Log::error('Error processing grouped documents: ' . $e->getMessage());
+            // Fallback to simple processing
+            $this->processSimpleDocuments($docs, $attachment);
         }
-
-        // ✅ SORT: Sort groups by their number
-        ksort($groupedDocuments);
-
-        Log::info('Grouped documents processed', [
-            'total_groups' => count($groupedDocuments),
-            'group_numbers' => array_keys($groupedDocuments),
-            'total_documents' => count($allDocuments)
-        ]);
-
-        // Store both formats
-        $attachment['documents'] = $allDocuments;
-        $attachment['grouped_documents'] = $groupedDocuments;
-        
-    } catch (\Exception $e) {
-        Log::error('Error processing grouped documents: ' . $e->getMessage());
-        // Fallback to simple processing
-        $this->processSimpleDocuments($docs, $attachment);
     }
-}
 
     /**
      * Process documents without group structure (fallback)
@@ -2056,7 +2050,7 @@ private function processTemplatesByGroup($templates, &$attachment)
     /**
      * Update distributor data
      */
-    public function updateDistributorData(Request $request)
+    public function updateDistributor(Request $request)
     {
         try {
             $user = $this->authenticateToken($request);
@@ -2143,7 +2137,6 @@ private function processTemplatesByGroup($templates, &$attachment)
         }
     }
 
-    // Update existing getVendorProfile method
     public function getVendorProfile(Request $request)
     {
         try {
@@ -2170,7 +2163,6 @@ private function processTemplatesByGroup($templates, &$attachment)
                     break;
 
                 case 'DS':
-                    // Get or create distributor profile
                     $distributor = $vendor->distributor;
                     if (!$distributor) {
                         $distributor = Distributor::create(['vendor_id' => $vendor->id]);
@@ -2181,6 +2173,12 @@ private function processTemplatesByGroup($templates, &$attachment)
                     break;
 
                 case 'FW':
+                    $forwarder = $vendor->forwarder;
+                    if (!$forwarder) {
+                        $forwarder = Forwarder::create(['vendor_id' => $vendor->id]);
+                        $forwarder->initializeDefaults();
+                    }
+                    $data['forwarder'] = $forwarder;
                     $data['component'] = 'ForwarderProfile';
                     break;
 
@@ -2198,7 +2196,7 @@ private function processTemplatesByGroup($templates, &$attachment)
             ]);
         } catch (\Exception $e) {
             Log::error('Error getting vendor profile', [
-                'user_id' => $request->user()->id ?? null,
+                'user_id' => $user->id ?? null,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -2210,4 +2208,314 @@ private function processTemplatesByGroup($templates, &$attachment)
         }
     }
 
+    public function getForwarderTabs(Request $request)
+    {
+        try {
+            $user = $this->authenticateToken($request);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $vendor = $user->vendor;
+            if (!$vendor) {
+                return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
+            }
+
+            // Verify this is a forwarder
+            if ($vendor->tipe_perusahaan !== 'FW') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This vendor is not a forwarder. Current type: ' . $vendor->tipe_perusahaan
+                ], 400);
+            }
+
+            // Get or create forwarder profile
+            $forwarder = $vendor->forwarder;
+            if (!$forwarder) {
+                $forwarder = Forwarder::create(['vendor_id' => $vendor->id]);
+                $forwarder->initializeDefaults();
+            }
+
+            $tabs = [
+                [
+                    'id' => 'general',
+                    'label' => 'General Information',
+                    'icon' => 'fas fa-info-circle',
+                    'component' => 'ForwarderGeneral'
+                ],
+                [
+                    'id' => 'other_services',
+                    'label' => 'Other Services',
+                    'icon' => 'fas fa-cogs',
+                    'component' => 'ForwarderOtherServices'
+                ],
+                [
+                    'id' => 'facilities',
+                    'label' => 'Facilities',
+                    'icon' => 'fas fa-warehouse',
+                    'component' => 'ForwarderFacilities'
+                ],
+                [
+                    'id' => 'branch_office',
+                    'label' => 'Branch Office',
+                    'icon' => 'fas fa-building',
+                    'component' => 'ForwarderBranchOffice'
+                ],
+                [
+                    'id' => 'line_service',
+                    'label' => 'Line Service',
+                    'icon' => 'fas fa-ship',
+                    'component' => 'ForwarderLineService'
+                ],
+                [
+                    'id' => 'insurance',
+                    'label' => 'Insurance',
+                    'icon' => 'fas fa-shield-alt',
+                    'component' => 'ForwarderInsurance'
+                ],
+                [
+                    'id' => 'manpower_support',
+                    'label' => 'Manpower Support',
+                    'icon' => 'fas fa-users',
+                    'component' => 'ForwarderManpowerSupport'
+                ],
+                [
+                    'id' => 'documents',
+                    'label' => 'Documents & Attachments',
+                    'icon' => 'fas fa-file-alt',
+                    'component' => 'ForwarderDocuments'
+                ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'vendor_type' => 'FW',
+                    'vendor_type_name' => 'Forwarder',
+                    'tabs' => $tabs,
+                    'forwarder_data' => $forwarder,
+                    'options' => [
+                        'monitoring_management' => Forwarder::getMonitoringManagementOptions(),
+                        'yes_no_options' => Forwarder::getYesNoOptions(),
+                        'shipping_line_relation' => Forwarder::getShippingLineRelationOptions(),
+                        'airlines_relation' => Forwarder::getAirlinesRelationOptions(),
+                        'manpower_support' => Forwarder::getManpowerSupportOptions()
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get forwarder tabs error: ' . $e->getMessage(), [
+                'user_id' => $user->id ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateForwarder(Request $request)
+    {
+        try {
+            $user = $this->authenticateToken($request);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $vendor = $user->vendor;
+            if (!$vendor || $vendor->tipe_perusahaan !== 'FW') {
+                return response()->json(['success' => false, 'message' => 'Not a forwarder vendor'], 404);
+            }
+
+            $forwarder = $vendor->forwarder;
+            if (!$forwarder) {
+                $forwarder = Forwarder::create(['vendor_id' => $vendor->id]);
+                $forwarder->initializeDefaults();
+            }
+
+            // Validate and filter input data
+            $allowedFields = [
+                // Tab 2: Other Services
+                'other_services_none',
+                'able_to_conduct_expediting',
+                'able_to_submit_regular_status_report',
+                'able_to_have_scope_electrical_supervision',
+                'having_ability_make_temporary_jetty',
+                'other_services_others',
+                'other_services_others_description',
+                'heavy_lift_capability',
+                'heavy_lift_cooperation_companies',
+
+                // Tab 3: Facilities
+                'monitoring_management',
+                'monitoring_coordination_description',
+                'software_none',
+                'software_existing',
+                'software_shipment_tracking',
+                'software_shipment_tracking_description',
+                'software_others',
+                'software_others_description',
+                'communication_system',
+                'communication_system_description',
+                'project_execution_procedure',
+                'project_execution_sop_list',
+
+                // Tab 4: Branch Office
+                'indonesian_branch_offices',
+                'overseas_branch_offices',
+
+                // Tab 5: Line Service
+                'shipping_line_relation',
+                'shipping_lines',
+                'airlines_relation',
+                'airlines',
+
+                // Tab 6: Insurance
+                'insurance_none',
+                'insurance_all_risk_covered_by_company',
+                'insurance_liability_with_insurance_company',
+                'insurance_negotiable_with_without_insurance',
+                'insurance_others',
+                'insurance_others_description',
+                'insurance_claim_arrangement_description',
+
+                // Tab 7: Manpower Support
+                'manpower_support',
+                'manpower_certifications'
+            ];
+
+            $updateData = $request->only($allowedFields);
+
+            // Validate JSON fields
+            if (isset($updateData['indonesian_branch_offices']) && !is_array($updateData['indonesian_branch_offices'])) {
+                return response()->json(['success' => false, 'message' => 'Indonesian branch offices must be an array'], 400);
+            }
+
+            if (isset($updateData['overseas_branch_offices']) && !is_array($updateData['overseas_branch_offices'])) {
+                return response()->json(['success' => false, 'message' => 'Overseas branch offices must be an array'], 400);
+            }
+
+            if (isset($updateData['shipping_lines']) && !is_array($updateData['shipping_lines'])) {
+                return response()->json(['success' => false, 'message' => 'Shipping lines must be an array'], 400);
+            }
+
+            if (isset($updateData['airlines']) && !is_array($updateData['airlines'])) {
+                return response()->json(['success' => false, 'message' => 'Airlines must be an array'], 400);
+            }
+
+            if (isset($updateData['manpower_certifications']) && !is_array($updateData['manpower_certifications'])) {
+                return response()->json(['success' => false, 'message' => 'Manpower certifications must be an array'], 400);
+            }
+
+            $forwarder->update($updateData);
+
+            Log::info('Forwarder data updated', [
+                'vendor_id' => $vendor->id,
+                'forwarder_id' => $forwarder->id,
+                'updated_fields' => array_keys($updateData),
+                'user_id' => $user->id
+            ]);
+
+            // Calculate totals if manpower data was updated
+            $totals = null;
+            if (isset($updateData['manpower_certifications'])) {
+                $totals = $forwarder->getTotalManpower();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data forwarder berhasil diperbarui',
+                'data' => [
+                    'forwarder_data' => $forwarder->fresh(),
+                    'manpower_totals' => $totals
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Update forwarder data error: ' . $e->getMessage(), [
+                'user_id' => $user->id ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui data forwarder: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getManufactureTabs(Request $request)
+{
+    $user = $this->authenticateToken($request);
+    if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+    $vendor = $user->vendor;
+    if (!$vendor) return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
+
+    if ($vendor->tipe_perusahaan !== 'MF') {
+        return response()->json([
+            'success' => false,
+            'message' => 'This vendor is not a manufacturer. Current type: ' . $vendor->tipe_perusahaan
+        ], 400);
+    }
+
+    $manufacture = $vendor->manufacture;
+    if (!$manufacture) {
+        $manufacture = \App\Models\Manufacture::create(['vendor_id' => $vendor->id]);
+    }
+
+    $tabs = [
+        ['id' => 'general', 'label' => 'General', 'icon' => 'fas fa-info-circle', 'component' => 'ManufactureGeneral'],
+        ['id' => 'product_types', 'label' => 'Types of Product Manufactured', 'icon' => 'fas fa-cube', 'component' => 'ManufactureProductTypes'],
+        ['id' => 'personnel', 'label' => 'Personnel', 'icon' => 'fas fa-users', 'component' => 'ManufacturePersonnel'],
+        ['id' => 'plants', 'label' => 'Other Manufacturing Plants', 'icon' => 'fas fa-industry', 'component' => 'ManufacturePlants'],
+        ['id' => 'after_sales', 'label' => 'After Sales Support', 'icon' => 'fas fa-headset', 'component' => 'ManufactureAfterSales'],
+        ['id' => 'engineering_design', 'label' => 'Engineering Design', 'icon' => 'fas fa-drafting-compass', 'component' => 'ManufactureEngineering'],
+        ['id' => 'inventory', 'label' => 'Inventory', 'icon' => 'fas fa-boxes', 'component' => 'ManufactureInventory'],
+        ['id' => 'subcontracting', 'label' => 'Subcontracting', 'icon' => 'fas fa-people-carry', 'component' => 'ManufactureSubcontracting'],
+        ['id' => 'code_standard', 'label' => 'Code Standard Capability', 'icon' => 'fas fa-certificate', 'component' => 'ManufactureCodeStandard'],
+        ['id' => 'documents', 'label' => 'Attachments/Documents', 'icon' => 'fas fa-file-alt', 'component' => 'ManufactureDocuments'],
+    ];
+
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'vendor_type' => 'MF',
+            'vendor_type_name' => 'Manufacturer',
+            'tabs' => $tabs,
+            'manufacture_data' => $manufacture,
+        ]
+    ]);
+}
+
+public function updateManufacture(Request $request)
+{
+    $user = $this->authenticateToken($request);
+    if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+    $vendor = $user->vendor;
+    if (!$vendor || $vendor->tipe_perusahaan !== 'MF') {
+        return response()->json(['success' => false, 'message' => 'Not a manufacturer vendor'], 404);
+    }
+
+    $manufacture = $vendor->manufacture;
+    if (!$manufacture) {
+        $manufacture = \App\Models\Manufacture::create(['vendor_id' => $vendor->id]);
+    }
+
+    $allowedFields = [
+        // Semua field dari 9 tab
+        'product_types', 'personnel', 'plants', 'after_sales', 'engineering_design', 'inventory', 'subcontracting', 'code_standard'
+    ];
+
+    $updateData = $request->only($allowedFields);
+    $manufacture->update($updateData);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Data manufacture berhasil diperbarui',
+        'data' => ['manufacture_data' => $manufacture->fresh()]
+    ]);
+}
 }
