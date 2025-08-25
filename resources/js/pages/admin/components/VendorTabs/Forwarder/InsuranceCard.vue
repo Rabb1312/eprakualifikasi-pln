@@ -6,185 +6,181 @@
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <div class="header-info">
-                    <h3>Insurance</h3>
+                    <h3>Insurance Coverage</h3>
                     <p>Layanan asuransi dan perlindungan barang yang disediakan forwarder</p>
                 </div>
                 <div class="insurance-stats">
                     <div class="stat-badge">
-                        <span class="stat-number">{{ insuranceTypes.length }}</span>
-                        <span class="stat-label">Types</span>
+                        <span class="stat-number">{{ getInsuranceTypesCount() }}</span>
+                        <span class="stat-label">Coverage Types</span>
                     </div>
                 </div>
             </div>
 
             <div class="content-sections">
                 <!-- Insurance Types -->
-                <div class="insurance-overview">
+                <div class="insurance-types">
                     <h4>
                         <i class="fas fa-umbrella"></i>
-                        Insurance Coverage Types
+                        Insurance Types Available
                     </h4>
-                    <div class="insurance-grid">
-                        <div 
-                            v-for="(insurance, index) in insuranceTypes"
-                            :key="index"
-                            class="insurance-item"
-                        >
-                            <div class="insurance-header">
-                                <div class="insurance-icon">
-                                    <i :class="getInsuranceIcon(insurance.type)"></i>
+                    <div class="types-grid">
+                        <div class="type-item" :class="{ active: !data.insurance_none }">
+                            <div class="type-header">
+                                <div class="type-icon">
+                                    <i class="fas fa-info-circle"></i>
                                 </div>
-                                <div class="insurance-info">
-                                    <h5>{{ insurance.name || insurance.type || 'Insurance Coverage' }}</h5>
-                                    <span class="insurance-category">{{ insurance.category || 'General Coverage' }}</span>
+                                <div class="type-info">
+                                    <h5>Insurance Availability</h5>
+                                    <span class="type-status">{{ data.insurance_none ? 'No Insurance' : 'Insurance Available' }}</span>
                                 </div>
-                                <div class="insurance-status">
+                                <div class="type-indicator">
+                                    <span :class="['status-badge', data.insurance_none ? 'unavailable' : 'available']">
+                                        <i :class="data.insurance_none ? 'fas fa-times-circle' : 'fas fa-check-circle'"></i>
+                                        {{ data.insurance_none ? 'None' : 'Available' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="data.insurance_all_risk_covered_by_company" class="type-item active">
+                            <div class="type-header">
+                                <div class="type-icon">
+                                    <i class="fas fa-shield-check"></i>
+                                </div>
+                                <div class="type-info">
+                                    <h5>All Risk Coverage</h5>
+                                    <span class="type-status">Covered by Company</span>
+                                </div>
+                                <div class="type-indicator">
+                                    <span class="status-badge available">
+                                        <i class="fas fa-check-circle"></i>
+                                        Active
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="type-description">
+                                <p>Comprehensive all-risk insurance coverage provided directly by the company for maximum protection.</p>
+                            </div>
+                        </div>
+
+                        <div v-if="data.insurance_liability_with_insurance_company" class="type-item active">
+                            <div class="type-header">
+                                <div class="type-icon">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <div class="type-info">
+                                    <h5>Liability Insurance</h5>
+                                    <span class="type-status">External Insurance Company</span>
+                                </div>
+                                <div class="type-indicator">
+                                    <span class="status-badge available">
+                                        <i class="fas fa-check-circle"></i>
+                                        Active
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="type-description">
+                                <p>Professional liability coverage through partnership with established insurance companies.</p>
+                            </div>
+                        </div>
+
+                        <div v-if="data.insurance_negotiable_with_without_insurance" class="type-item active">
+                            <div class="type-header">
+                                <div class="type-icon">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                                <div class="type-info">
+                                    <h5>Negotiable Insurance</h5>
+                                    <span class="type-status">Flexible Coverage</span>
+                                </div>
+                                <div class="type-indicator">
                                     <span class="status-badge available">
                                         <i class="fas fa-check-circle"></i>
                                         Available
                                     </span>
                                 </div>
                             </div>
-
-                            <div class="insurance-details">
-                                <div class="coverage-info">
-                                    <div class="coverage-grid">
-                                        <div class="coverage-item" v-if="insurance.coverage_limit">
-                                            <label>Coverage Limit:</label>
-                                            <span class="coverage-value">{{ insurance.coverage_limit }}</span>
-                                        </div>
-                                        <div class="coverage-item" v-if="insurance.premium_rate">
-                                            <label>Premium Rate:</label>
-                                            <span class="premium-value">{{ insurance.premium_rate }}</span>
-                                        </div>
-                                        <div class="coverage-item" v-if="insurance.deductible">
-                                            <label>Deductible:</label>
-                                            <span>{{ insurance.deductible }}</span>
-                                        </div>
-                                        <div class="coverage-item" v-if="insurance.validity_period">
-                                            <label>Validity Period:</label>
-                                            <span>{{ insurance.validity_period }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="insurance-description" v-if="insurance.description">
-                                    <p>{{ insurance.description }}</p>
-                                </div>
-
-                                <div class="covered-risks" v-if="insurance.covered_risks && insurance.covered_risks.length > 0">
-                                    <h6>Covered Risks:</h6>
-                                    <div class="risks-list">
-                                        <div 
-                                            v-for="(risk, riskIndex) in insurance.covered_risks"
-                                            :key="riskIndex"
-                                            class="risk-item"
-                                        >
-                                            <i class="fas fa-shield-check"></i>
-                                            <span>{{ risk }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="exclusions" v-if="insurance.exclusions && insurance.exclusions.length > 0">
-                                    <h6>Exclusions:</h6>
-                                    <div class="exclusions-list">
-                                        <div 
-                                            v-for="(exclusion, exclusionIndex) in insurance.exclusions"
-                                            :key="exclusionIndex"
-                                            class="exclusion-item"
-                                        >
-                                            <i class="fas fa-times-circle"></i>
-                                            <span>{{ exclusion }}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="type-description">
+                                <p>Flexible insurance options that can be negotiated with or without additional insurance coverage based on client needs.</p>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Insurance Partners -->
-                <div class="insurance-partners" v-if="insurancePartners.length > 0">
-                    <h4>
-                        <i class="fas fa-handshake"></i>
-                        Insurance Partners
-                    </h4>
-                    <div class="partners-grid">
-                        <div 
-                            v-for="(partner, index) in insurancePartners"
-                            :key="index"
-                            class="partner-item"
-                        >
-                            <div class="partner-icon">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div class="partner-info">
-                                <h6>{{ partner.name || 'Insurance Company' }}</h6>
-                                <span class="partner-type">{{ partner.type || 'Insurance Provider' }}</span>
-                                <div class="partner-rating" v-if="partner.rating">
-                                    <div class="rating-stars">
-                                        <i 
-                                            v-for="star in 5"
-                                            :key="star"
-                                            :class="['fas fa-star', { active: star <= (partner.rating || 0) }]"
-                                        ></i>
-                                    </div>
-                                    <span class="rating-text">{{ partner.rating }}/5</span>
+                        <div v-if="data.insurance_others && data.insurance_others_description" class="type-item active">
+                            <div class="type-header">
+                                <div class="type-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="type-info">
+                                    <h5>Other Insurance Types</h5>
+                                    <span class="type-status">Custom Solutions</span>
+                                </div>
+                                <div class="type-indicator">
+                                    <span class="status-badge available">
+                                        <i class="fas fa-check-circle"></i>
+                                        Available
+                                    </span>
                                 </div>
                             </div>
-                            <div class="partner-status" v-if="partner.status">
-                                <span :class="['status-indicator', partner.status.toLowerCase()]">
-                                    {{ partner.status }}
-                                </span>
+                            <div class="type-description">
+                                <p>{{ data.insurance_others_description }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Claims Process -->
-                <div class="claims-process" v-if="claimsProcess">
+                <div v-if="data.insurance_claim_arrangement_description" class="claims-section">
                     <h4>
                         <i class="fas fa-clipboard-list"></i>
-                        Claims Process
+                        Claims Arrangement Process
                     </h4>
-                    <div class="process-content">
-                        <div class="process-steps">
-                            <div 
-                                v-for="(step, index) in claimsSteps"
-                                :key="index"
-                                class="process-step"
-                            >
-                                <div class="step-number">
-                                    <span>{{ index + 1 }}</span>
+                    <div class="claims-content">
+                        <div class="claims-process">
+                            <div class="process-header">
+                                <div class="process-icon">
+                                    <i class="fas fa-file-invoice"></i>
                                 </div>
-                                <div class="step-content">
-                                    <h6>{{ step.title }}</h6>
-                                    <p>{{ step.description }}</p>
-                                    <div class="step-duration" v-if="step.duration">
-                                        <i class="fas fa-clock"></i>
-                                        <span>{{ step.duration }}</span>
-                                    </div>
+                                <div class="process-info">
+                                    <h5>Insurance Claims Procedure</h5>
+                                    <span class="process-type">Standard Process</span>
                                 </div>
+                            </div>
+                            <div class="process-description">
+                                <p>{{ data.insurance_claim_arrangement_description }}</p>
                             </div>
                         </div>
 
-                        <div class="claims-contact" v-if="claimsProcess.contact">
-                            <div class="contact-header">
-                                <h6>Claims Contact Information</h6>
-                            </div>
-                            <div class="contact-details">
-                                <div class="contact-item" v-if="claimsProcess.contact.phone">
-                                    <i class="fas fa-phone"></i>
-                                    <span>{{ claimsProcess.contact.phone }}</span>
+                        <div class="claims-steps">
+                            <h6>Standard Claims Process:</h6>
+                            <div class="steps-list">
+                                <div class="step-item">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h6>Incident Reporting</h6>
+                                        <p>Immediate notification of any damage or loss incidents</p>
+                                    </div>
                                 </div>
-                                <div class="contact-item" v-if="claimsProcess.contact.email">
-                                    <i class="fas fa-envelope"></i>
-                                    <span>{{ claimsProcess.contact.email }}</span>
+                                <div class="step-item">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h6>Documentation</h6>
+                                        <p>Complete documentation and evidence gathering</p>
+                                    </div>
                                 </div>
-                                <div class="contact-item" v-if="claimsProcess.contact.hours">
-                                    <i class="fas fa-clock"></i>
-                                    <span>{{ claimsProcess.contact.hours }}</span>
+                                <div class="step-item">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h6>Assessment</h6>
+                                        <p>Professional damage assessment and evaluation</p>
+                                    </div>
+                                </div>
+                                <div class="step-item">
+                                    <div class="step-number">4</div>
+                                    <div class="step-content">
+                                        <h6>Settlement</h6>
+                                        <p>Claims processing and compensation settlement</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -203,26 +199,8 @@
                                 <i class="fas fa-shield-alt"></i>
                             </div>
                             <div class="statistic-info">
-                                <span class="statistic-number">{{ insuranceTypes.length }}</span>
+                                <span class="statistic-number">{{ getInsuranceTypesCount() }}</span>
                                 <span class="statistic-label">Coverage Types</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-handshake"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ insurancePartners.length }}</span>
-                                <span class="statistic-label">Insurance Partners</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getMaxCoverage() }}</span>
-                                <span class="statistic-label">Max Coverage</span>
                             </div>
                         </div>
                         <div class="statistic-item">
@@ -230,8 +208,26 @@
                                 <i class="fas fa-percentage"></i>
                             </div>
                             <div class="statistic-info">
-                                <span class="statistic-number">{{ getAveragePremium() }}</span>
-                                <span class="statistic-label">Avg. Premium Rate</span>
+                                <span class="statistic-number">{{ getCoveragePercentage() }}%</span>
+                                <span class="statistic-label">Coverage Rate</span>
+                            </div>
+                        </div>
+                        <div class="statistic-item">
+                            <div class="statistic-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="statistic-info">
+                                <span class="statistic-number">{{ getInsuranceRating() }}</span>
+                                <span class="statistic-label">Insurance Rating</span>
+                            </div>
+                        </div>
+                        <div class="statistic-item">
+                            <div class="statistic-icon">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <div class="statistic-info">
+                                <span class="statistic-number">{{ hasClaimsProcess() ? 'Yes' : 'No' }}</span>
+                                <span class="statistic-label">Claims Process</span>
                             </div>
                         </div>
                     </div>
@@ -264,89 +260,44 @@ const props = defineProps({
 })
 
 const hasData = computed(() => {
-    return !!(props.data.insurance)
+    return !!(
+        props.data.insurance_none !== undefined ||
+        props.data.insurance_all_risk_covered_by_company ||
+        props.data.insurance_liability_with_insurance_company ||
+        props.data.insurance_negotiable_with_without_insurance ||
+        props.data.insurance_others ||
+        props.data.insurance_claim_arrangement_description
+    )
 })
 
-const insuranceTypes = computed(() => {
-    if (!props.data.insurance?.types) return []
-    return Array.isArray(props.data.insurance.types) 
-        ? props.data.insurance.types 
-        : []
-})
-
-const insurancePartners = computed(() => {
-    if (!props.data.insurance?.partners) return []
-    return Array.isArray(props.data.insurance.partners) 
-        ? props.data.insurance.partners 
-        : []
-})
-
-const claimsProcess = computed(() => {
-    return props.data.insurance?.claims_process || null
-})
-
-const claimsSteps = computed(() => {
-    if (!claimsProcess.value?.steps) return []
-    return Array.isArray(claimsProcess.value.steps) 
-        ? claimsProcess.value.steps 
-        : []
-})
-
-function getInsuranceIcon(type) {
-    const icons = {
-        'cargo': 'fas fa-boxes',
-        'marine': 'fas fa-ship',
-        'transit': 'fas fa-truck',
-        'warehouse': 'fas fa-warehouse',
-        'liability': 'fas fa-balance-scale',
-        'comprehensive': 'fas fa-shield-alt',
-        'theft': 'fas fa-user-secret',
-        'damage': 'fas fa-hammer'
-    }
-    return icons[type?.toLowerCase()] || 'fas fa-shield-alt'
+function getInsuranceTypesCount() {
+    let count = 0
+    if (props.data.insurance_all_risk_covered_by_company) count++
+    if (props.data.insurance_liability_with_insurance_company) count++
+    if (props.data.insurance_negotiable_with_without_insurance) count++
+    if (props.data.insurance_others && props.data.insurance_others_description) count++
+    return count
 }
 
-function getMaxCoverage() {
-    if (insuranceTypes.value.length === 0) return '-'
+function getCoveragePercentage() {
+    if (props.data.insurance_none) return 0
     
-    const coverages = insuranceTypes.value
-        .map(insurance => insurance.coverage_limit)
-        .filter(coverage => coverage)
-        .map(coverage => {
-            const match = coverage.match(/[\d,]+/)
-            return match ? parseFloat(match[0].replace(/,/g, '')) : 0
-        })
-        .filter(num => num > 0)
-    
-    if (coverages.length === 0) return '-'
-    
-    const max = Math.max(...coverages)
-    if (max >= 1000000000) {
-        return `${(max / 1000000000).toFixed(1)}B`
-    } else if (max >= 1000000) {
-        return `${(max / 1000000).toFixed(1)}M`
-    } else if (max >= 1000) {
-        return `${(max / 1000).toFixed(1)}K`
-    }
-    return max.toString()
+    const totalTypes = 4 // Total possible insurance types
+    const availableTypes = getInsuranceTypesCount()
+    return totalTypes > 0 ? Math.round((availableTypes / totalTypes) * 100) : 0
 }
 
-function getAveragePremium() {
-    if (insuranceTypes.value.length === 0) return '-'
-    
-    const premiums = insuranceTypes.value
-        .map(insurance => insurance.premium_rate)
-        .filter(premium => premium)
-        .map(premium => {
-            const match = premium.match(/[\d.]+/)
-            return match ? parseFloat(match[0]) : 0
-        })
-        .filter(num => num > 0)
-    
-    if (premiums.length === 0) return '-'
-    
-    const average = premiums.reduce((sum, premium) => sum + premium, 0) / premiums.length
-    return `${average.toFixed(2)}%`
+function getInsuranceRating() {
+    const percentage = getCoveragePercentage()
+    if (percentage >= 90) return '★★★★★'
+    if (percentage >= 70) return '★★★★☆'
+    if (percentage >= 50) return '★★★☆☆'
+    if (percentage >= 30) return '★★☆☆☆'
+    return '★☆☆☆☆'
+}
+
+function hasClaimsProcess() {
+    return !!(props.data.insurance_claim_arrangement_description)
 }
 </script>
 
@@ -425,9 +376,8 @@ function getAveragePremium() {
     gap: 32px;
 }
 
-.insurance-overview,
-.insurance-partners,
-.claims-process,
+.insurance-types,
+.claims-section,
 .insurance-statistics {
     background: white;
     border: 1px solid #e5e7eb;
@@ -435,9 +385,8 @@ function getAveragePremium() {
     overflow: hidden;
 }
 
-.insurance-overview h4,
-.insurance-partners h4,
-.claims-process h4,
+.insurance-types h4,
+.claims-section h4,
 .insurance-statistics h4 {
     margin: 0;
     padding: 16px 24px;
@@ -451,15 +400,11 @@ function getAveragePremium() {
     gap: 8px;
 }
 
-.insurance-overview h4 i {
+.insurance-types h4 i {
     color: #f59e0b;
 }
 
-.insurance-partners h4 i {
-    color: #10b981;
-}
-
-.claims-process h4 i {
+.claims-section h4 i {
     color: #3b82f6;
 }
 
@@ -467,21 +412,33 @@ function getAveragePremium() {
     color: #8b5cf6;
 }
 
-.insurance-grid {
+.types-grid {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     padding: 24px;
 }
 
-.insurance-item {
+.type-item {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     overflow: hidden;
+    opacity: 0.6;
+    transition: all 0.3s ease;
 }
 
-.insurance-header {
+.type-item.active {
+    opacity: 1;
+    border-color: #f59e0b;
+}
+
+.type-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.type-header {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -490,7 +447,7 @@ function getAveragePremium() {
     border-bottom: 1px solid #f3f4f6;
 }
 
-.insurance-icon {
+.type-icon {
     width: 40px;
     height: 40px;
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
@@ -503,23 +460,23 @@ function getAveragePremium() {
     flex-shrink: 0;
 }
 
-.insurance-info {
+.type-info {
     flex: 1;
 }
 
-.insurance-info h5 {
+.type-info h5 {
     margin: 0 0 4px 0;
     font-weight: 600;
     color: #1f2937;
     font-size: 1rem;
 }
 
-.insurance-category {
+.type-status {
     font-size: 0.875rem;
     color: #6b7280;
 }
 
-.insurance-status {
+.type-indicator {
     flex-shrink: 0;
 }
 
@@ -540,241 +497,107 @@ function getAveragePremium() {
     color: #065f46;
 }
 
-.insurance-details {
+.status-badge.unavailable {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.type-description {
     padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    background: rgba(255, 255, 255, 0.8);
 }
 
-.coverage-info {
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-    padding: 16px;
-}
-
-.coverage-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-}
-
-.coverage-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: #f8fafc;
-    border-radius: 6px;
-}
-
-.coverage-item label {
-    font-weight: 500;
-    color: #6b7280;
-    font-size: 0.875rem;
-}
-
-.coverage-item span {
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 0.875rem;
-}
-
-.coverage-value {
-    color: #059669 !important;
-    font-weight: 700 !important;
-}
-
-.premium-value {
-    color: #dc2626 !important;
-    font-weight: 700 !important;
-}
-
-.insurance-description {
-    background: white;
-    padding: 16px;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-}
-
-.insurance-description p {
+.type-description p {
     margin: 0;
     color: #374151;
     line-height: 1.5;
     font-size: 0.875rem;
 }
 
-.covered-risks,
-.exclusions {
-    background: white;
-    padding: 16px;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-}
-
-.covered-risks h6,
-.exclusions h6 {
-    margin: 0 0 12px 0;
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.875rem;
-}
-
-.risks-list,
-.exclusions-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.risk-item,
-.exclusion-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #374151;
-}
-
-.risk-item i {
-    color: #10b981;
-    font-size: 0.75rem;
-}
-
-.exclusion-item i {
-    color: #ef4444;
-    font-size: 0.75rem;
-}
-
-.partners-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 16px;
+.claims-content {
     padding: 24px;
 }
 
-.partner-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
+.claims-process {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    transition: all 0.3s ease;
+    padding: 16px;
+    margin-bottom: 20px;
 }
 
-.partner-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.process-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
 }
 
-.partner-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+.process-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
     color: white;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     flex-shrink: 0;
 }
 
-.partner-info {
-    flex: 1;
-}
-
-.partner-info h6 {
+.process-info h5 {
     margin: 0 0 4px 0;
     font-weight: 600;
     color: #1f2937;
     font-size: 1rem;
 }
 
-.partner-type {
-    display: block;
+.process-type {
     font-size: 0.875rem;
     color: #6b7280;
-    margin-bottom: 8px;
 }
 
-.partner-rating {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.rating-stars {
-    display: flex;
-    gap: 2px;
-}
-
-.rating-stars i {
-    color: #d1d5db;
-    font-size: 0.875rem;
-}
-
-.rating-stars i.active {
-    color: #fbbf24;
-}
-
-.rating-text {
-    font-size: 0.875rem;
-    color: #6b7280;
-    font-weight: 600;
-}
-
-.partner-status {
-    flex-shrink: 0;
-}
-
-.status-indicator {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.status-indicator.active {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.status-indicator.preferred {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.process-content {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
-
-.process-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.process-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
+.process-description {
+    background: white;
     padding: 16px;
-    background: #f8fafc;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid #e5e7eb;
 }
 
+.process-description p {
+    margin: 0;
+    color: #374151;
+    line-height: 1.6;
+    font-size: 0.875rem;
+}
+
+.claims-steps h6 {
+    margin: 0 0 16px 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.steps-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
 .step-number {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     border-radius: 50%;
@@ -782,69 +605,22 @@ function getAveragePremium() {
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.875rem;
     flex-shrink: 0;
 }
 
-.step-content {
-    flex: 1;
-}
-
 .step-content h6 {
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     font-weight: 600;
     color: #1f2937;
-    font-size: 1rem;
+    font-size: 0.875rem;
 }
 
 .step-content p {
-    margin: 0 0 8px 0;
+    margin: 0;
     color: #6b7280;
-    line-height: 1.5;
-    font-size: 0.875rem;
-}
-
-.step-duration {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.875rem;
-    color: #3b82f6;
-    font-weight: 600;
-}
-
-.claims-contact {
-    background: white;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    padding: 16px;
-}
-
-.contact-header h6 {
-    margin: 0 0 12px 0;
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.875rem;
-}
-
-.contact-details {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.contact-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #374151;
-}
-
-.contact-item i {
-    color: #3b82f6;
-    width: 16px;
-    text-align: center;
+    line-height: 1.4;
+    font-size: 0.8rem;
 }
 
 .statistics-grid {
@@ -927,8 +703,8 @@ function getAveragePremium() {
         padding: 16px;
     }
     
-    .insurance-grid,
-    .partners-grid,
+    .types-grid,
+    .steps-list,
     .statistics-grid {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -940,18 +716,14 @@ function getAveragePremium() {
         gap: 12px;
     }
     
-    .insurance-header,
-    .partner-item {
+    .type-header,
+    .process-header {
         flex-direction: column;
         text-align: center;
         gap: 12px;
     }
     
-    .coverage-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .process-step {
+    .step-item {
         flex-direction: column;
         text-align: center;
         gap: 12px;

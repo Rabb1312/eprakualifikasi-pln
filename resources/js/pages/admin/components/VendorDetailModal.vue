@@ -30,27 +30,53 @@
                     </button>
                 </div>
             </div>
+            
             <!-- Modal Body -->
             <div class="modal-body">
                 <div class="tab-content">
+                    <!-- General Tab -->
                     <VendorGeneralTab 
                         v-if="activeTab === 'general'"
                         :vendor="vendor"
                     />
+                    
+                    <!-- Specific Tab (Forwarder/Distributor/etc) -->
                     <component
-                        v-if="activeTab === getSpecificTabKey()"
+                        v-if="activeTab === getSpecificTabKey() && specificTabComponent"
                         :is="specificTabComponent"
                         :vendor="vendor"
                         :data="specificData"
                     />
+                    
+                    <!-- Debug info jika komponen tidak ditemukan -->
+                    <div v-if="activeTab === getSpecificTabKey() && !specificTabComponent" class="debug-info">
+                        <h3>Debug Info:</h3>
+                        <p>Active Tab: {{ activeTab }}</p>
+                        <p>Specific Tab Key: {{ getSpecificTabKey() }}</p>
+                        <p>Vendor Type: {{ vendor.tipe_perusahaan }}</p>
+                        <p>Component Found: {{ !!specificTabComponent }}</p>
+                        <p>Data Available: {{ Object.keys(specificData).length }} keys</p>
+                        <pre>{{ JSON.stringify(specificData, null, 2) }}</pre>
+                    </div>
+                    
+                    <!-- Documents Tab -->
                     <VendorDocumentsTab 
                         v-if="activeTab === 'documents'"
                         :vendor="vendor"
                         :documents="documents"
                         @refresh="loadVendorData"
                     />
+                    
+                    <!-- Loading State -->
+                    <div v-if="loading" class="loading-state">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Memuat data...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
             <!-- Modal Footer -->
             <div class="modal-footer">
                 <div class="footer-actions">
@@ -85,6 +111,8 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import VendorGeneralTab from './VendorTabs/VendorGeneralTab.vue'
 import VendorDocumentsTab from './VendorTabs/VendorDocumentsTab.vue'
+
+// FIX: Import dengan path yang benar
 import SubcontractorTab from './VendorTabs/Subcontractor/index.vue'
 import DistributorTab from './VendorTabs/Distributor/index.vue'
 import ForwarderTab from './VendorTabs/Forwarder/index.vue'
@@ -151,6 +179,7 @@ async function loadVendorData() {
             documents.value = response.data.data.documents || []
         }
     } catch (error) {
+        console.error('Error loading vendor data:', error)
         specificData.value = {}
         documents.value = []
     } finally {
@@ -461,5 +490,62 @@ onMounted(loadVendorData)
 .tab-navigation {
     background-color: #f9fafb !important;
     opacity: 1 !important;
+}
+
+/* ===== DEBUG & LOADING STYLES ===== */
+.debug-info {
+    padding: 24px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    margin: 24px;
+}
+
+.debug-info h3 {
+    margin: 0 0 16px 0;
+    color: #92400e;
+}
+
+.debug-info p {
+    margin: 8px 0;
+    color: #92400e;
+    font-family: monospace;
+}
+
+.debug-info pre {
+    background: #fffbeb;
+    padding: 16px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 0.875rem;
+    color: #92400e;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    text-align: center;
+}
+
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    color: #3b82f6;
+}
+
+.loading-spinner p {
+    margin: 0;
+    color: #6b7280;
+    font-weight: 500;
 }
 </style>

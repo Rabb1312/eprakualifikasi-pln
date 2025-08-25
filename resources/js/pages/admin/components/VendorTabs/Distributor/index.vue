@@ -51,7 +51,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
-// Import sub tab components (hanya 4 komponen)
+// Import sub tab components
 import GeneralInfoCard from './GeneralInfoCard.vue'
 import EngineeringCard from './EngineeringCard.vue'
 import AfterSalesCard from './AfterSalesCard.vue'
@@ -71,60 +71,89 @@ const props = defineProps({
 const loading = ref(false)
 const activeSubTab = ref('general')
 
+// FIX: Data checker untuk General Info - selalu true jika ada vendor
+const hasGeneralData = computed(() => {
+    // General info selalu ada jika vendor ada
+    return !!(props.vendor?.nama_perusahaan)
+})
+
+// Data checker untuk Engineering
+const hasEngineeringData = computed(() => {
+    return !!(
+        props.data?.engineering_activities || 
+        props.data?.engineering?.engineering_activities
+    )
+})
+
+// Data checker untuk After Sales
+const hasAfterSalesData = computed(() => {
+    return !!(
+        props.data?.priority_treatment ||
+        props.data?.complaint_agreement ||
+        props.data?.has_contact_centre ||
+        props.data?.after_sales
+    )
+})
+
+// Data checker untuk Documents
+const hasDocumentsData = computed(() => {
+    return !!(props.data?.documents && Array.isArray(props.data.documents) && props.data.documents.length > 0)
+})
+
 const subTabs = computed(() => [
     {
         id: 'general',
         label: 'General Information',
         icon: 'fas fa-info-circle',
-        component: 'GeneralInfoCard',
-        hasData: hasGeneralData.value
+        hasData: hasGeneralData.value // sekarang akan selalu true
     },
     {
         id: 'engineering',
         label: 'Engineering',
         icon: 'fas fa-cogs',
-        component: 'EngineeringCard',
-        hasData: !!(props.data?.engineering)
+        hasData: hasEngineeringData.value
     },
     {
         id: 'aftersales',
         label: 'After Sales',
         icon: 'fas fa-headset',
-        component: 'AfterSalesCard',
-        hasData: !!(props.data?.after_sales)
+        hasData: hasAfterSalesData.value
     },
     {
         id: 'documents',
         label: 'Attachments/Documents',
         icon: 'fas fa-file-alt',
-        component: 'DocumentsCard',
-        hasData: true // Always show documents tab
+        hasData: true // selalu tampil, meski kosong
     }
 ])
 
-const hasGeneralData = computed(() => {
-    if (!props.data) return false
-    
-    return !!(
-        props.data.company_profile ||
-        props.data.company_overview ||
-        props.data.services_offered ||
-        props.data.target_markets ||
-        props.data.key_personnel
-    )
-})
+// Mapping tab id ke variable komponen
+const componentMap = {
+    general: GeneralInfoCard,
+    engineering: EngineeringCard,
+    aftersales: AfterSalesCard,
+    documents: DocumentsCard
+}
 
 const currentSubTabComponent = computed(() => {
-    const tab = subTabs.value.find(t => t.id === activeSubTab.value)
-    return tab?.component || 'GeneralInfoCard'
+    return componentMap[activeSubTab.value] || GeneralInfoCard
 })
 
 onMounted(() => {
-    // Set first tab with data as active
-    const firstTabWithData = subTabs.value.find(tab => tab.hasData)
-    if (firstTabWithData) {
-        activeSubTab.value = firstTabWithData.id
-    }
+    // FIX: Selalu mulai dari general, tidak perlu cari tab dengan data
+    activeSubTab.value = 'general'
+    
+    // Atau jika ingin tetap logic pencarian, tapi prioritaskan general:
+    // if (hasGeneralData.value) {
+    //     activeSubTab.value = 'general'
+    // } else {
+    //     const firstTabWithData = subTabs.value.find(tab => tab.hasData)
+    //     if (firstTabWithData) {
+    //         activeSubTab.value = firstTabWithData.id
+    //     } else {
+    //         activeSubTab.value = 'general'
+    //     }
+    // }
 })
 </script>
 

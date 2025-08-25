@@ -11,125 +11,168 @@
                 </div>
                 <div class="services-stats">
                     <div class="stat-badge">
-                        <span class="stat-number">{{ otherServices.length }}</span>
+                        <span class="stat-number">{{ getServicesCount() }}</span>
                         <span class="stat-label">Services</span>
                     </div>
                 </div>
             </div>
 
             <div class="content-sections">
-                <!-- Services List -->
+                <!-- Main Services -->
                 <div class="services-overview">
                     <h4>
                         <i class="fas fa-list"></i>
                         Available Services
                     </h4>
                     <div class="services-grid">
-                        <div 
-                            v-for="(service, index) in otherServices"
-                            :key="index"
-                            class="service-item"
-                        >
+                        <div class="service-item" :class="{ active: data.able_to_conduct_expediting }">
                             <div class="service-header">
                                 <div class="service-icon">
-                                    <i :class="getServiceIcon(service.type)"></i>
+                                    <i class="fas fa-clock"></i>
                                 </div>
                                 <div class="service-info">
-                                    <h5>{{ service.name || service.type || 'Additional Service' }}</h5>
-                                    <span class="service-category">{{ service.category || 'Support Service' }}</span>
+                                    <h5>Expediting Services</h5>
+                                    <span class="service-category">Project Management</span>
                                 </div>
                                 <div class="service-status">
-                                    <span :class="['status-badge', getServiceStatus(service)]">
+                                    <span :class="['status-badge', data.able_to_conduct_expediting ? 'available' : 'unavailable']">
+                                        <i :class="data.able_to_conduct_expediting ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                        {{ data.able_to_conduct_expediting ? 'Available' : 'Not Available' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="service-description">
+                                <p>Kemampuan untuk melakukan expediting dan monitoring kemajuan proyek secara real-time</p>
+                            </div>
+                        </div>
+
+                        <div class="service-item" :class="{ active: data.able_to_submit_regular_status_report }">
+                            <div class="service-header">
+                                <div class="service-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="service-info">
+                                    <h5>Regular Status Reports</h5>
+                                    <span class="service-category">Reporting</span>
+                                </div>
+                                <div class="service-status">
+                                    <span :class="['status-badge', data.able_to_submit_regular_status_report ? 'available' : 'unavailable']">
+                                        <i :class="data.able_to_submit_regular_status_report ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                        {{ data.able_to_submit_regular_status_report ? 'Available' : 'Not Available' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="service-description">
+                                <p>Penyediaan laporan status reguler mengenai kemajuan pengiriman dan proyek</p>
+                            </div>
+                        </div>
+
+                        <div class="service-item" :class="{ active: data.able_to_have_scope_electrical_supervision }">
+                            <div class="service-header">
+                                <div class="service-icon">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div class="service-info">
+                                    <h5>Electrical Supervision</h5>
+                                    <span class="service-category">Technical Services</span>
+                                </div>
+                                <div class="service-status">
+                                    <span :class="['status-badge', data.able_to_have_scope_electrical_supervision ? 'available' : 'unavailable']">
+                                        <i :class="data.able_to_have_scope_electrical_supervision ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                        {{ data.able_to_have_scope_electrical_supervision ? 'Available' : 'Not Available' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="service-description">
+                                <p>Kemampuan supervisi teknis untuk peralatan elektrikal dan instalasi</p>
+                            </div>
+                        </div>
+
+                        <div class="service-item" :class="{ active: data.having_ability_make_temporary_jetty }">
+                            <div class="service-header">
+                                <div class="service-icon">
+                                    <i class="fas fa-anchor"></i>
+                                </div>
+                                <div class="service-info">
+                                    <h5>Temporary Jetty Construction</h5>
+                                    <span class="service-category">Marine Services</span>
+                                </div>
+                                <div class="service-status">
+                                    <span :class="['status-badge', data.having_ability_make_temporary_jetty ? 'available' : 'unavailable']">
+                                        <i :class="data.having_ability_make_temporary_jetty ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                        {{ data.having_ability_make_temporary_jetty ? 'Available' : 'Not Available' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="service-description">
+                                <p>Kemampuan membangun dermaga sementara untuk kebutuhan proyek khusus</p>
+                            </div>
+                        </div>
+
+                        <div v-if="data.other_services_others && data.other_services_others_description" class="service-item active">
+                            <div class="service-header">
+                                <div class="service-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="service-info">
+                                    <h5>Other Services</h5>
+                                    <span class="service-category">Additional Services</span>
+                                </div>
+                                <div class="service-status">
+                                    <span class="status-badge available">
                                         <i class="fas fa-check-circle"></i>
                                         Available
                                     </span>
                                 </div>
                             </div>
-
-                            <div class="service-details" v-if="service.description">
-                                <p>{{ service.description }}</p>
-                            </div>
-
-                            <div class="service-specs" v-if="service.specifications">
-                                <div class="specs-grid">
-                                    <div 
-                                        v-for="(spec, specIndex) in service.specifications"
-                                        :key="specIndex"
-                                        class="spec-item"
-                                    >
-                                        <label>{{ spec.name }}:</label>
-                                        <span>{{ spec.value }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="service-features" v-if="service.features && service.features.length > 0">
-                                <h6>Key Features:</h6>
-                                <div class="features-list">
-                                    <div 
-                                        v-for="(feature, featureIndex) in service.features"
-                                        :key="featureIndex"
-                                        class="feature-item"
-                                    >
-                                        <i class="fas fa-check"></i>
-                                        <span>{{ feature }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="service-pricing" v-if="service.pricing">
-                                <div class="pricing-info">
-                                    <span class="pricing-label">{{ service.pricing.type || 'Price' }}:</span>
-                                    <span class="pricing-value">{{ service.pricing.value }}</span>
-                                </div>
+                            <div class="service-description">
+                                <p>{{ data.other_services_others_description }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Service Categories -->
-                <div class="service-categories" v-if="serviceCategories.length > 0">
+                <!-- Service Statistics -->
+                <div class="service-statistics">
                     <h4>
-                        <i class="fas fa-tags"></i>
-                        Service Categories
+                        <i class="fas fa-chart-bar"></i>
+                        Service Statistics
                     </h4>
-                    <div class="categories-grid">
-                        <div 
-                            v-for="(category, index) in serviceCategories"
-                            :key="index"
-                            class="category-item"
-                        >
-                            <div class="category-icon">
-                                <i :class="getCategoryIcon(category.name)"></i>
+                    <div class="statistics-grid">
+                        <div class="statistic-item">
+                            <div class="statistic-icon">
+                                <i class="fas fa-check"></i>
                             </div>
-                            <div class="category-info">
-                                <h6>{{ category.name }}</h6>
-                                <span class="category-count">{{ category.count }} services</span>
+                            <div class="statistic-info">
+                                <span class="statistic-number">{{ getAvailableServicesCount() }}</span>
+                                <span class="statistic-label">Available Services</span>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Service Coverage -->
-                <div class="coverage-section" v-if="serviceCoverage">
-                    <h4>
-                        <i class="fas fa-map-marked-alt"></i>
-                        Service Coverage
-                    </h4>
-                    <div class="coverage-content">
-                        <div class="coverage-areas">
-                            <div 
-                                v-for="(area, index) in coverageAreas"
-                                :key="index"
-                                class="coverage-area"
-                            >
-                                <div class="area-badge">
-                                    <i :class="getAreaIcon(area.type)"></i>
-                                </div>
-                                <div class="area-details">
-                                    <h6>{{ area.name }}</h6>
-                                    <span class="area-description">{{ area.description }}</span>
-                                </div>
+                        <div class="statistic-item">
+                            <div class="statistic-icon">
+                                <i class="fas fa-times"></i>
+                            </div>
+                            <div class="statistic-info">
+                                <span class="statistic-number">{{ getUnavailableServicesCount() }}</span>
+                                <span class="statistic-label">Not Available</span>
+                            </div>
+                        </div>
+                        <div class="statistic-item">
+                            <div class="statistic-icon">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="statistic-info">
+                                <span class="statistic-number">{{ getAvailabilityPercentage() }}%</span>
+                                <span class="statistic-label">Availability Rate</span>
+                            </div>
+                        </div>
+                        <div class="statistic-item">
+                            <div class="statistic-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="statistic-info">
+                                <span class="statistic-number">{{ getServiceRating() }}</span>
+                                <span class="statistic-label">Service Rating</span>
                             </div>
                         </div>
                     </div>
@@ -162,88 +205,52 @@ const props = defineProps({
 })
 
 const hasData = computed(() => {
-    return !!(props.data.other_services)
+    return !!(
+        props.data.other_services_none !== undefined ||
+        props.data.able_to_conduct_expediting !== undefined ||
+        props.data.able_to_submit_regular_status_report !== undefined ||
+        props.data.able_to_have_scope_electrical_supervision !== undefined ||
+        props.data.having_ability_make_temporary_jetty !== undefined ||
+        props.data.other_services_others !== undefined ||
+        props.data.other_services_others_description
+    )
 })
 
-const otherServices = computed(() => {
-    if (!props.data.other_services?.services) return []
-    return Array.isArray(props.data.other_services.services) 
-        ? props.data.other_services.services 
-        : []
-})
-
-const serviceCoverage = computed(() => {
-    return props.data.other_services?.coverage || null
-})
-
-const coverageAreas = computed(() => {
-    if (!serviceCoverage.value?.areas) return []
-    return Array.isArray(serviceCoverage.value.areas) 
-        ? serviceCoverage.value.areas 
-        : []
-})
-
-const serviceCategories = computed(() => {
-    if (otherServices.value.length === 0) return []
-    
-    const categories = {}
-    otherServices.value.forEach(service => {
-        const category = service.category || 'General'
-        if (!categories[category]) {
-            categories[category] = { name: category, count: 0 }
-        }
-        categories[category].count++
-    })
-    
-    return Object.values(categories)
-})
-
-function getServiceIcon(type) {
-    const icons = {
-        'documentation': 'fas fa-file-alt',
-        'customs_clearance': 'fas fa-file-invoice',
-        'packaging': 'fas fa-box',
-        'storage': 'fas fa-warehouse',
-        'tracking': 'fas fa-search-location',
-        'consulting': 'fas fa-comments',
-        'cargo_survey': 'fas fa-clipboard-check',
-        'door_to_door': 'fas fa-home',
-        'pick_up_delivery': 'fas fa-truck',
-        'container_stuffing': 'fas fa-boxes'
+function getServicesCount() {
+    let count = 4 // Base services
+    if (props.data.other_services_others && props.data.other_services_others_description) {
+        count += 1
     }
-    return icons[type?.toLowerCase()] || 'fas fa-cog'
+    return count
 }
 
-function getServiceStatus(service) {
-    return service.status?.toLowerCase() || 'available'
+function getAvailableServicesCount() {
+    let count = 0
+    if (props.data.able_to_conduct_expediting) count++
+    if (props.data.able_to_submit_regular_status_report) count++
+    if (props.data.able_to_have_scope_electrical_supervision) count++
+    if (props.data.having_ability_make_temporary_jetty) count++
+    if (props.data.other_services_others && props.data.other_services_others_description) count++
+    return count
 }
 
-function getCategoryIcon(categoryName) {
-    const name = categoryName?.toLowerCase() || ''
-    const icons = {
-        'documentation': 'fas fa-file-alt',
-        'logistics': 'fas fa-route',
-        'customs': 'fas fa-file-invoice',
-        'warehouse': 'fas fa-warehouse',
-        'transport': 'fas fa-truck',
-        'consulting': 'fas fa-comments',
-        'general': 'fas fa-cog'
-    }
-    
-    for (const [key, icon] of Object.entries(icons)) {
-        if (name.includes(key)) return icon
-    }
-    return 'fas fa-tag'
+function getUnavailableServicesCount() {
+    return getServicesCount() - getAvailableServicesCount()
 }
 
-function getAreaIcon(type) {
-    const icons = {
-        'domestic': 'fas fa-flag',
-        'international': 'fas fa-globe',
-        'regional': 'fas fa-map',
-        'local': 'fas fa-map-marker-alt'
-    }
-    return icons[type?.toLowerCase()] || 'fas fa-map-marked-alt'
+function getAvailabilityPercentage() {
+    const total = getServicesCount()
+    const available = getAvailableServicesCount()
+    return total > 0 ? Math.round((available / total) * 100) : 0
+}
+
+function getServiceRating() {
+    const percentage = getAvailabilityPercentage()
+    if (percentage >= 90) return '★★★★★'
+    if (percentage >= 70) return '★★★★☆'
+    if (percentage >= 50) return '★★★☆☆'
+    if (percentage >= 30) return '★★☆☆☆'
+    return '★☆☆☆☆'
 }
 </script>
 
@@ -323,8 +330,7 @@ function getAreaIcon(type) {
 }
 
 .services-overview,
-.service-categories,
-.coverage-section {
+.service-statistics {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
@@ -332,8 +338,7 @@ function getAreaIcon(type) {
 }
 
 .services-overview h4,
-.service-categories h4,
-.coverage-section h4 {
+.service-statistics h4 {
     margin: 0;
     padding: 16px 24px;
     background: #f8fafc;
@@ -350,18 +355,14 @@ function getAreaIcon(type) {
     color: #059669;
 }
 
-.service-categories h4 i {
+.service-statistics h4 i {
     color: #f59e0b;
-}
-
-.coverage-section h4 i {
-    color: #3b82f6;
 }
 
 .services-grid {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     padding: 24px;
 }
 
@@ -370,6 +371,18 @@ function getAreaIcon(type) {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     overflow: hidden;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.service-item.active {
+    opacity: 1;
+    border-color: #059669;
+}
+
+.service-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .service-header {
@@ -431,198 +444,65 @@ function getAreaIcon(type) {
     color: #065f46;
 }
 
-.service-details {
-    padding: 16px 20px;
-    background: white;
+.status-badge.unavailable {
+    background: #fef2f2;
+    color: #991b1b;
 }
 
-.service-details p {
+.service-description {
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.service-description p {
     margin: 0;
     color: #374151;
     line-height: 1.5;
     font-size: 0.875rem;
 }
 
-.service-specs {
-    padding: 16px 20px;
-    border-top: 1px solid #f3f4f6;
-}
-
-.specs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-}
-
-.spec-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: #f8fafc;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-}
-
-.spec-item label {
-    font-weight: 500;
-    color: #6b7280;
-    font-size: 0.875rem;
-}
-
-.spec-item span {
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 0.875rem;
-}
-
-.service-features {
-    padding: 16px 20px;
-    border-top: 1px solid #f3f4f6;
-}
-
-.service-features h6 {
-    margin: 0 0 12px 0;
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.875rem;
-}
-
-.features-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.feature-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #374151;
-}
-
-.feature-item i {
-    color: #10b981;
-    font-size: 0.75rem;
-}
-
-.service-pricing {
-    padding: 16px 20px;
-    border-top: 1px solid #f3f4f6;
-    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-}
-
-.pricing-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.pricing-label {
-    font-weight: 600;
-    color: #065f46;
-    font-size: 0.875rem;
-}
-
-.pricing-value {
-    font-weight: 700;
-    color: #059669;
-    font-size: 1rem;
-}
-
-.categories-grid {
+.statistics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
     padding: 24px;
 }
 
-.category-item {
+.statistic-item {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.category-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.category-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
+    border-radius: 8px;
+}
+
+.statistic-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.125rem;
-    flex-shrink: 0;
+    font-size: 1.25rem;
 }
 
-.category-info h6 {
-    margin: 0 0 4px 0;
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 1rem;
-}
-
-.category-count {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.coverage-content {
-    padding: 24px;
-}
-
-.coverage-areas {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
-}
-
-.coverage-area {
+.statistic-info {
     display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.area-badge {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-    flex-shrink: 0;
+.statistic-number {
+    font-size: 1.5rem;
+    font-weight: 700;
 }
 
-.area-details h6 {
-    margin: 0 0 4px 0;
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 1rem;
-}
-
-.area-description {
+.statistic-label {
     font-size: 0.875rem;
-    color: #6b7280;
-    line-height: 1.4;
+    opacity: 0.8;
 }
 
 .no-data {
@@ -662,8 +542,7 @@ function getAreaIcon(type) {
     }
     
     .services-grid,
-    .categories-grid,
-    .coverage-areas {
+    .statistics-grid {
         grid-template-columns: 1fr;
         gap: 12px;
     }
@@ -678,10 +557,6 @@ function getAreaIcon(type) {
         flex-direction: column;
         text-align: center;
         gap: 12px;
-    }
-    
-    .specs-grid {
-        grid-template-columns: 1fr;
     }
 }
 </style>

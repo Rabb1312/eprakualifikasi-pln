@@ -11,7 +11,9 @@
             <div class="empty-content">
                 <i class="fas fa-info-circle"></i>
                 <h3>Belum Ada Data Subcontractor</h3>
-                <p>Data khusus subcontractor belum dilengkapi untuk vendor ini.</p>
+                <p>
+                    Data khusus subcontractor belum dilengkapi untuk vendor ini.
+                </p>
             </div>
         </div>
 
@@ -23,7 +25,10 @@
                         v-for="tab in subTabs"
                         :key="tab.id"
                         @click="activeSubTab = tab.id"
-                        :class="['sub-tab-button', { active: activeSubTab === tab.id }]"
+                        :class="[
+                            'sub-tab-button',
+                            { active: activeSubTab === tab.id },
+                        ]"
                     >
                         <i :class="tab.icon"></i>
                         <span>{{ tab.label }}</span>
@@ -37,8 +42,8 @@
             <!-- Sub Tab Content -->
             <div class="sub-tab-content">
                 <KeepAlive>
-                    <component 
-                        :is="currentSubTabComponent" 
+                    <component
+                        :is="currentSubTabComponent"
                         :data="data"
                         :vendor="vendor"
                     />
@@ -49,103 +54,105 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from "vue";
 
 // Import komponen khusus subcontractor
-import HoldingCompanyCard from './HoldingCompanyCard.vue'
-import FacilitiesCard from './FacilitiesCard.vue'
-import ScopeOfWorkCard from './ScopeOfWorkCard.vue'
-import MajorProjectsCard from './MajorProjectsCard.vue'
-import KnowledgeCard from './KnowledgeCard.vue'
-import DocumentsCard from './DocumentsCard.vue'
+import GeneralInfoCard from "./GeneralInfoCard.vue";
+import HoldingCompanyCard from "./HoldingCompanyCard.vue";
+import FacilitiesCard from "./FacilitiesCard.vue";
+import ScopeOfWorkCard from "./ScopeOfWorkCard.vue";
+import MajorProjectsCard from "./MajorProjectsCard.vue";
+import KnowledgeCard from "./KnowledgeCard.vue";
+import DocumentsCard from "./DocumentsCard.vue";
 
 const props = defineProps({
     vendor: {
         type: Object,
-        required: true
+        required: true,
     },
     data: {
         type: Object,
-        default: () => ({})
-    }
-})
+        default: () => ({}),
+    },
+});
 
-const loading = ref(false)
-const activeSubTab = ref('holding')
+const loading = ref(false);
+const activeSubTab = ref("general");
+
+// Data checker
+const hasGeneralData = computed(() => {
+    // Sesuaikan field yang wajib untuk data general
+    return !!props.vendor?.nama_perusahaan;
+});
 
 const subTabs = computed(() => [
     {
-        id: 'holding',
-        label: 'Holding Company',
-        icon: 'fas fa-building',
-        component: 'HoldingCompanyCard',
-        hasData: hasHoldingData.value
+        id: "general",
+        label: "General Information",
+        icon: "fas fa-info-circle",
+        hasData: hasGeneralData.value,
     },
     {
-        id: 'facilities',
-        label: 'Facilities',
-        icon: 'fas fa-tools',
-        component: 'FacilitiesCard',
-        hasData: !!(props.data?.facilities)
+        id: "holding",
+        label: "Holding Company",
+        icon: "fas fa-building",
+        hasData: !!(props.data?.holding_nama_perusahaan || props.data?.holding),
     },
     {
-        id: 'scope',
-        label: 'Scope of Work',
-        icon: 'fas fa-tasks',
-        component: 'ScopeOfWorkCard',
-        hasData: !!(props.data?.scope_of_work)
+        id: "facilities",
+        label: "Facilities",
+        icon: "fas fa-tools",
+        hasData: !!props.data?.facilities,
     },
     {
-        id: 'projects',
-        label: 'Major Projects',
-        icon: 'fas fa-project-diagram',
-        component: 'MajorProjectsCard',
-        hasData: !!(props.data?.major_projects)
+        id: "scope",
+        label: "Scope of Work",
+        icon: "fas fa-tasks",
+        hasData: !!props.data?.scope_of_work,
     },
     {
-        id: 'knowledge',
-        label: 'Knowledge',
-        icon: 'fas fa-brain',
-        component: 'KnowledgeCard',
-        hasData: !!(props.data?.local_regulation_knowledge)
+        id: "projects",
+        label: "Major Projects",
+        icon: "fas fa-project-diagram",
+        hasData: !!props.data?.major_projects,
     },
     {
-        id: 'documents',
-        label: 'Documents',
-        icon: 'fas fa-file-alt',
-        component: 'DocumentsCard',
-        hasData: true
-    }
-])
+        id: "knowledge",
+        label: "Knowledge",
+        icon: "fas fa-brain",
+        hasData: !!props.data?.local_regulation_knowledge,
+    },
+    {
+        id: "documents",
+        label: "Documents",
+        icon: "fas fa-file-alt",
+        hasData: true,
+    },
+]);
 
-const hasHoldingData = computed(() => {
-    if (!props.data) return false
-    
-    return !!(
-        props.data.holding_nama_perusahaan ||
-        props.data.holding_tanggal_berdiri ||
-        props.data.holding_alamat ||
-        props.data.holding_phone ||
-        props.data.holding_modal_dasar ||
-        props.data.holding_modal_dikeluarkan ||
-        props.data.holding_pemegang_saham ||
-        props.data.holding_contact_person ||
-        props.data.holding_nama_direktur
-    )
-})
+// FIX: Mapping id tab ke variable komponen!
+const componentMap = {
+    general: GeneralInfoCard,
+    holding: HoldingCompanyCard,
+    facilities: FacilitiesCard,
+    scope: ScopeOfWorkCard,
+    projects: MajorProjectsCard,
+    knowledge: KnowledgeCard,
+    documents: DocumentsCard,
+};
 
 const currentSubTabComponent = computed(() => {
-    const tab = subTabs.value.find(t => t.id === activeSubTab.value)
-    return tab?.component || 'HoldingCompanyCard'
-})
+    // Ambil variable, bukan string!
+    return componentMap[activeSubTab.value] || GeneralInfoCard;
+});
 
 onMounted(() => {
     // Set first tab with data as active
-    const firstTabWithData = subTabs.value.find(tab => tab.hasData)
+    const firstTabWithData = subTabs.value.find((tab) => tab.hasData);
     if (firstTabWithData) {
-        activeSubTab.value = firstTabWithData.id
+        activeSubTab.value = firstTabWithData.id;
     }
-})
+});
 </script>
 
 <style scoped>
@@ -268,15 +275,15 @@ onMounted(() => {
     .nav-wrapper {
         padding: 0 16px;
     }
-    
+
     .sub-tab-button {
         padding: 10px 12px;
     }
-    
+
     .sub-tab-button span {
         display: none;
     }
-    
+
     .sub-tab-button i {
         font-size: 1.125rem;
     }

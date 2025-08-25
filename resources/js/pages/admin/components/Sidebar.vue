@@ -106,7 +106,7 @@
                             <i class="fas fa-list"></i>
                             <span>Vendor List</span>
                         </router-link>
-                        <router-link
+                        <!-- <router-link
                             to="/admin/vendors/categories"
                             class="submenu-item"
                         >
@@ -119,18 +119,18 @@
                         >
                             <i class="fas fa-check-circle"></i>
                             <span>Verification</span>
-                        </router-link>
+                        </router-link> -->
                     </div>
                 </div>
             </div>
 
             <div class="nav-section">
                 <div v-if="!isCollapsed" class="section-title">
-                    Reports & Analytics
+                    Reports
                 </div>
 
                 <!-- Reports -->
-                <div class="nav-item-group">
+                <!-- <div class="nav-item-group">
                     <div
                         @click="toggleSubmenu('reports')"
                         :class="[
@@ -178,14 +178,14 @@
                             <span>Activity Logs</span>
                         </router-link>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="nav-section">
                 <div v-if="!isCollapsed" class="section-title">System</div>
 
                 <!-- Settings -->
-                <div class="nav-item-group">
+                <!-- <div class="nav-item-group">
                     <div
                         @click="toggleSubmenu('settings')"
                         :class="[
@@ -233,7 +233,7 @@
                             <span>Notifications</span>
                         </router-link>
                     </div>
-                </div>
+                </div> -->
             </div>
         </nav>
 

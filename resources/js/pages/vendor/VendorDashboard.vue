@@ -528,6 +528,28 @@ async function handleDistributorSave(data) {
     }
 }
 
+async function handleForwarderSave(data) {
+    try {
+        const token = localStorage.getItem("token");
+        const res = await axios.put("/api/vendor/forwarder", data, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        if (res.data.success) {
+            forwarder.value = res.data.data.forwarder_data;
+            vendor.value.completion_percentage = res.data.data.completion_percentage || vendor.value.completion_percentage;
+            showAlert("success", "Forwarder data updated successfully");
+            await loadForwarderTabs(); // refresh tabs and completed status
+        } else {
+            showAlert("error", res.data.message || "Failed to save forwarder data");
+        }
+    } catch (err) {
+        console.error("Error saving forwarder data:", err);
+        showAlert("error", err.response?.data?.message || "Failed to save forwarder data");
+    }
+}
+
+
 async function handleManufactureSave(data) {
     try {
         const token = localStorage.getItem("token");

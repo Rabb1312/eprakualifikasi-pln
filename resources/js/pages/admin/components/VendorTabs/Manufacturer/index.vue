@@ -7,7 +7,7 @@
             </div>
         </div>
 
-        <div v-else-if="!data" class="empty-state">
+        <div v-else-if="!data && !vendor" class="empty-state">
             <div class="empty-content">
                 <i class="fas fa-info-circle"></i>
                 <h3>Belum Ada Data Manufacturer</h3>
@@ -16,6 +16,33 @@
         </div>
 
         <div v-else class="manufacturer-tabs">
+            <!-- Debug Info -->
+            <!-- <div v-if="showDebug" class="debug-panel">
+                <h4>Debug Info (Manufacturer):</h4>
+                <p>Vendor: {{ vendor?.nama_perusahaan || 'No vendor' }}</p>
+                <p>Data keys: {{ Object.keys(data || {}).length }}</p>
+                <p>Active Tab: {{ activeSubTab }}</p>
+                <p>Current Component: {{ currentComponentName }}</p>
+                <p>Available Tabs: {{ subTabs.map(t => `${t.id}(${t.hasData})`).join(', ') }}</p>
+                <details>
+                    <summary>Database Fields</summary>
+                    <div class="field-check">
+                        <p>product_types: {{ !!data?.product_types }} {{ Array.isArray(data?.product_types) ? `(${data.product_types.length} items)` : typeof data?.product_types === 'string' ? '(text)' : typeof data?.product_types === 'object' ? '(object)' : '' }}</p>
+                        <p>personnel: {{ !!data?.personnel }} {{ Array.isArray(data?.personnel) ? `(${data.personnel.length} items)` : typeof data?.personnel === 'string' ? '(text)' : typeof data?.personnel === 'object' ? '(object)' : '' }}</p>
+                        <p>plants: {{ !!data?.plants }} {{ Array.isArray(data?.plants) ? `(${data.plants.length} items)` : typeof data?.plants === 'string' ? '(text)' : typeof data?.plants === 'object' ? '(object)' : '' }}</p>
+                        <p>after_sales: {{ !!data?.after_sales }} {{ Array.isArray(data?.after_sales) ? `(${data.after_sales.length} items)` : typeof data?.after_sales === 'string' ? '(text)' : typeof data?.after_sales === 'object' ? '(object)' : '' }}</p>
+                        <p>engineering_design: {{ !!data?.engineering_design }} {{ Array.isArray(data?.engineering_design) ? `(${data.engineering_design.length} items)` : typeof data?.engineering_design === 'string' ? '(text)' : typeof data?.engineering_design === 'object' ? '(object)' : '' }}</p>
+                        <p>inventory: {{ !!data?.inventory }} {{ Array.isArray(data?.inventory) ? `(${data.inventory.length} items)` : typeof data?.inventory === 'string' ? '(text)' : typeof data?.inventory === 'object' ? '(object)' : '' }}</p>
+                        <p>subcontracting: {{ !!data?.subcontracting }} {{ typeof data?.subcontracting === 'string' ? `(${data.subcontracting.length} chars)` : '' }}</p>
+                        <p>code_standard: {{ !!data?.code_standard }} {{ Array.isArray(data?.code_standard) ? `(${data.code_standard.length} items)` : typeof data?.code_standard === 'string' ? '(text)' : typeof data?.code_standard === 'object' ? '(object)' : '' }}</p>
+                    </div>
+                </details>
+                <details>
+                    <summary>Raw Data Sample</summary>
+                    <pre>{{ JSON.stringify(Object.fromEntries(Object.entries(data || {}).slice(0, 2)), null, 2) }}</pre>
+                </details>
+            </div> -->
+
             <!-- Sub Tab Navigation -->
             <div class="sub-tab-navigation">
                 <div class="nav-wrapper">
@@ -39,8 +66,9 @@
                 <KeepAlive>
                     <component 
                         :is="currentSubTabComponent" 
-                        :data="data"
-                        :vendor="vendor"
+                        :data="data || {}"
+                        :vendor="vendor || {}"
+                        @error="handleComponentError"
                     />
                 </KeepAlive>
             </div>
@@ -53,18 +81,21 @@ import { ref, computed, onMounted } from 'vue'
 
 // Import sub tab components
 import GeneralInfoCard from './GeneralInfoCard.vue'
-import ProductionCapacityCard from './ProductionCapacityCard.vue'
-import ProductCatalogCard from './ProductCatalogCard.vue'
-import QualityControlCard from './QualityControlCard.vue'
-import CertificationsCard from './CertificationsCard.vue'
-import TechnicalSpecsCard from './TechnicalSpecsCard.vue'
-import SupplyChainCard from './SupplyChainCard.vue'
+import ProductTypesCard from './ProductTypesCard.vue'
+import PersonnelCard from './PersonnelCard.vue'
+import PlantsCard from './PlantsCard.vue'
+import AfterSalesCard from './AfterSalesCard.vue'
+import EngineeringCard from './EngineeringCard.vue'
+import InventoryCard from './InventoryCard.vue'
+import SubcontractingCard from './SubcontractingCard.vue'
+import CodeStandardCard from './CodeStandardCard.vue'
 import DocumentsCard from './DocumentsCard.vue'
+
 
 const props = defineProps({
     vendor: {
         type: Object,
-        required: true
+        default: () => ({})
     },
     data: {
         type: Object,
@@ -74,88 +105,165 @@ const props = defineProps({
 
 const loading = ref(false)
 const activeSubTab = ref('general')
+const showDebug = ref(process.env.NODE_ENV === 'development')
 
+// Data checkers sesuai dengan struktur database manufacturers
+const hasGeneralData = computed(() => {
+    return !!(props.vendor?.nama_perusahaan)
+})
+
+const hasProductTypesData = computed(() => {
+    const data = props.data || {}
+    return !!(data.product_types)
+})
+
+const hasPersonnelData = computed(() => {
+    const data = props.data || {}
+    return !!(data.personnel)
+})
+
+const hasPlantsData = computed(() => {
+    const data = props.data || {}
+    return !!(data.plants)
+})
+
+const hasAfterSalesData = computed(() => {
+    const data = props.data || {}
+    return !!(data.after_sales)
+})
+
+const hasEngineeringData = computed(() => {
+    const data = props.data || {}
+    return !!(data.engineering_design)
+})
+
+const hasInventoryData = computed(() => {
+    const data = props.data || {}
+    return !!(data.inventory)
+})
+
+const hasSubcontractingData = computed(() => {
+    const data = props.data || {}
+    return !!(data.subcontracting)
+})
+
+const hasCodeStandardData = computed(() => {
+    const data = props.data || {}
+    return !!(data.code_standard)
+})
+
+// Tab structure sesuai dengan database fields
 const subTabs = computed(() => [
     {
         id: 'general',
         label: 'General Information',
         icon: 'fas fa-info-circle',
-        component: 'GeneralInfoCard',
         hasData: hasGeneralData.value
     },
     {
-        id: 'production',
-        label: 'Production Capacity',
-        icon: 'fas fa-industry',
-        component: 'ProductionCapacityCard',
-        hasData: !!(props.data?.production_capacity)
-    },
-    {
-        id: 'catalog',
-        label: 'Product Catalog',
+        id: 'product_types',
+        label: 'Product Types',
         icon: 'fas fa-boxes',
-        component: 'ProductCatalogCard',
-        hasData: !!(props.data?.product_catalog)
+        hasData: hasProductTypesData.value
     },
     {
-        id: 'quality',
-        label: 'Quality Control',
-        icon: 'fas fa-check-double',
-        component: 'QualityControlCard',
-        hasData: !!(props.data?.quality_control)
+        id: 'personnel',
+        label: 'Personnel',
+        icon: 'fas fa-users',
+        hasData: hasPersonnelData.value
     },
     {
-        id: 'certifications',
-        label: 'Certifications',
+        id: 'plants',
+        label: 'Plants & Facilities',
+        icon: 'fas fa-industry',
+        hasData: hasPlantsData.value
+    },
+    {
+        id: 'after_sales',
+        label: 'After Sales Service',
+        icon: 'fas fa-wrench',
+        hasData: hasAfterSalesData.value
+    },
+    {
+        id: 'engineering',
+        label: 'Engineering Design',
+        icon: 'fas fa-drafting-compass',
+        hasData: hasEngineeringData.value
+    },
+    {
+        id: 'inventory',
+        label: 'Inventory Management',
+        icon: 'fas fa-warehouse',
+        hasData: hasInventoryData.value
+    },
+    {
+        id: 'subcontracting',
+        label: 'Subcontracting',
+        icon: 'fas fa-handshake',
+        hasData: hasSubcontractingData.value
+    },
+    {
+        id: 'standards',
+        label: 'Code & Standards',
         icon: 'fas fa-certificate',
-        component: 'CertificationsCard',
-        hasData: !!(props.data?.certifications)
-    },
-    {
-        id: 'technical',
-        label: 'Technical Specs',
-        icon: 'fas fa-cogs',
-        component: 'TechnicalSpecsCard',
-        hasData: !!(props.data?.technical_specifications)
-    },
-    {
-        id: 'supply',
-        label: 'Supply Chain',
-        icon: 'fas fa-shipping-fast',
-        component: 'SupplyChainCard',
-        hasData: !!(props.data?.supply_chain)
+        hasData: hasCodeStandardData.value
     },
     {
         id: 'documents',
-        label: 'Attachments/Documents',
+        label: 'Documents',
         icon: 'fas fa-file-alt',
-        component: 'DocumentsCard',
-        hasData: true // Always show documents tab
+        hasData: true
     }
 ])
 
-const hasGeneralData = computed(() => {
-    if (!props.data) return false
-    
-    return !!(
-        props.data.company_profile ||
-        props.data.company_overview ||
-        props.data.manufacturing_specialties ||
-        props.data.target_markets ||
-        props.data.key_personnel
-    )
-})
+// Component mapping dengan komponen yang baru dibuat
+const componentMap = {
+    general: { component: GeneralInfoCard, name: 'GeneralInfoCard' },
+    product_types: { component: ProductTypesCard, name: 'ProductTypesCard' },
+    personnel: { component: PersonnelCard, name: 'PersonnelCard' },
+    plants: { component: PlantsCard, name: 'PlantsCard' },
+    after_sales: { component: AfterSalesCard, name: 'AfterSalesCard' },
+    engineering: { component: EngineeringCard, name: 'EngineeringCard' },
+    inventory: { component: InventoryCard, name: 'InventoryCard' },
+    subcontracting: { component: SubcontractingCard, name: 'SubcontractingCard' },
+    standards: { component: CodeStandardCard, name: 'CodeStandardCard' },
+    documents: { component: DocumentsCard, name: 'DocumentsCard' }
+}
 
 const currentSubTabComponent = computed(() => {
-    const tab = subTabs.value.find(t => t.id === activeSubTab.value)
-    return tab?.component || 'GeneralInfoCard'
+    const tabData = componentMap[activeSubTab.value]
+    if (!tabData) {
+        console.error(`Component not found for tab: ${activeSubTab.value}`)
+        return componentMap.general.component
+    }
+    return tabData.component
 })
 
+const currentComponentName = computed(() => {
+    const tabData = componentMap[activeSubTab.value]
+    return tabData ? tabData.name : 'Unknown'
+})
+
+function handleComponentError(error) {
+    console.error('Component error:', error)
+    activeSubTab.value = 'general'
+}
+
 onMounted(() => {
+    console.log('Manufacturer tab mounted:', {
+        vendor: props.vendor?.nama_perusahaan,
+        dataKeys: Object.keys(props.data || {}),
+        hasData: Object.keys(props.data || {}).length > 0,
+        activeTab: activeSubTab.value,
+        availableTabs: subTabs.value.map(t => `${t.id}(${t.hasData})`).join(', ')
+    })
+    
     // Set first tab with data as active
     const firstTabWithData = subTabs.value.find(tab => tab.hasData)
     if (firstTabWithData) {
         activeSubTab.value = firstTabWithData.id
+    } else {
+        activeSubTab.value = 'general'
     }
 })
 </script>
@@ -177,10 +285,16 @@ onMounted(() => {
     text-align: center;
 }
 
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
 .loading-spinner i {
     font-size: 2rem;
     color: #3b82f6;
-    margin-bottom: 16px;
 }
 
 .empty-content {
@@ -203,6 +317,51 @@ onMounted(() => {
     margin: 0;
     color: #6b7280;
     line-height: 1.5;
+}
+
+.debug-panel {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 24px;
+    font-size: 0.875rem;
+}
+
+.debug-panel h4 {
+    margin: 0 0 12px 0;
+    color: #92400e;
+}
+
+.debug-panel p {
+    margin: 4px 0;
+    color: #92400e;
+    font-family: monospace;
+}
+
+.debug-panel details {
+    margin-top: 12px;
+}
+
+.debug-panel summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #92400e;
+}
+
+.debug-panel pre {
+    background: #fffbeb;
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.field-check p {
+    margin: 2px 0;
+    font-size: 0.8rem;
 }
 
 .manufacturer-tabs {
@@ -291,6 +450,10 @@ onMounted(() => {
     
     .sub-tab-button i {
         font-size: 1.125rem;
+    }
+    
+    .debug-panel {
+        margin: 16px;
     }
 }
 </style>

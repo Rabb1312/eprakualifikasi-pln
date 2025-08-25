@@ -1,12 +1,12 @@
 <template>
-    <div class="forwarder-general-info">
+    <div class="subcontractor-general-info">
         <div class="section-header">
             <div class="header-icon">
-                <i class="fas fa-ship"></i>
+                <i class="fas fa-building"></i>
             </div>
             <div class="header-info">
-                <h3>Informasi Umum Forwarder</h3>
-                <p>Data profil utama vendor Forwarder</p>
+                <h3>Informasi Umum Subcontractor</h3>
+                <p>Data profil utama vendor Subcontractor</p>
             </div>
         </div>
 
@@ -28,7 +28,7 @@
                     </div>
                     <div class="info-item">
                         <label>Tipe Perusahaan:</label>
-                        <span class="type-badge fwd">Forwarder</span>
+                        <span class="type-badge sc">Subcontractor</span>
                     </div>
                     <div class="info-item" v-if="vendor.npwp">
                         <label>NPWP:</label>
@@ -101,40 +101,6 @@
                 </div>
             </div>
 
-            <!-- Forwarder Specific Info -->
-            <div class="info-section" v-if="hasForwarderData">
-                <h4>
-                    <i class="fas fa-ship"></i>
-                    Informasi Forwarder
-                </h4>
-                <div class="info-grid">
-                    <div class="info-item" v-if="data.heavy_lift_capability">
-                        <label>Heavy Lift Capability:</label>
-                        <span>{{ data.heavy_lift_capability }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.monitoring_management">
-                        <label>Monitoring Management:</label>
-                        <span>{{ data.monitoring_management }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.communication_system">
-                        <label>Communication System:</label>
-                        <span>{{ data.communication_system }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.project_execution_procedure">
-                        <label>Project Execution Procedure:</label>
-                        <span>{{ data.project_execution_procedure }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.shipping_line_relation">
-                        <label>Shipping Line Relation:</label>
-                        <span>{{ data.shipping_line_relation }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.airlines_relation">
-                        <label>Airlines Relation:</label>
-                        <span>{{ data.airlines_relation }}</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Status Info -->
             <div class="info-section">
                 <h4>
@@ -175,118 +141,27 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Business Statistics -->
-            <!-- <div class="info-section">
-                <h4>
-                    <i class="fas fa-chart-bar"></i>
-                    Statistik Bisnis
-                </h4>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getBusinessAge() }}</span>
-                            <span class="stat-label">Tahun Beroperasi</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getBranchCount() }}</span>
-                            <span class="stat-label">Total Kantor Cabang</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-ship"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getShippingLinesCount() }}</span>
-                            <span class="stat-label">Shipping Lines</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-plane"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getAirlinesCount() }}</span>
-                            <span class="stat-label">Airlines</span>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
         </div>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
 const props = defineProps({
-    data: {
-        type: Object,
-        required: true
-    },
     vendor: {
         type: Object,
         required: true
     }
 })
 
-const hasForwarderData = computed(() => {
-    return !!(
-        props.data.heavy_lift_capability ||
-        props.data.monitoring_management ||
-        props.data.communication_system ||
-        props.data.project_execution_procedure ||
-        props.data.shipping_line_relation ||
-        props.data.airlines_relation
-    )
-})
-
 function formatDate(dateString) {
     if (!dateString) return "-"
     const date = new Date(dateString)
-    return date.toLocaleDateString("id-ID", { 
-        day: "2-digit", 
-        month: "long", 
-        year: "numeric" 
-    })
-}
-
-function getBusinessAge() {
-    if (props.vendor.tanggal_berdiri) {
-        const foundedYear = new Date(props.vendor.tanggal_berdiri).getFullYear()
-        const currentYear = new Date().getFullYear()
-        return currentYear - foundedYear
-    }
-    return '-'
-}
-
-function getBranchCount() {
-    const indonesian = Array.isArray(props.data.indonesian_branch_offices) ? props.data.indonesian_branch_offices.length : 0
-    const overseas = Array.isArray(props.data.overseas_branch_offices) ? props.data.overseas_branch_offices.length : 0
-    return indonesian + overseas
-}
-
-function getShippingLinesCount() {
-    return Array.isArray(props.data.shipping_lines) ? props.data.shipping_lines.length : 0
-}
-
-function getAirlinesCount() {
-    return Array.isArray(props.data.airlines) ? props.data.airlines.length : 0
+    return date.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })
 }
 </script>
 
 <style scoped>
-/* Menggunakan style yang sama seperti distributor, tapi dengan warna merah untuk tema forwarder */
-.forwarder-general-info {
+.subcontractor-general-info {
     padding: 24px;
     background: #fff;
     border-radius: 12px;
@@ -306,12 +181,12 @@ function getAirlinesCount() {
 .header-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: linear-gradient(135deg, #fef3c7 0%, #f59e0b 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #92400e;
     font-size: 1.5rem;
 }
 
@@ -321,7 +196,6 @@ function getAirlinesCount() {
     font-size: 1.5rem;
     font-weight: 700;
 }
-
 .header-info p {
     margin: 0;
     color: #6b7280;
@@ -370,21 +244,19 @@ function getAirlinesCount() {
     color: #1f2937;
     font-size: 0.95rem;
     text-decoration: none;
-    line-height: 1.4;
 }
 
 .website-link {
     color: #2563eb;
 }
-
 .website-link:hover {
     text-decoration: underline;
     color: #1d4ed8;
 }
 
-.type-badge.fwd {
-    background: #fef2f2;
-    color: #991b1b;
+.type-badge.sc {
+    background: #fef3c7;
+    color: #92400e;
     padding: 4px 10px;
     border-radius: 8px;
     font-weight: 700;
@@ -432,14 +304,14 @@ function getAirlinesCount() {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #dc2626, #ef4444);
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
     border-radius: 4px;
     transition: width 0.5s ease;
 }
 
 .progress-text {
     font-weight: 700;
-    color: #dc2626;
+    color: #f59e0b;
     min-width: 40px;
     text-align: right;
 }
@@ -466,63 +338,13 @@ function getAirlinesCount() {
     gap: 6px;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-top: 8px;
-}
-
-.stat-card {
-    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-    color: white;
-    padding: 16px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-}
-
-.stat-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.stat-number {
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    opacity: 0.8;
-}
-
 @media (max-width: 768px) {
-    .forwarder-general-info {
+    .subcontractor-general-info {
         padding: 16px;
     }
-    
     .info-grid {
         grid-template-columns: 1fr;
         gap: 8px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
     }
 }
 </style>
