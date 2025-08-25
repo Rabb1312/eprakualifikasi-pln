@@ -21,6 +21,7 @@ const routes = [
   // Admin Dashboard
   { path: '/admin/dashboard', component: () => import('@/pages/admin/AdminDashboard.vue'), name: 'admin-dashboard', meta: { requiresAuth: true, requiresAdmin: true } },
   { path: '/admin/users', component: () => import('@/pages/admin/UserManagement.vue'), name: 'admin-users', meta: { requiresAuth: true, requiresAdmin: true } },
+  { path: '/admin/vendors', component: () => import('@/pages/admin/VendorManagement.vue'), name: 'admin-vendors', meta: { requiresAuth: true, requiresAdmin: true } },
 ];
 
 const router = createRouter({

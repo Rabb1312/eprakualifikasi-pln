@@ -21,9 +21,203 @@ class VendorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // Auth check - pastikan middleware admin sudah dijalankan
+        $query = Vendor::with(['user']); // Load user relationship
+
+        // Search functionality
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_perusahaan', 'like', "%{$search}%")
+                    ->orWhere('nomor_vendor', 'like', "%{$search}%")
+                    ->orWhere('npwp', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('username', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('fullname', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Filters
+        if ($request->has('tipe_perusahaan') && $request->tipe_perusahaan != '') {
+            $query->where('tipe_perusahaan', $request->tipe_perusahaan);
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            if ($request->status === 'verified') {
+                $query->whereNotNull('verified_at');
+            } elseif ($request->status === 'unverified') {
+                $query->whereNull('verified_at');
+            }
+        }
+
+        if ($request->has('profile_completed') && $request->profile_completed != '') {
+            $query->where('profile_completed', $request->profile_completed == 'completed' ? 1 : 0);
+        }
+
+        // User status filter
+        if ($request->has('user_status') && $request->user_status != '') {
+            $query->whereHas('user', function ($userQuery) use ($request) {
+                $userQuery->where('status', $request->user_status);
+            });
+        }
+
+        $vendors = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'data' => $vendors
+        ]);
+    }
+
+    public function showAdmin($id)
+    {
+        try {
+            $vendor = Vendor::with([
+                'user', 
+                'documents' => function($query) {
+                    $query->orderBy('document_type')
+                          ->orderBy('created_at', 'desc');
+                }
+            ])->findOrFail($id);
+            
+            // Load specific type data based on vendor type
+            $specificData = $this->loadSpecificVendorData($vendor);
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'vendor' => $vendor,
+                    'specific_data' => $specificData,
+                    'documents' => $vendor->documents,
+                    'tabs' => $this->getTabsForVendorType($vendor->tipe_perusahaan)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vendor tidak ditemukan'
+            ], 404);
+        }
+    }
+
+    /**
+     * Verify vendor
+     */
+    public function verify(Request $request, $id)
+    {
+        try {
+            $vendor = Vendor::findOrFail($id);
+            $authUser = $request->auth_user; // Dari middleware
+
+            $vendor->update([
+                'verified_at' => now(),
+                'verified_by' => $authUser->id
+            ]);
+
+            // Update user status menjadi aktif jika belum
+            if ($vendor->user->status !== 'aktif') {
+                $vendor->user->update(['status' => 'aktif']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vendor berhasil diverifikasi',
+                'data' => $vendor->fresh(['user'])
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memverifikasi vendor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject vendor verification
+     */
+    public function reject(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'reason' => 'required|string|max:500'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $vendor = Vendor::findOrFail($id);
+
+            $vendor->update([
+                'verified_at' => null,
+                'verified_by' => null
+            ]);
+
+            // Update user status menjadi tidak aktif
+            $vendor->user->update(['status' => 'tidak_aktif']);
+
+            // TODO: Send notification email to vendor about rejection
+            // $this->sendRejectionEmail($vendor, $request->reason);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vendor berhasil ditolak',
+                'data' => $vendor->fresh(['user'])
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menolak vendor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get vendor statistics for dashboard
+     */
+    public function getVendorStats()
+    {
+        try {
+            $stats = [
+                'total' => Vendor::count(),
+                'verified' => Vendor::whereNotNull('verified_at')->count(),
+                'unverified' => Vendor::whereNull('verified_at')->count(),
+                'profile_completed' => Vendor::where('profile_completed', 1)->count(),
+                'profile_incomplete' => Vendor::where('profile_completed', 0)->count(),
+                'by_type' => [
+                    'DS' => Vendor::where('tipe_perusahaan', 'DS')->count(),
+                    'SC' => Vendor::where('tipe_perusahaan', 'SC')->count(),
+                    'MF' => Vendor::where('tipe_perusahaan', 'MF')->count(),
+                    'FW' => Vendor::where('tipe_perusahaan', 'FW')->count(),
+                ],
+                'user_status' => [
+                    'active' => Vendor::whereHas('user', function ($q) {
+                        $q->where('status', 'aktif');
+                    })->count(),
+                    'inactive' => Vendor::whereHas('user', function ($q) {
+                        $q->where('status', 'tidak_aktif');
+                    })->count(),
+                ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading vendor stats: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -2446,76 +2640,166 @@ class VendorController extends Controller
     }
 
     public function getManufactureTabs(Request $request)
-{
-    $user = $this->authenticateToken($request);
-    if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+    {
+        $user = $this->authenticateToken($request);
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
 
-    $vendor = $user->vendor;
-    if (!$vendor) return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
+        $vendor = $user->vendor;
+        if (!$vendor) return response()->json(['success' => false, 'message' => 'Vendor profile not found'], 404);
 
-    if ($vendor->tipe_perusahaan !== 'MF') {
+        if ($vendor->tipe_perusahaan !== 'MF') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This vendor is not a manufacturer. Current type: ' . $vendor->tipe_perusahaan
+            ], 400);
+        }
+
+        $manufacture = $vendor->manufacture;
+        if (!$manufacture) {
+            $manufacture = \App\Models\Manufacture::create(['vendor_id' => $vendor->id]);
+        }
+
+        $tabs = [
+            ['id' => 'general', 'label' => 'General', 'icon' => 'fas fa-info-circle', 'component' => 'ManufactureGeneral'],
+            ['id' => 'product_types', 'label' => 'Types of Product Manufactured', 'icon' => 'fas fa-cube', 'component' => 'ManufactureProductTypes'],
+            ['id' => 'personnel', 'label' => 'Personnel', 'icon' => 'fas fa-users', 'component' => 'ManufacturePersonnel'],
+            ['id' => 'plants', 'label' => 'Other Manufacturing Plants', 'icon' => 'fas fa-industry', 'component' => 'ManufacturePlants'],
+            ['id' => 'after_sales', 'label' => 'After Sales Support', 'icon' => 'fas fa-headset', 'component' => 'ManufactureAfterSales'],
+            ['id' => 'engineering_design', 'label' => 'Engineering Design', 'icon' => 'fas fa-drafting-compass', 'component' => 'ManufactureEngineering'],
+            ['id' => 'inventory', 'label' => 'Inventory', 'icon' => 'fas fa-boxes', 'component' => 'ManufactureInventory'],
+            ['id' => 'subcontracting', 'label' => 'Subcontracting', 'icon' => 'fas fa-people-carry', 'component' => 'ManufactureSubcontracting'],
+            ['id' => 'code_standard', 'label' => 'Code Standard Capability', 'icon' => 'fas fa-certificate', 'component' => 'ManufactureCodeStandard'],
+            ['id' => 'documents', 'label' => 'Attachments/Documents', 'icon' => 'fas fa-file-alt', 'component' => 'ManufactureDocuments'],
+        ];
+
         return response()->json([
-            'success' => false,
-            'message' => 'This vendor is not a manufacturer. Current type: ' . $vendor->tipe_perusahaan
-        ], 400);
+            'success' => true,
+            'data' => [
+                'vendor_type' => 'MF',
+                'vendor_type_name' => 'Manufacturer',
+                'tabs' => $tabs,
+                'manufacture_data' => $manufacture,
+            ]
+        ]);
     }
 
-    $manufacture = $vendor->manufacture;
-    if (!$manufacture) {
-        $manufacture = \App\Models\Manufacture::create(['vendor_id' => $vendor->id]);
+    public function updateManufacture(Request $request)
+    {
+        $user = $this->authenticateToken($request);
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+        $vendor = $user->vendor;
+        if (!$vendor || $vendor->tipe_perusahaan !== 'MF') {
+            return response()->json(['success' => false, 'message' => 'Not a manufacturer vendor'], 404);
+        }
+
+        $manufacture = $vendor->manufacture;
+        if (!$manufacture) {
+            $manufacture = \App\Models\Manufacture::create(['vendor_id' => $vendor->id]);
+        }
+
+        $allowedFields = [
+            // Semua field dari 9 tab
+            'product_types',
+            'personnel',
+            'plants',
+            'after_sales',
+            'engineering_design',
+            'inventory',
+            'subcontracting',
+            'code_standard'
+        ];
+
+        $updateData = $request->only($allowedFields);
+        $manufacture->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data manufacture berhasil diperbarui',
+            'data' => ['manufacture_data' => $manufacture->fresh()]
+        ]);
     }
 
-    $tabs = [
-        ['id' => 'general', 'label' => 'General', 'icon' => 'fas fa-info-circle', 'component' => 'ManufactureGeneral'],
-        ['id' => 'product_types', 'label' => 'Types of Product Manufactured', 'icon' => 'fas fa-cube', 'component' => 'ManufactureProductTypes'],
-        ['id' => 'personnel', 'label' => 'Personnel', 'icon' => 'fas fa-users', 'component' => 'ManufacturePersonnel'],
-        ['id' => 'plants', 'label' => 'Other Manufacturing Plants', 'icon' => 'fas fa-industry', 'component' => 'ManufacturePlants'],
-        ['id' => 'after_sales', 'label' => 'After Sales Support', 'icon' => 'fas fa-headset', 'component' => 'ManufactureAfterSales'],
-        ['id' => 'engineering_design', 'label' => 'Engineering Design', 'icon' => 'fas fa-drafting-compass', 'component' => 'ManufactureEngineering'],
-        ['id' => 'inventory', 'label' => 'Inventory', 'icon' => 'fas fa-boxes', 'component' => 'ManufactureInventory'],
-        ['id' => 'subcontracting', 'label' => 'Subcontracting', 'icon' => 'fas fa-people-carry', 'component' => 'ManufactureSubcontracting'],
-        ['id' => 'code_standard', 'label' => 'Code Standard Capability', 'icon' => 'fas fa-certificate', 'component' => 'ManufactureCodeStandard'],
-        ['id' => 'documents', 'label' => 'Attachments/Documents', 'icon' => 'fas fa-file-alt', 'component' => 'ManufactureDocuments'],
-    ];
-
-    return response()->json([
-        'success' => true,
-        'data' => [
-            'vendor_type' => 'MF',
-            'vendor_type_name' => 'Manufacturer',
-            'tabs' => $tabs,
-            'manufacture_data' => $manufacture,
-        ]
-    ]);
-}
-
-public function updateManufacture(Request $request)
-{
-    $user = $this->authenticateToken($request);
-    if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-
-    $vendor = $user->vendor;
-    if (!$vendor || $vendor->tipe_perusahaan !== 'MF') {
-        return response()->json(['success' => false, 'message' => 'Not a manufacturer vendor'], 404);
+    /**
+     * Load specific vendor data based on type
+     */
+    private function loadSpecificVendorData(Vendor $vendor)
+    {
+        switch ($vendor->tipe_perusahaan) {
+            case 'SC':
+                return $vendor->subcontractor;
+            case 'DS':
+                return $vendor->distributor;
+            case 'FW':
+                return $vendor->forwarder;
+            case 'MF':
+                return $vendor->manufacture;
+            default:
+                return null;
+        }
     }
 
-    $manufacture = $vendor->manufacture;
-    if (!$manufacture) {
-        $manufacture = \App\Models\Manufacture::create(['vendor_id' => $vendor->id]);
+    /**
+     * Get tabs configuration for vendor type
+     */
+    private function getTabsForVendorType(string $type)
+    {
+        $baseTabs = [
+            [
+                'key' => 'general',
+                'label' => 'Informasi Umum',
+                'icon' => 'fas fa-building',
+                'component' => 'VendorGeneralTab'
+            ]
+        ];
+
+        $specificTab = $this->getSpecificTab($type);
+        if ($specificTab) {
+            $baseTabs[] = $specificTab;
+        }
+
+        $baseTabs[] = [
+            'key' => 'documents',
+            'label' => 'Dokumen',
+            'icon' => 'fas fa-file-alt',
+            'component' => 'VendorDocumentsTab'
+        ];
+
+        return $baseTabs;
     }
 
-    $allowedFields = [
-        // Semua field dari 9 tab
-        'product_types', 'personnel', 'plants', 'after_sales', 'engineering_design', 'inventory', 'subcontracting', 'code_standard'
-    ];
+    /**
+     * Get specific tab configuration for vendor type
+     */
+    private function getSpecificTab(string $type)
+    {
+        $tabs = [
+            'SC' => [
+                'key' => 'subcontractor',
+                'label' => 'Detail Subcontractor',
+                'icon' => 'fas fa-tools',
+                'component' => 'SubcontractorTab'
+            ],
+            'DS' => [
+                'key' => 'distributor',
+                'label' => 'Detail Distributor',
+                'icon' => 'fas fa-truck',
+                'component' => 'DistributorTab'
+            ],
+            'FW' => [
+                'key' => 'forwarder',
+                'label' => 'Detail Forwarder',
+                'icon' => 'fas fa-ship',
+                'component' => 'ForwarderTab'
+            ],
+            'MF' => [
+                'key' => 'manufacture',
+                'label' => 'Detail Manufacturer',
+                'icon' => 'fas fa-industry',
+                'component' => 'ManufactureTab'
+            ]
+        ];
 
-    $updateData = $request->only($allowedFields);
-    $manufacture->update($updateData);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Data manufacture berhasil diperbarui',
-        'data' => ['manufacture_data' => $manufacture->fresh()]
-    ]);
-}
+        return $tabs[$type] ?? null;
+    }
 }

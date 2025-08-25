@@ -278,6 +278,8 @@ class Vendor extends Model
         $this->attributes['tanggal_beroperasi'] = $value;
     }
 
+    // ==== SUBCONTRACTOR ==== //
+
     public function subcontractor()
     {
         return $this->hasOne(Subcontractor::class);
@@ -349,15 +351,24 @@ class Vendor extends Model
 
         return $totalFields > 0 ? round(($filledFields / $totalFields) * 100, 2) : 0;
     }
-
+    
+    // ==== MANUFACTURE ==== //
+    
     public function manufacture()
     {
         return $this->hasOne(Manufacture::class);
     }
 
+    // ==== FORWARDER ==== //
+
     public function forwarder()
     {
         return $this->hasOne(Forwarder::class);
+    }
+    
+    public function documents()
+    {
+        return $this->hasMany(VendorDocument::class);
     }
 
     public function getTypeSpecificData()
@@ -392,5 +403,40 @@ class Vendor extends Model
             return $subcontractor;
         }
         return $this->subcontractor;
+    }
+
+    // Accessors
+    public function getIsVerifiedAttribute()
+    {
+        return !is_null($this->verified_at);
+    }
+
+    public function getStatusTextAttribute()
+    {
+        if ($this->verified_at) {
+            return 'Terverifikasi';
+        }
+        return 'Belum Terverifikasi';
+    }
+
+    public function getTipeNamaAttribute()
+    {
+        $types = [
+            'DS' => 'Distributor',
+            'SC' => 'Subcontractor',
+            'MF' => 'Manufacturer',
+            'FW' => 'Forwarder'
+        ];
+        return $types[$this->tipe_perusahaan] ?? $this->tipe_perusahaan;
+    }
+
+    public function scopeUnverified($query)
+    {
+        return $query->whereNull('verified_at');
+    }
+
+    public function scopeProfileCompleted($query)
+    {
+        return $query->where('profile_completed', true);
     }
 }

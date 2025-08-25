@@ -20,16 +20,5 @@ class AdminSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // Tambah sample user untuk testing
-        User::create([
-            'username' => 'user_test',
-            'fullname' => 'User Test PLN',
-            'email' => 'user@pln.co.id',
-            'password' => Hash::make('user123'),
-            'level' => 'user',
-            'type' => 'DS',
-            'status' => 'aktif',
-            'email_verified_at' => now(),
-        ]);
     }
 }

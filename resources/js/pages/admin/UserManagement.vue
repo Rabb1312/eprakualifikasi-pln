@@ -1,252 +1,282 @@
 <template>
-    <div class="user-management">
-        <!-- Header Section -->
-         <div class="page-header">
-    <div class="header-left">
-      <h1>Kelola User</h1>
-      <p>Manajemen data user dan vendor</p>
-    </div>
-    <div class="header-right">
-      <router-link to="/admin/dashboard" class="btn-dashboard">
-        <i class="fas fa-tachometer-alt"></i> Dashboard
-      </router-link>
-      <button @click="showCreateModal = true" class="btn-primary">
-        <i class="fas fa-plus"></i> Tambah User
-      </button>
-    </div>
-  </div>
-
-        <!-- Filters Section -->
-        <div class="filters-card">
-            <div class="filter-row">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input
-                        v-model="filters.search"
-                        @input="searchUsers"
-                        placeholder="Cari username, email, atau nama lengkap..."
-                    />
-                </div>
-                <div class="filter-group">
-                    <label>Level</label>
-                    <select v-model="filters.level" @change="filterUsers">
-                        <option value="">Semua Level</option>
-                        <option value="admin">Admin</option>
-                        <option value="user">User</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Tipe</label>
-                    <select v-model="filters.type" @change="filterUsers">
-                        <option value="">Semua Tipe</option>
-                        <option value="DS">Distributor (DS)</option>
-                        <option value="SC">Subcontractor (SC)</option>
-                        <option value="MF">Manufacturer (MF)</option>
-                        <option value="FW">Forwarder (FW)</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Status</label>
-                    <select v-model="filters.status" @change="filterUsers">
-                        <option value="">Semua Status</option>
-                        <option value="aktif">Aktif</option>
-                        <option value="tidak_aktif">Tidak Aktif</option>
-                    </select>
-                </div>
-                <div class="filter-actions">
-                    <button @click="resetFilters" class="btn-secondary">
-                        <i class="fas fa-undo"></i> Reset
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <Sidebar :user="currentUser" @toggle="handleSidebarToggle" />
+        
+        <!-- Main Content -->
+        <div :class="['main-content', { 'sidebar-collapsed': sidebarCollapsed }]">
+            <!-- Top Header -->
+            <div class="top-header">
+                <div class="header-left">
+                    <button @click="toggleMobileSidebar" class="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
                     </button>
+                    <h1>Kelola User</h1>
+                    <p class="header-subtitle">Manajemen data user dan vendor</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="stats-row">
-            <div class="stat-item">
-                <i class="fas fa-users"></i>
-                <div>
-                    <h3>{{ pagination.total || 0 }}</h3>
-                    <p>Total User</p>
-                </div>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-user-check"></i>
-                <div>
-                    <h3>
-                        {{ users.filter((u) => u.status === "aktif").length }}
-                    </h3>
-                    <p>User Aktif</p>
-                </div>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-user-times"></i>
-                <div>
-                    <h3>
-                        {{
-                            users.filter((u) => u.status === "tidak_aktif")
-                                .length
-                        }}
-                    </h3>
-                    <p>User Tidak Aktif</p>
-                </div>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-user-shield"></i>
-                <div>
-                    <h3>
-                        {{ users.filter((u) => u.level === "admin").length }}
-                    </h3>
-                    <p>Administrator</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Users Table -->
-        <div class="table-card">
-            <div class="table-header">
-                <h2>Daftar User</h2>
-                <div class="table-actions">
-                    <button @click="loadUsers" class="btn-refresh">
-                        <i
-                            class="fas fa-sync-alt"
-                            :class="{ 'fa-spin': loading }"
-                        ></i>
-                    </button>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <router-link to="/admin/dashboard" class="header-btn-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </router-link>
+                        <button @click="showCreateModal = true" class="btn-primary">
+                            <i class="fas fa-plus"></i> Tambah User
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="table-wrapper" v-if="!loading">
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Username</th>
-                            <th>Nama Lengkap</th>
-                            <th>Email</th>
-                            <th>Level</th>
-                            <th>Tipe</th>
-                            <th>Status</th>
-                            <th>Terdaftar</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(user, index) in users" :key="user.id">
-                            <td>{{ getRowNumber(index) }}</td>
-                            <!-- GANTI DARI user.id KE getRowNumber(index) -->
-                            <td>
-                                <div class="username-cell">
-                                    <i class="fas fa-user-circle"></i>
-                                    {{ user.username }}
-                                </div>
-                            </td>
-                            <td>{{ user.fullname || "-" }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                <span :class="['level-badge', user.level]">
-                                    {{ user.level }}
-                                </span>
-                            </td>
-                            <td>
-                                <span
-                                    v-if="user.type"
-                                    :class="[
-                                        'type-badge',
-                                        user.type.toLowerCase(),
-                                    ]"
-                                >
-                                    {{ getTypeName(user.type) }}
-                                </span>
-                                <span v-else class="type-badge admin"
-                                    >Admin</span
-                                >
-                            </td>
-                            <td>
-                                <button
-                                    @click="toggleUserStatus(user)"
-                                    :class="['status-toggle', user.status]"
-                                    :disabled="user.id === currentUser?.id"
-                                >
-                                    <i
-                                        :class="[
-                                            'fas',
-                                            user.status === 'aktif'
-                                                ? 'fa-check-circle'
-                                                : 'fa-times-circle',
-                                        ]"
-                                    ></i>
-                                    {{ user.status }}
-                                </button>
-                            </td>
-                            <td>{{ formatDate(user.created_at) }}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button
-                                        @click="viewUser(user)"
-                                        class="btn-action view"
-                                        title="Lihat Detail"
-                                    >
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button
-                                        @click="editUser(user)"
-                                        class="btn-action edit"
-                                        title="Edit User"
-                                    >
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button
-                                        @click="deleteUser(user)"
-                                        class="btn-action delete"
-                                        title="Hapus User"
-                                        :disabled="user.id === currentUser?.id"
-                                    >
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-if="users.length === 0">
-                            <td colspan="9" class="no-data">
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Filters Section -->
+                <div class="filters-card">
+                    <div class="filter-row">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input
+                                v-model="filters.search"
+                                @input="searchUsers"
+                                placeholder="Cari username, email, atau nama lengkap..."
+                            />
+                        </div>
+                        <div class="filter-group">
+                            <label>Level</label>
+                            <select v-model="filters.level" @change="filterUsers">
+                                <option value="">Semua Level</option>
+                                <option value="admin">Admin</option>
+                                <option value="user">User</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Tipe</label>
+                            <select v-model="filters.type" @change="filterUsers">
+                                <option value="">Semua Tipe</option>
+                                <option value="DS">Distributor (DS)</option>
+                                <option value="SC">Subcontractor (SC)</option>
+                                <option value="MF">Manufacturer (MF)</option>
+                                <option value="FW">Forwarder (FW)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select v-model="filters.status" @change="filterUsers">
+                                <option value="">Semua Status</option>
+                                <option value="aktif">Aktif</option>
+                                <option value="tidak_aktif">Tidak Aktif</option>
+                            </select>
+                        </div>
+                        <div class="filter-actions">
+                            <button @click="resetFilters" class="btn-secondary">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
                                 <i class="fas fa-users"></i>
-                                <p>Tidak ada data user</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">{{ pagination.total || 0 }}</div>
+                                <div class="stat-label">Total User</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon active">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">
+                                    {{ users.filter((u) => u.status === "aktif").length }}
+                                </div>
+                                <div class="stat-label">User Aktif</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon inactive">
+                                <i class="fas fa-user-times"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">
+                                    {{
+                                        users.filter((u) => u.status === "tidak_aktif")
+                                            .length
+                                    }}
+                                </div>
+                                <div class="stat-label">User Tidak Aktif</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon admin">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">
+                                    {{ users.filter((u) => u.level === "admin").length }}
+                                </div>
+                                <div class="stat-label">Administrator</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Loading State -->
-            <div v-if="loading" class="loading-state">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Memuat data user...</p>
-            </div>
+                <!-- Users Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h2>Daftar User</h2>
+                        <div class="table-actions">
+                            <button @click="loadUsers" class="btn-refresh">
+                                <i
+                                    class="fas fa-sync-alt"
+                                    :class="{ 'fa-spin': loading }"
+                                ></i>
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- Pagination -->
-            <div class="pagination" v-if="pagination.last_page > 1">
-                <button
-                    @click="changePage(pagination.current_page - 1)"
-                    :disabled="pagination.current_page === 1"
-                    class="page-btn"
-                >
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+                    <div class="table-wrapper" v-if="!loading">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Username</th>
+                                    <th>Nama Lengkap</th>
+                                    <th>Email</th>
+                                    <th>Level</th>
+                                    <th>Tipe</th>
+                                    <th>Status</th>
+                                    <th>Terdaftar</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(user, index) in users" :key="user.id">
+                                    <td>{{ getRowNumber(index) }}</td>
+                                    <td>
+                                        <div class="username-cell">
+                                            <div class="user-avatar-small">
+                                                {{ user.username?.charAt(0)?.toUpperCase() || 'U' }}
+                                            </div>
+                                            {{ user.username }}
+                                        </div>
+                                    </td>
+                                    <td>{{ user.fullname || "-" }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span :class="['level-badge', user.level]">
+                                            {{ user.level }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            v-if="user.type"
+                                            :class="[
+                                                'type-badge',
+                                                user.type.toLowerCase(),
+                                            ]"
+                                        >
+                                            {{ getTypeName(user.type) }}
+                                        </span>
+                                        <span v-else class="type-badge admin">Admin</span>
+                                    </td>
+                                    <td>
+                                        <button
+                                            @click="toggleUserStatus(user)"
+                                            :class="['status-toggle', user.status]"
+                                            :disabled="user.id === currentUser?.id"
+                                        >
+                                            <i
+                                                :class="[
+                                                    'fas',
+                                                    user.status === 'aktif'
+                                                        ? 'fa-check-circle'
+                                                        : 'fa-times-circle',
+                                                ]"
+                                            ></i>
+                                            {{ user.status }}
+                                        </button>
+                                    </td>
+                                    <td>{{ formatDate(user.created_at) }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button
+                                                @click="viewUser(user)"
+                                                class="btn-action view"
+                                                title="Lihat Detail"
+                                            >
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                @click="editUser(user)"
+                                                class="btn-action edit"
+                                                title="Edit User"
+                                            >
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button
+                                                @click="deleteUser(user)"
+                                                class="btn-action delete"
+                                                title="Hapus User"
+                                                :disabled="user.id === currentUser?.id"
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-if="users.length === 0">
+                                    <td colspan="9" class="no-data">
+                                        <i class="fas fa-users"></i>
+                                        <p>Tidak ada data user</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                <span class="page-info">
-                    Halaman {{ pagination.current_page }} dari
-                    {{ pagination.last_page }} ({{ pagination.total }} total)
-                </span>
+                    <!-- Loading State -->
+                    <div v-if="loading" class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Memuat data user...</p>
+                    </div>
 
-                <button
-                    @click="changePage(pagination.current_page + 1)"
-                    :disabled="pagination.current_page === pagination.last_page"
-                    class="page-btn"
-                >
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                    <!-- Pagination -->
+                    <div class="pagination" v-if="pagination.last_page > 1">
+                        <button
+                            @click="changePage(pagination.current_page - 1)"
+                            :disabled="pagination.current_page === 1"
+                            class="page-btn"
+                        >
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        <span class="page-info">
+                            Halaman {{ pagination.current_page }} dari
+                            {{ pagination.last_page }} ({{ pagination.total }} total)
+                        </span>
+
+                        <button
+                            @click="changePage(pagination.current_page + 1)"
+                            :disabled="pagination.current_page === pagination.last_page"
+                            class="page-btn"
+                        >
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div 
+            v-if="showMobileSidebar" 
+            class="sidebar-overlay"
+            @click="closeMobileSidebar"
+        ></div>
 
         <!-- Create/Edit Modal -->
         <div
@@ -301,7 +331,6 @@
                         </div>
                     </div>
 
-                    <!-- TAMBAH FULLNAME UNTUK SEMUA LEVEL -->
                     <div class="form-group">
                         <label>
                             Nama Lengkap
@@ -352,7 +381,6 @@
                         </div>
                     </div>
 
-                    <!-- TIPE HANYA UNTUK USER -->
                     <div v-if="userForm.level === 'user'" class="form-row">
                         <div class="form-group">
                             <label
@@ -382,7 +410,6 @@
                         </div>
                     </div>
 
-                    <!-- STATUS UNTUK NON-USER -->
                     <div v-if="userForm.level !== 'user'" class="form-group">
                         <label>Status <span class="required">*</span></label>
                         <select v-model="userForm.status" required>
@@ -583,12 +610,15 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
+import Sidebar from './components/Sidebar.vue'; // Import Sidebar
 
 // Reactive data
 const users = ref([]);
 const pagination = ref({});
 const loading = ref(false);
 const formLoading = ref(false);
+const sidebarCollapsed = ref(false);
+const showMobileSidebar = ref(false);
 
 // Modals
 const showCreateModal = ref(false);
@@ -635,8 +665,20 @@ onMounted(async () => {
     await loadUsers();
 });
 
+// Sidebar functions
+const handleSidebarToggle = (collapsed) => {
+    sidebarCollapsed.value = collapsed;
+}
+
+const toggleMobileSidebar = () => {
+    showMobileSidebar.value = !showMobileSidebar.value;
+}
+
+const closeMobileSidebar = () => {
+    showMobileSidebar.value = false;
+}
+
 function getRowNumber(index) {
-    // Hitung nomor berdasarkan halaman dan index
     const currentPage = pagination.value.current_page || 1;
     const perPage = pagination.value.per_page || 10;
     return (currentPage - 1) * perPage + index + 1;
@@ -894,227 +936,312 @@ function getToastIcon(type) {
 </script>
 
 <style scoped>
-.user-management {
-    padding: 0;
-    background: #f8f9fa;
+.admin-layout {
+    display: flex;
     min-height: 100vh;
-    font-family: "Montserrat", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8fafc;
 }
 
-/* Header */
-.page-header {
-    background: white;
-    padding: 25px 30px;
-    border-radius: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 25px;
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    transition: margin-left 0.3s ease;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+}
+
+.main-content.sidebar-collapsed {
+    margin-left: 80px;
+}
+
+/* Top Header */
+.top-header {
+    background: white;
+    height: 80px;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .header-left h1 {
-    color: #1e3c72;
-    margin: 0 0 5px 0;
-    font-size: 2em;
-}
-
-.header-left p {
-    color: #666;
     margin: 0;
-    font-size: 1.1em;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1f2937;
 }
 
-.header-right {
-  display: flex;
-  gap: 15px;
-  align-items: center;
+.header-subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.mobile-menu-btn {
+    display: none;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-btn-link {
+    width: 44px;
+    height: 44px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    text-decoration: none;
+}
+
+.header-btn-link:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #374151;
+    text-decoration: none;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: #1f2937;
     color: white;
     border: none;
     padding: 12px 20px;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 0.875rem;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3);
+    background: #374151;
 }
 
-.btn-dashboard {
-  background: #17a2b8;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-}
-
-.btn-dashboard:hover {
-  background: #138496;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(23,162,184,0.3);
-  text-decoration: none;
-  color: white;
+/* Dashboard Content */
+.dashboard-content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    background: #f8fafc;
 }
 
 /* Filters */
 .filters-card {
     background: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 25px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
 }
 
 .filter-row {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr auto;
-    gap: 15px;
+    gap: 16px;
     align-items: end;
 }
 
 .search-box {
     position: relative;
-    min-width: 300px;
 }
 
 .search-box i {
     position: absolute;
-    left: 15px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #666;
+    color: #9ca3af;
     z-index: 1;
 }
 
 .search-box input {
     width: 100%;
-    padding: 12px 15px 12px 45px;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: border-color 0.3s;
+    padding: 12px 16px 12px 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: border-color 0.3s ease;
     box-sizing: border-box;
 }
 
 .search-box input:focus {
-    border-color: #1e3c72;
+    border-color: #1f2937;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+    box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    min-width: 150px; /* TAMBAH MIN WIDTH */
+    gap: 6px;
 }
 
 .filter-group label {
     font-weight: 600;
-    color: #1e3c72;
-    font-size: 13px;
+    color: #374151;
+    font-size: 0.875rem;
     margin: 0;
 }
 
 .filter-group select {
     width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    font-size: 14px;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
     background: white;
     cursor: pointer;
+    transition: border-color 0.3s ease;
 }
 
 .filter-group select:focus {
-    border-color: #1e3c72;
+    border-color: #1f2937;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
-}
-
-.filter-actions {
-    display: flex;
-    align-items: flex-end;
+    box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
 }
 
 .btn-secondary {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 12px 15px;
-    border-radius: 10px;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 12px 16px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: #e5e7eb;
+    border-color: #9ca3af;
 }
 
-/* Stats Row */
-.stats-row {
+/* Stats Section */
+.stats-section {
+    margin-bottom: 32px;
+}
+
+.stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
 }
 
-.stat-item {
+.stat-card {
     background: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 16px;
+    transition: all 0.3s ease;
 }
 
-.stat-item i {
-    font-size: 2em;
-    color: #1e3c72;
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
-.stat-item h3 {
-    margin: 0;
-    font-size: 1.8em;
-    color: #1e3c72;
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #374151;
+    font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
-.stat-item p {
-    margin: 0;
-    color: #666;
-    font-size: 0.9em;
+.stat-icon.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.stat-icon.inactive {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.stat-icon.admin {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1f2937;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
 }
 
 /* Table */
 .table-card {
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
     overflow: hidden;
+    margin-bottom: 24px;
 }
 
 .table-header {
-    padding: 20px 25px;
-    border-bottom: 1px solid #eee;
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1122,16 +1249,23 @@ function getToastIcon(type) {
 
 .table-header h2 {
     margin: 0;
-    color: #1e3c72;
+    color: #1f2937;
+    font-size: 1.25rem;
+    font-weight: 700;
 }
 
 .btn-refresh {
-    background: #17a2b8;
-    color: white;
-    border: none;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
     padding: 8px 12px;
     border-radius: 8px;
     cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+    background: #e5e7eb;
 }
 
 .table-wrapper {
@@ -1144,97 +1278,118 @@ function getToastIcon(type) {
 }
 
 .users-table th {
-    background: #f8f9fa;
-    padding: 15px;
+    background: #f9fafb;
+    padding: 16px;
     text-align: left;
     font-weight: 600;
-    color: #1e3c72;
-    border-bottom: 2px solid #eee;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
     white-space: nowrap;
+    font-size: 0.875rem;
 }
 
 .users-table td {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
     vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+.users-table tr:hover {
+    background: #f9fafb;
 }
 
 .username-cell {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 }
 
-.username-cell i {
-    color: #1e3c72;
-    font-size: 1.2em;
+.user-avatar-small {
+    width: 32px;
+    height: 32px;
+    background: #1f2937;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+    flex-shrink: 0;
 }
 
 /* Badges */
 .level-badge,
 .type-badge,
 .status-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8em;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .level-badge.admin {
-    background: #e3f2fd;
-    color: #1976d2;
+    background: #dbeafe;
+    color: #1e40af;
 }
+
 .level-badge.user {
-    background: #f3e5f5;
-    color: #7b1fa2;
+    background: #f3e8ff;
+    color: #7c3aed;
 }
 
 .type-badge.ds {
-    background: #e3f2fd;
-    color: #1976d2;
+    background: #e0e7ff;
+    color: #3730a3;
 }
+
 .type-badge.sc {
-    background: #f3e5f5;
-    color: #7b1fa2;
+    background: #fef3c7;
+    color: #92400e;
 }
+
 .type-badge.mf {
-    background: #e8f5e8;
-    color: #388e3c;
+    background: #d1fae5;
+    color: #065f46;
 }
+
 .type-badge.fw {
-    background: #fff3e0;
-    color: #f57c00;
+    background: #fed7d7;
+    color: #991b1b;
 }
+
 .type-badge.admin {
-    background: #fce4ec;
-    color: #ad1457;
+    background: #f3e8ff;
+    color: #6b21a8;
 }
 
 .status-toggle {
     border: none;
     padding: 6px 12px;
-    border-radius: 20px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.8em;
-    transition: all 0.3s;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
 .status-toggle.aktif {
-    background: #e8f5e8;
-    color: #2e7d32;
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .status-toggle.tidak_aktif {
-    background: #ffebee;
-    color: #d32f2f;
+    background: #fef2f2;
+    color: #991b1b;
 }
 
-.status-toggle:hover {
+.status-toggle:hover:not(:disabled) {
     transform: scale(1.05);
 }
 
@@ -1246,37 +1401,38 @@ function getToastIcon(type) {
 /* Action Buttons */
 .action-buttons {
     display: flex;
-    gap: 5px;
+    gap: 4px;
 }
 
 .btn-action {
     width: 32px;
     height: 32px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
 }
 
 .btn-action.view {
-    background: #17a2b8;
-    color: white;
+    background: #dbeafe;
+    color: #1e40af;
 }
 
 .btn-action.edit {
-    background: #ffc107;
-    color: #212529;
+    background: #fef3c7;
+    color: #92400e;
 }
 
 .btn-action.delete {
-    background: #dc3545;
-    color: white;
+    background: #fef2f2;
+    color: #991b1b;
 }
 
-.btn-action:hover {
+.btn-action:hover:not(:disabled) {
     transform: scale(1.1);
 }
 
@@ -1288,63 +1444,65 @@ function getToastIcon(type) {
 
 /* Loading State */
 .loading-state {
-    padding: 60px;
+    padding: 64px;
     text-align: center;
-    color: #666;
+    color: #6b7280;
 }
 
 .loading-state i {
-    font-size: 2em;
-    margin-bottom: 15px;
-    color: #1e3c72;
+    font-size: 2rem;
+    margin-bottom: 16px;
+    color: #1f2937;
 }
 
 /* No Data */
 .no-data {
     text-align: center;
-    padding: 60px;
-    color: #666;
+    padding: 64px;
+    color: #6b7280;
 }
 
 .no-data i {
-    font-size: 3em;
-    margin-bottom: 15px;
-    color: #ddd;
+    font-size: 3rem;
+    margin-bottom: 16px;
+    color: #d1d5db;
     display: block;
 }
 
 /* Pagination */
 .pagination {
-    padding: 20px 25px;
-    border-top: 1px solid #eee;
+    padding: 24px;
+    border-top: 1px solid #e5e7eb;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 15px;
+    gap: 16px;
 }
 
 .page-btn {
-    background: #1e3c72;
+    background: #1f2937;
     color: white;
     border: none;
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
 }
 
 .page-btn:hover:not(:disabled) {
-    background: #2a5298;
+    background: #374151;
 }
 
 .page-btn:disabled {
-    background: #ccc;
+    background: #d1d5db;
+    color: #9ca3af;
     cursor: not-allowed;
 }
 
 .page-info {
-    color: #666;
-    font-size: 0.9em;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 /* Modal */
@@ -1364,17 +1522,17 @@ function getToastIcon(type) {
 
 .modal {
     background: white;
-    border-radius: 15px;
+    border-radius: 12px;
     max-width: 600px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .modal-header {
-    padding: 25px 30px;
-    border-bottom: 1px solid #eee;
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1382,76 +1540,82 @@ function getToastIcon(type) {
 
 .modal-header h2 {
     margin: 0;
-    color: #1e3c72;
+    color: #1f2937;
+    font-size: 1.25rem;
+    font-weight: 700;
 }
 
 .modal-close {
     background: none;
     border: none;
-    font-size: 1.5em;
-    color: #666;
+    font-size: 1.25rem;
+    color: #6b7280;
     cursor: pointer;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s ease;
 }
 
 .modal-close:hover {
-    background: #f8f9fa;
+    background: #f3f4f6;
+    color: #374151;
 }
 
 .modal-body {
-    padding: 30px;
+    padding: 24px;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 600;
-    color: #1e3c72;
+    color: #374151;
+    font-size: 0.875rem;
 }
 
 .required {
-    color: #dc3545;
+    color: #ef4444;
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: border-color 0.3s;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: border-color 0.3s ease;
     box-sizing: border-box;
 }
 
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #1e3c72;
+    border-color: #1f2937;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
 }
 
 .modal-footer {
-    padding: 20px 30px;
-    border-top: 1px solid #eee;
+    padding: 24px;
+    border-top: 1px solid #e5e7eb;
     display: flex;
     justify-content: flex-end;
-    gap: 15px;
+    gap: 12px;
 }
 
 /* Delete Modal */
@@ -1461,36 +1625,37 @@ function getToastIcon(type) {
 
 .delete-icon {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .delete-icon i {
-    font-size: 4em;
-    color: #dc3545;
+    font-size: 3rem;
+    color: #ef4444;
 }
 
 .warning {
-    color: #dc3545;
+    color: #ef4444;
     font-weight: 600;
-    font-size: 0.9em;
+    font-size: 0.875rem;
 }
 
 .btn-danger {
-    background: #dc3545;
+    background: #ef4444;
     color: white;
     border: none;
     padding: 12px 20px;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 0.875rem;
 }
 
 .btn-danger:hover {
-    background: #c82333;
+    background: #dc2626;
 }
 
 /* Detail Modal */
@@ -1501,72 +1666,75 @@ function getToastIcon(type) {
 .user-detail {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 .detail-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #f8f9fa;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .detail-row label {
     font-weight: 600;
-    color: #666;
+    color: #6b7280;
     margin: 0;
+    font-size: 0.875rem;
 }
 
 /* Alert */
 .alert {
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.875rem;
 }
 
 .alert-error {
-    background: #f8d7da;
-    border: 1px solid #f5c6cb;
-    color: #721c24;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
 }
 
 .alert ul {
     margin: 0;
-    padding-left: 20px;
+    padding-left: 16px;
 }
 
 /* Toast */
 .toast {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    border-radius: 10px;
+    top: 24px;
+    right: 24px;
+    padding: 16px 20px;
+    border-radius: 8px;
     color: white;
     font-weight: 600;
     z-index: 1100;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     animation: slideIn 0.3s ease;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    font-size: 0.875rem;
 }
 
 .toast.success {
-    background: #28a745;
+    background: #059669;
 }
 
 .toast.error {
-    background: #dc3545;
+    background: #dc2626;
 }
 
 .toast.warning {
-    background: #ffc107;
-    color: #212529;
+    background: #d97706;
 }
 
 .toast.info {
-    background: #17a2b8;
+    background: #0284c7;
 }
 
 @keyframes slideIn {
@@ -1580,46 +1748,81 @@ function getToastIcon(type) {
     }
 }
 
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
 /* Responsive */
-/* Alternative Layout untuk Screen Sedang */
 @media (max-width: 1200px) {
     .filter-row {
         grid-template-columns: 1fr 1fr 1fr auto;
-        gap: 15px;
+        gap: 16px;
     }
 
     .search-box {
-        grid-column: 1 / -1; /* FULL WIDTH */
-        margin-bottom: 15px;
-        min-width: unset;
-    }
-
-    .filter-row {
-        grid-template-rows: auto auto;
+        grid-column: 1 / -1;
+        margin-bottom: 16px;
     }
 }
 
-/* Mobile Layout */
 @media (max-width: 768px) {
-    .filters-card {
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .main-content.sidebar-collapsed {
+        margin-left: 0;
+    }
+    
+    .mobile-menu-btn {
+        display: flex;
+    }
+    
+    .sidebar-overlay {
+        display: block;
+    }
+    
+    .dashboard-content {
         padding: 20px;
     }
-
+    
     .filter-row {
         display: flex;
         flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
+        gap: 16px;
     }
 
-    .search-box,
-    .filter-group {
-        min-width: unset;
-        width: 100%;
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 
-    .filter-actions {
-        justify-content: center;
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-left {
+        align-items: flex-start;
+    }
+    
+    .header-left h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-header {
+        padding: 0 16px;
+    }
+    
+    .dashboard-content {
+        padding: 16px;
     }
 }
 </style>
