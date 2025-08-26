@@ -3,223 +3,84 @@
         <div v-if="hasData" class="inventory-content">
             <div class="section-header">
                 <div class="header-icon">
-                    <i class="fas fa-warehouse"></i>
+                    <i class="fas fa-boxes"></i>
                 </div>
                 <div class="header-info">
                     <h3>Inventory Management</h3>
-                    <p>Sistem manajemen inventori dan gudang manufacturer</p>
+                    <p>Konfigurasi ketersediaan barang untuk pembelian langsung</p>
                 </div>
-                <div class="inventory-stats">
+                <!-- <div class="inventory-stats">
                     <div class="stat-badge">
-                        <span class="stat-number">{{ inventoryItems.length }}</span>
-                        <span class="stat-label">Items</span>
+                        <span class="stat-number">{{ inventoryScore }}%</span>
+                        <span class="stat-label">Configured</span>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="content-sections">
-                <!-- Inventory Items Grid -->
-                <div class="inventory-grid">
-                    <div 
-                        v-for="(item, index) in inventoryItems"
-                        :key="index"
-                        class="inventory-item"
-                    >
-                        <div class="item-header">
-                            <div class="item-icon">
-                                <i :class="getItemIcon(item.category || item.type)"></i>
+                <!-- Direct Purchase Configuration -->
+                <div class="inventory-configuration">
+                    <!-- Direct Purchase Availability -->
+                    <div class="config-item">
+                        <div class="config-header">
+                            <div class="config-icon purchase">
+                                <i class="fas fa-shopping-cart"></i>
                             </div>
-                            <div class="item-info">
-                                <h5>{{ item.name || item.type || `Item ${index + 1}` }}</h5>
-                                <span class="item-category">{{ item.category || 'Inventory Item' }}</span>
-                                <div class="item-code" v-if="item.code">
-                                    <span class="code-badge">{{ item.code }}</span>
+                            <div class="config-info">
+                                <h5>Direct Purchase Availability</h5>
+                                <span class="config-category">Inventory Configuration</span>
+                                <div class="config-description">
+                                    <p>Ketersediaan barang untuk pembelian langsung dari inventori</p>
                                 </div>
                             </div>
-                            <div class="item-status">
-                                <span :class="['status-badge', getStockStatus(item.stock_level)]">
-                                    <i :class="getStockIcon(item.stock_level)"></i>
-                                    {{ getStockText(item.stock_level) }}
+                            <div class="config-status">
+                                <span :class="['status-badge', getAvailabilityStatusClass()]">
+                                    <i :class="getAvailabilityStatusIcon()"></i>
+                                    {{ getAvailabilityStatusText() }}
                                 </span>
                             </div>
                         </div>
 
-                        <div class="item-details">
-                            <div class="item-description" v-if="item.description">
-                                <p>{{ item.description }}</p>
-                            </div>
-
-                            <div class="stock-information">
-                                <h6>Stock Information:</h6>
-                                <div class="stock-grid">
-                                    <div v-if="item.current_stock" class="stock-item">
-                                        <label>Current Stock:</label>
-                                        <span class="stock-value">{{ item.current_stock }}</span>
-                                    </div>
-                                    <div v-if="item.minimum_stock" class="stock-item">
-                                        <label>Minimum Stock:</label>
-                                        <span class="stock-value">{{ item.minimum_stock }}</span>
-                                    </div>
-                                    <div v-if="item.maximum_stock" class="stock-item">
-                                        <label>Maximum Stock:</label>
-                                        <span class="stock-value">{{ item.maximum_stock }}</span>
-                                    </div>
-                                    <div v-if="item.reorder_point" class="stock-item">
-                                        <label>Reorder Point:</label>
-                                        <span class="stock-value">{{ item.reorder_point }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="item-specifications" v-if="item.specifications">
-                                <h6>Specifications:</h6>
-                                <div class="specs-grid">
-                                    <div 
-                                        v-for="(spec, specIndex) in getSpecifications(item.specifications)"
-                                        :key="specIndex"
-                                        class="spec-item"
-                                    >
-                                        <label>{{ spec.name }}:</label>
-                                        <span>{{ spec.value }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="item-location" v-if="item.location">
-                                <h6>Storage Location:</h6>
-                                <div class="location-info">
-                                    <div class="location-item">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span>{{ item.location.warehouse || item.location }}</span>
-                                    </div>
-                                    <div v-if="item.location.rack" class="location-item">
-                                        <i class="fas fa-layer-group"></i>
-                                        <span>Rack: {{ item.location.rack }}</span>
-                                    </div>
-                                    <div v-if="item.location.bin" class="location-item">
-                                        <i class="fas fa-box"></i>
-                                        <span>Bin: {{ item.location.bin }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="item-suppliers" v-if="item.suppliers">
-                                <h6>Suppliers:</h6>
-                                <div class="suppliers-list">
-                                    <div 
-                                        v-for="(supplier, supplierIndex) in getSuppliers(item.suppliers)"
-                                        :key="supplierIndex"
-                                        class="supplier-item"
-                                    >
-                                        <i class="fas fa-truck"></i>
-                                        <span>{{ supplier.name || supplier }}</span>
-                                        <span v-if="supplier.lead_time" class="lead-time">{{ supplier.lead_time }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="item-costs" v-if="item.cost_info">
-                                <h6>Cost Information:</h6>
-                                <div class="costs-grid">
-                                    <div v-if="item.cost_info.unit_cost" class="cost-item">
-                                        <label>Unit Cost:</label>
-                                        <span class="cost-value">{{ item.cost_info.unit_cost }}</span>
-                                    </div>
-                                    <div v-if="item.cost_info.total_value" class="cost-item">
-                                        <label>Total Value:</label>
-                                        <span class="cost-value">{{ item.cost_info.total_value }}</span>
-                                    </div>
-                                    <div v-if="item.cost_info.last_purchase" class="cost-item">
-                                        <label>Last Purchase:</label>
-                                        <span class="cost-value">{{ item.cost_info.last_purchase }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="item-tracking" v-if="item.tracking">
-                                <h6>Tracking Method:</h6>
-                                <div class="tracking-info">
-                                    <div class="tracking-method">
-                                        <i :class="getTrackingIcon(item.tracking.method)"></i>
-                                        <span>{{ item.tracking.method || 'Manual Tracking' }}</span>
-                                    </div>
-                                    <div v-if="item.tracking.system" class="tracking-system">
-                                        <i class="fas fa-desktop"></i>
-                                        <span>System: {{ item.tracking.system }}</span>
+                        <div class="config-details">
+                            <div class="availability-info">
+                                <h6>Purchase Configuration:</h6>
+                                <div class="availability-content">
+                                    <div class="availability-item">
+                                        <i :class="inventoryData.available_goods_direct_purchase === 'yes' ? 'fas fa-check-circle text-success' : inventoryData.available_goods_direct_purchase === 'no' ? 'fas fa-times-circle text-danger' : 'fas fa-question-circle text-muted'"></i>
+                                        <span>{{ getAvailabilityDescription() }}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Inventory Summary -->
-                <div class="inventory-summary">
-                    <h4>
-                        <i class="fas fa-chart-bar"></i>
-                        Inventory Summary
-                    </h4>
-                    <div class="summary-grid">
-                        <div class="summary-item">
-                            <div class="summary-icon">
-                                <i class="fas fa-boxes"></i>
+                    <!-- Additional Information (if not available) -->
+                    <div class="config-item" v-if="inventoryData.available_goods_direct_purchase === 'no' && inventoryData.inventory_note">
+                        <div class="config-header">
+                            <div class="config-icon note">
+                                <i class="fas fa-sticky-note"></i>
                             </div>
-                            <div class="summary-info">
-                                <span class="summary-number">{{ inventoryItems.length }}</span>
-                                <span class="summary-label">Total Items</span>
+                            <div class="config-info">
+                                <h5>Additional Information</h5>
+                                <span class="config-category">Alternative Options</span>
+                                <div class="config-description">
+                                    <p>Penjelasan dan alternatif untuk pembelian langsung</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="summary-info">
-                                <span class="summary-number">{{ getInStockItems() }}</span>
-                                <span class="summary-label">In Stock</span>
+                            <div class="config-status">
+                                <span class="status-badge info">
+                                    <i class="fas fa-info-circle"></i>
+                                    Available
+                                </span>
                             </div>
                         </div>
-                        <div class="summary-item">
-                            <div class="summary-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <div class="summary-info">
-                                <span class="summary-number">{{ getLowStockItems() }}</span>
-                                <span class="summary-label">Low Stock</span>
-                            </div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-icon">
-                                <i class="fas fa-times-circle"></i>
-                            </div>
-                            <div class="summary-info">
-                                <span class="summary-number">{{ getOutOfStockItems() }}</span>
-                                <span class="summary-label">Out of Stock</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Inventory Categories -->
-                <div class="inventory-categories">
-                    <h4>
-                        <i class="fas fa-chart-pie"></i>
-                        Inventory Categories
-                    </h4>
-                    <div class="categories-grid">
-                        <div 
-                            v-for="(category, index) in getInventoryCategories()"
-                            :key="index"
-                            class="category-item"
-                        >
-                            <div class="category-icon">
-                                <i :class="getItemIcon(category.name)"></i>
-                            </div>
-                            <div class="category-info">
-                                <h6>{{ category.name }}</h6>
-                                <span class="category-count">{{ category.count }} items</span>
-                            </div>
-                            <div class="category-percentage">
-                                <span class="percentage-value">{{ getCategoryPercentage(category.count) }}%</span>
+                        <div class="config-details">
+                            <div class="note-content">
+                                <h6>Explanation:</h6>
+                                <div class="note-text">
+                                    <p>{{ inventoryData.inventory_note }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -229,9 +90,9 @@
 
         <div v-else class="no-data">
             <div class="no-data-illustration">
-                <i class="fas fa-warehouse"></i>
+                <i class="fas fa-boxes"></i>
                 <h4>Belum Ada Data Inventory</h4>
-                <p>Data manajemen inventori belum dilengkapi untuk manufacturer ini</p>
+                <p>Konfigurasi inventory management belum dilengkapi untuk manufacturer ini</p>
             </div>
         </div>
     </div>
@@ -252,149 +113,100 @@ const props = defineProps({
 })
 
 const hasData = computed(() => {
-    return !!(props.data.inventory)
+    return !!(props.data.inventory && Object.keys(props.data.inventory).length > 0)
 })
 
-const inventoryItems = computed(() => {
-    if (!props.data.inventory) return []
+const inventoryData = computed(() => {
+    if (!props.data.inventory) return {}
     
     // Handle JSON field dari database
-    if (Array.isArray(props.data.inventory)) {
-        return props.data.inventory
-    }
-    
     if (typeof props.data.inventory === 'string') {
         try {
-            const parsed = JSON.parse(props.data.inventory)
-            return Array.isArray(parsed) ? parsed : [parsed]
+            return JSON.parse(props.data.inventory)
         } catch {
-            return []
+            return {}
         }
     }
     
-    if (typeof props.data.inventory === 'object') {
-        return Object.entries(props.data.inventory).map(([key, value]) => ({
-            name: key,
-            ...value
-        }))
-    }
-    
-    return []
+    return props.data.inventory || {}
 })
 
-function getItemIcon(category) {
-    const categoryLower = (category || '').toLowerCase()
-    const icons = {
-        'raw_material': 'fas fa-cube',
-        'component': 'fas fa-puzzle-piece',
-        'finished_goods': 'fas fa-box',
-        'spare_parts': 'fas fa-wrench',
-        'consumables': 'fas fa-shopping-cart',
-        'tools': 'fas fa-tools',
-        'equipment': 'fas fa-cogs',
-        'chemicals': 'fas fa-flask',
-        'packaging': 'fas fa-archive'
-    }
+// Helper functions sesuai dengan ManufactureInventory.vue
+const inventoryScore = computed(() => {
+    const items = [
+        inventoryData.value.available_goods_direct_purchase,
+        // inventory_note is optional, only count if direct purchase is 'no'
+        inventoryData.value.available_goods_direct_purchase === 'no' ? inventoryData.value.inventory_note : true
+    ]
     
-    for (const [key, icon] of Object.entries(icons)) {
-        if (categoryLower.includes(key)) return icon
+    const configuredItems = items.filter(item => item && item !== '').length
+    return Math.round((configuredItems / items.length) * 100)
+})
+
+function getAvailabilityStatusClass() {
+    if (inventoryData.value.available_goods_direct_purchase === 'yes') return 'available'
+    if (inventoryData.value.available_goods_direct_purchase === 'no') return 'unavailable'
+    return 'not-configured'
+}
+
+function getAvailabilityStatusIcon() {
+    if (inventoryData.value.available_goods_direct_purchase === 'yes') return 'fas fa-check-circle'
+    if (inventoryData.value.available_goods_direct_purchase === 'no') return 'fas fa-times-circle'
+    return 'fas fa-question-circle'
+}
+
+function getAvailabilityStatusText() {
+    if (inventoryData.value.available_goods_direct_purchase === 'yes') return 'Tersedia'
+    if (inventoryData.value.available_goods_direct_purchase === 'no') return 'Tidak Tersedia'
+    return 'Belum Dikonfigurasi'
+}
+
+function getAvailabilityDescription() {
+    if (inventoryData.value.available_goods_direct_purchase === 'yes') {
+        return 'Barang dapat dibeli langsung dari stok yang tersedia'
+    } else if (inventoryData.value.available_goods_direct_purchase === 'no') {
+        return 'Barang tidak tersedia untuk pembelian langsung dari inventori'
     }
-    return 'fas fa-box'
+    return 'Status ketersediaan barang belum ditentukan'
 }
 
-function getStockStatus(stockLevel) {
-    const levelLower = (stockLevel || '').toLowerCase()
-    if (levelLower.includes('out') || levelLower.includes('empty')) return 'out-of-stock'
-    if (levelLower.includes('low') || levelLower.includes('critical')) return 'low-stock'
-    if (levelLower.includes('high') || levelLower.includes('optimal')) return 'in-stock'
-    return 'normal'
+function getOverallStatusClass() {
+    if (inventoryData.value.available_goods_direct_purchase === 'yes') return 'status-available'
+    if (inventoryData.value.available_goods_direct_purchase === 'no') return 'status-unavailable'
+    return 'status-pending'
 }
 
-function getStockIcon(stockLevel) {
-    const status = getStockStatus(stockLevel)
-    const icons = {
-        'in-stock': 'fas fa-check-circle',
-        'low-stock': 'fas fa-exclamation-triangle',
-        'out-of-stock': 'fas fa-times-circle',
-        'normal': 'fas fa-check-circle'
+function getOverallStatusIcon() {
+    if (inventoryData.value.available_goods_direct_purchase === 'yes') return 'fas fa-check-circle'
+    if (inventoryData.value.available_goods_direct_purchase === 'no') return 'fas fa-exclamation-triangle'
+    return 'fas fa-question-circle'
+}
+
+function getOverallStatusTitle() {
+    if (inventoryData.value.available_goods_direct_purchase === 'yes') return 'Inventory Tersedia'
+    if (inventoryData.value.available_goods_direct_purchase === 'no') return 'Inventory Tidak Tersedia'
+    return 'Status Belum Ditentukan'
+}
+
+function getOverallStatusDescription() {
+    if (inventoryData.value.available_goods_direct_purchase === 'yes') {
+        return 'Pelanggan dapat melakukan pembelian langsung dari inventori yang tersedia.'
+    } else if (inventoryData.value.available_goods_direct_purchase === 'no') {
+        return 'Pembelian langsung tidak tersedia. Pelanggan perlu mengikuti prosedur khusus.'
     }
-    return icons[status] || 'fas fa-check-circle'
+    return 'Silakan konfigurasi status ketersediaan barang untuk pembelian langsung.'
 }
 
-function getStockText(stockLevel) {
-    return stockLevel || 'Normal'
-}
-
-function getSpecifications(specifications) {
-    if (Array.isArray(specifications)) return specifications
-    if (typeof specifications === 'object') {
-        return Object.entries(specifications).map(([name, value]) => ({ name, value }))
-    }
-    return []
-}
-
-function getSuppliers(suppliers) {
-    if (Array.isArray(suppliers)) return suppliers
-    if (typeof suppliers === 'string') return suppliers.split(',').map(s => ({ name: s.trim() }))
-    return []
-}
-
-function getTrackingIcon(method) {
-    const methodLower = (method || '').toLowerCase()
-    const icons = {
-        'barcode': 'fas fa-barcode',
-        'rfid': 'fas fa-broadcast-tower',
-        'qr': 'fas fa-qrcode',
-        'manual': 'fas fa-clipboard',
-        'digital': 'fas fa-desktop'
-    }
-    
-    for (const [key, icon] of Object.entries(icons)) {
-        if (methodLower.includes(key)) return icon
-    }
-    return 'fas fa-search'
-}
-
-function getInStockItems() {
-    return inventoryItems.value.filter(item => {
-        const status = getStockStatus(item.stock_level)
-        return status === 'in-stock' || status === 'normal'
-    }).length
-}
-
-function getLowStockItems() {
-    return inventoryItems.value.filter(item => {
-        return getStockStatus(item.stock_level) === 'low-stock'
-    }).length
-}
-
-function getOutOfStockItems() {
-    return inventoryItems.value.filter(item => {
-        return getStockStatus(item.stock_level) === 'out-of-stock'
-    }).length
-}
-
-function getInventoryCategories() {
-    const categories = {}
-    inventoryItems.value.forEach(item => {
-        const category = item.category || item.type || 'General'
-        if (!categories[category]) {
-            categories[category] = { name: category, count: 0 }
-        }
-        categories[category].count++
-    })
-    
-    return Object.values(categories).sort((a, b) => b.count - a.count)
-}
-
-function getCategoryPercentage(count) {
-    if (inventoryItems.value.length === 0) return 0
-    return Math.round((count / inventoryItems.value.length) * 100)
+function getConfiguredItemsCount() {
+    let count = 0
+    if (inventoryData.value.available_goods_direct_purchase) count++
+    if (inventoryData.value.available_goods_direct_purchase === 'no' && inventoryData.value.inventory_note) count++
+    else if (inventoryData.value.available_goods_direct_purchase === 'yes') count++ // auto-complete for 'yes' case
+    return count
 }
 </script>
 
 <style scoped>
-/* Style yang sama dengan komponen sebelumnya, dengan adaptasi warna untuk inventory */
 .inventory-card {
     padding: 24px;
     min-height: 400px;
@@ -412,14 +224,14 @@ function getCategoryPercentage(count) {
 .header-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 1.5rem;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .header-info {
@@ -469,13 +281,13 @@ function getCategoryPercentage(count) {
     gap: 32px;
 }
 
-.inventory-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+.inventory-configuration {
+    display: flex;
+    flex-direction: column;
     gap: 24px;
 }
 
-.inventory-item {
+.config-item {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
@@ -483,45 +295,52 @@ function getCategoryPercentage(count) {
     transition: all 0.3s ease;
 }
 
-.inventory-item:hover {
+.config-item:hover {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
 
-.item-header {
+.config-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
     padding: 20px 24px;
     background: #f8fafc;
     border-bottom: 1px solid #e5e7eb;
 }
 
-.item-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+.config-icon {
+    width: 56px;
+    height: 56px;
     color: white;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     flex-shrink: 0;
 }
 
-.item-info {
+.config-icon.purchase {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.config-icon.note {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.config-info {
     flex: 1;
 }
 
-.item-info h5 {
+.config-info h5 {
     margin: 0 0 4px 0;
     font-weight: 700;
     color: #1f2937;
     font-size: 1.125rem;
 }
 
-.item-category {
+.config-category {
     font-size: 0.875rem;
     color: #6b7280;
     font-weight: 500;
@@ -529,21 +348,18 @@ function getCategoryPercentage(count) {
     margin-bottom: 8px;
 }
 
-.item-code {
-    margin-top: 4px;
+.config-description {
+    margin-top: 8px;
 }
 
-.code-badge {
-    background: #e5e7eb;
+.config-description p {
+    margin: 0;
     color: #374151;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-family: monospace;
+    font-size: 0.875rem;
+    line-height: 1.4;
 }
 
-.item-status {
+.config-status {
     flex-shrink: 0;
 }
 
@@ -559,106 +375,92 @@ function getCategoryPercentage(count) {
     letter-spacing: 0.025em;
 }
 
-.status-badge.in-stock,
-.status-badge.normal {
+.status-badge.available {
     background: #d1fae5;
     color: #065f46;
 }
 
-.status-badge.low-stock {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-badge.out-of-stock {
+.status-badge.unavailable {
     background: #fef2f2;
     color: #991b1b;
 }
 
-.item-details {
+.status-badge.not-configured {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.status-badge.info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.config-details {
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.item-description,
-.stock-information,
-.item-specifications,
-.item-location,
-.item-suppliers,
-.item-costs,
-.item-tracking {
+.availability-info,
+.note-content,
+.purchase-features,
+.alternative-options {
     background: #f8fafc;
     padding: 16px;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
 }
 
-.item-description p {
-    margin: 0;
-    color: #374151;
-    line-height: 1.6;
-    font-size: 0.875rem;
-}
-
-.stock-information h6,
-.item-specifications h6,
-.item-location h6,
-.item-suppliers h6,
-.item-costs h6,
-.item-tracking h6 {
+.availability-info h6,
+.note-content h6,
+.purchase-features h6,
+.alternative-options h6 {
     margin: 0 0 12px 0;
     font-weight: 600;
     color: #374151;
     font-size: 0.875rem;
 }
 
-.stock-grid,
-.specs-grid,
-.costs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
-}
-
-.stock-item,
-.spec-item,
-.cost-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-    font-size: 0.875rem;
-}
-
-.stock-item label,
-.spec-item label,
-.cost-item label {
-    color: #6b7280;
-    font-weight: 500;
-}
-
-.stock-value,
-.spec-item span,
-.cost-value {
-    color: #1f2937;
-    font-weight: 600;
-}
-
-.location-info,
-.suppliers-list,
-.tracking-info {
+.availability-content {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.location-item,
-.supplier-item {
+.availability-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: #374151;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.note-text p {
+    margin: 0;
+    color: #374151;
+    line-height: 1.6;
+    font-size: 0.875rem;
+    text-align: justify;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.features-list,
+.alternatives-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feature-item,
+.alternative-item {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -666,47 +468,24 @@ function getCategoryPercentage(count) {
     color: #374151;
 }
 
-.location-item i,
-.supplier-item i {
-    color: #f59e0b;
-    font-size: 0.875rem;
-    width: 16px;
-    text-align: center;
-}
-
-.lead-time {
-    margin-left: auto;
+.feature-item i {
+    color: #3b82f6;
     font-size: 0.75rem;
-    color: #6b7280;
-    background: #f3f4f6;
-    padding: 2px 6px;
-    border-radius: 4px;
 }
 
-.tracking-method,
-.tracking-system {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #374151;
-}
-
-.tracking-method i,
-.tracking-system i {
+.alternative-item i {
     color: #f59e0b;
+    font-size: 0.75rem;
 }
 
-.inventory-summary,
-.inventory-categories {
+.inventory-summary {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     overflow: hidden;
 }
 
-.inventory-summary h4,
-.inventory-categories h4 {
+.inventory-summary h4 {
     margin: 0;
     padding: 16px 24px;
     background: #f8fafc;
@@ -720,32 +499,160 @@ function getCategoryPercentage(count) {
 }
 
 .inventory-summary h4 i {
-    color: #8b5cf6;
+    color: #7c3aed;
 }
 
-.inventory-categories h4 i {
-    color: #ef4444;
-}
-
-.summary-grid,
-.categories-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+.summary-content {
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.status-overview {
+    display: flex;
+    justify-content: center;
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    min-width: 300px;
+}
+
+.status-available {
+    background: linear-gradient(135deg, #d4edda 0%, #ffffff 100%);
+    border-left: 4px solid #28a745;
+}
+
+.status-unavailable {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffffff 100%);
+    border-left: 4px solid #ffc107;
+}
+
+.status-pending {
+    background: linear-gradient(135deg, #e2e3e5 0%, #ffffff 100%);
+    border-left: 4px solid #6c757d;
+}
+
+.status-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.status-available .status-icon {
+    background: #28a745;
+    color: white;
+}
+
+.status-unavailable .status-icon {
+    background: #ffc107;
+    color: white;
+}
+
+.status-pending .status-icon {
+    background: #6c757d;
+    color: white;
+}
+
+.status-details {
+    flex: 1;
+}
+
+.status-title {
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 1.125rem;
+}
+
+.status-description {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.configuration-summary {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.summary-header h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.summary-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .summary-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.summary-item.direct-purchase {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+}
+
+.summary-item.note-available {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+}
+
+.summary-item.completion {
+    background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+    color: #6d28d9;
+}
+
+.summary-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.summary-value {
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.statistic-item {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     color: white;
     border-radius: 8px;
 }
 
-.summary-icon {
+.statistic-icon {
     width: 48px;
     height: 48px;
     background: rgba(255, 255, 255, 0.1);
@@ -756,75 +663,32 @@ function getCategoryPercentage(count) {
     font-size: 1.25rem;
 }
 
-.summary-info {
+.statistic-info {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.summary-number {
+.statistic-number {
     font-size: 1.5rem;
     font-weight: 700;
 }
 
-.summary-label {
+.statistic-label {
     font-size: 0.875rem;
     opacity: 0.8;
 }
 
-.category-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+.text-success {
+    color: #059669 !important;
 }
 
-.category-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.text-danger {
+    color: #dc2626 !important;
 }
 
-.category-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
-    color: white;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-    flex-shrink: 0;
-}
-
-.category-info {
-    flex: 1;
-}
-
-.category-info h6 {
-    margin: 0 0 4px 0;
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 1rem;
-}
-
-.category-count {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.category-percentage {
-    flex-shrink: 0;
-}
-
-.percentage-value {
-    font-weight: 700;
-    color: #ef4444;
-    font-size: 1.125rem;
+.text-muted {
+    color: #9ca3af !important;
 }
 
 .no-data {
@@ -863,9 +727,9 @@ function getCategoryPercentage(count) {
         padding: 16px;
     }
     
-    .inventory-grid,
-    .summary-grid,
-    .categories-grid {
+    .inventory-configuration,
+    .configuration-summary,
+    .statistics-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
@@ -876,15 +740,19 @@ function getCategoryPercentage(count) {
         gap: 12px;
     }
     
-    .item-header {
+    .config-header {
         flex-direction: column;
         text-align: center;
         gap: 12px;
     }
     
-    .stock-grid,
-    .specs-grid,
-    .costs-grid {
+    .status-card {
+        flex-direction: column;
+        text-align: center;
+        min-width: auto;
+    }
+    
+    .summary-items {
         grid-template-columns: 1fr;
     }
 }

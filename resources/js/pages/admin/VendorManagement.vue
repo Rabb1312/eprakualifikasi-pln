@@ -55,7 +55,7 @@
                             <select v-model="filters.status" @change="filterVendors">
                                 <option value="">Semua Status</option>
                                 <option value="verified">Terverifikasi</option>
-                                <option value="unverified">Belum Verifikasi</option>
+                                <option value="unverified">Belum Terverifikasi</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -113,7 +113,7 @@
                                 <div class="stat-number">
                                     {{ vendors.filter((v) => !v.verified_at).length }}
                                 </div>
-                                <div class="stat-label">Belum Verifikasi</div>
+                                <div class="stat-label">Belum Terverifikasi</div>
                             </div>
                         </div>
                         <div class="stat-card">

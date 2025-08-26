@@ -5,13 +5,13 @@
                 <i class="fas fa-ship"></i>
             </div>
             <div class="header-info">
-                <h3>Informasi Umum Forwarder</h3>
-                <p>Data profil utama vendor Forwarder</p>
+                <h3>General Information</h3>
+                <p>Basic information about your company from vendor registration</p>
             </div>
         </div>
 
         <div class="info-sections">
-            <!-- Company Info -->
+            <!-- Company Identity -->
             <div class="info-section">
                 <h4>
                     <i class="fas fa-id-card"></i>
@@ -20,15 +20,15 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <label>Nomor Vendor:</label>
-                        <span>{{ vendor.nomor_vendor }}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Nama Perusahaan:</label>
-                        <span>{{ vendor.nama_perusahaan }}</span>
+                        <span class="vendor-number">{{ vendor.nomor_vendor || '-' }}</span>
                     </div>
                     <div class="info-item">
                         <label>Tipe Perusahaan:</label>
                         <span class="type-badge fwd">Forwarder</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <label>Nama Perusahaan:</label>
+                        <span class="company-name">{{ vendor.nama_perusahaan || '-' }}</span>
                     </div>
                     <div class="info-item" v-if="vendor.npwp">
                         <label>NPWP:</label>
@@ -38,23 +38,23 @@
                         <label>Tanggal Berdiri:</label>
                         <span>{{ formatDate(vendor.tanggal_berdiri) }}</span>
                     </div>
+                    <div class="info-item" v-if="vendor.tanggal_beroperasi">
+                        <label>Tanggal Mulai Beroperasi:</label>
+                        <span>{{ formatDate(vendor.tanggal_beroperasi) }}</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Contact Info -->
-            <div class="info-section" v-if="vendor.phone || vendor.website || vendor.email">
+            <!-- Contact Information -->
+            <div class="info-section" v-if="vendor.phone || vendor.website">
                 <h4>
                     <i class="fas fa-phone"></i>
                     Kontak Perusahaan
                 </h4>
                 <div class="info-grid">
                     <div class="info-item" v-if="vendor.phone">
-                        <label>Telepon:</label>
+                        <label>Nomor Telepon:</label>
                         <span>{{ vendor.phone }}</span>
-                    </div>
-                    <div class="info-item" v-if="vendor.email">
-                        <label>Email:</label>
-                        <span>{{ vendor.email }}</span>
                     </div>
                     <div class="info-item" v-if="vendor.website">
                         <label>Website:</label>
@@ -65,77 +65,248 @@
                 </div>
             </div>
 
-            <!-- Address Info -->
-            <div class="info-section" v-if="vendor.alamat || vendor.kode_pos">
+            <!-- Address Information -->
+            <div class="info-section" v-if="vendor.alamat || vendor.alamat_kantor_operasional || vendor.kode_pos">
                 <h4>
                     <i class="fas fa-map-marker-alt"></i>
-                    Alamat Perusahaan
+                    Alamat
                 </h4>
                 <div class="info-grid">
-                    <div class="info-item" v-if="vendor.alamat">
+                    <div class="info-item full-width" v-if="vendor.alamat">
                         <label>Alamat:</label>
-                        <span>{{ vendor.alamat }}</span>
+                        <span class="text-content">{{ vendor.alamat }}</span>
                     </div>
                     <div class="info-item" v-if="vendor.kode_pos">
                         <label>Kode Pos:</label>
                         <span>{{ vendor.kode_pos }}</span>
                     </div>
+                    <div class="info-item full-width" v-if="vendor.alamat_kantor_operasional">
+                        <label>Alamat Kantor Operasional:</label>
+                        <span class="text-content">{{ vendor.alamat_kantor_operasional }}</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Legal Info -->
-            <div class="info-section" v-if="vendor.legal_status || vendor.izin_usaha">
+            <!-- Fleet Information -->
+            <div class="info-section" v-if="vendor.kepemilikan || vendor.kepemilikan_armada">
                 <h4>
-                    <i class="fas fa-file-contract"></i>
-                    Legalitas & Izin
+                    <i class="fas fa-truck"></i>
+                    Fleet Information / Informasi Armada
                 </h4>
-                <div class="info-grid">
-                    <div class="info-item" v-if="vendor.legal_status">
-                        <label>Status Badan Hukum:</label>
-                        <span>{{ vendor.legal_status }}</span>
+                <div class="fleet-info">
+                    <div class="fleet-item" v-if="vendor.kepemilikan">
+                        <div class="fleet-label">
+                            <i class="fas fa-info-circle"></i>
+                            In possession / Kepemilikan:
+                        </div>
+                        <div class="fleet-value">
+                            <span class="fleet-badge" :class="getFleetPossessionClass(vendor.kepemilikan)">
+                                <i :class="getFleetPossessionIcon(vendor.kepemilikan)"></i>
+                                {{ getFleetPossessionText(vendor.kepemilikan) }}
+                            </span>
+                        </div>
                     </div>
-                    <div class="info-item" v-if="vendor.izin_usaha">
-                        <label>Izin Usaha:</label>
-                        <span>{{ vendor.izin_usaha }}</span>
+                    
+                    <div class="fleet-item" v-if="vendor.kepemilikan_armada && vendor.kepemilikan !== 'tidak'">
+                        <div class="fleet-label">
+                            <i class="fas fa-handshake"></i>
+                            Fleet Ownership status / Status kepemilikan armada:
+                        </div>
+                        <div class="fleet-value">
+                            <span class="fleet-badge" :class="getFleetOwnershipClass(vendor.kepemilikan_armada)">
+                                <i :class="getFleetOwnershipIcon(vendor.kepemilikan_armada)"></i>
+                                {{ getFleetOwnershipText(vendor.kepemilikan_armada) }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Forwarder Specific Info -->
+            <!-- Contact Person -->
+            <div class="info-section" v-if="vendor.contact_person && vendor.contact_person.length > 0">
+                <h4>
+                    <i class="fas fa-user-tie"></i>
+                    Contact Person
+                </h4>
+                <div class="contacts-list">
+                    <div 
+                        v-for="(contact, index) in vendor.contact_person" 
+                        :key="index"
+                        class="contact-card"
+                    >
+                        <div class="contact-header">
+                            <div class="contact-name">{{ contact.nama || 'Nama tidak tersedia' }}</div>
+                            <div class="contact-position" v-if="contact.jabatan">{{ contact.jabatan }}</div>
+                        </div>
+                        <div class="contact-details">
+                            <div v-if="contact.telepon" class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ contact.telepon }}</span>
+                            </div>
+                            <div v-if="contact.email" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ contact.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Level Management -->
+            <div class="info-section" v-if="vendor.top_level && vendor.top_level.length > 0">
+                <h4>
+                    <i class="fas fa-users-cog"></i>
+                    Top Level Management
+                </h4>
+                <div class="contacts-list">
+                    <div 
+                        v-for="(person, index) in vendor.top_level" 
+                        :key="index"
+                        class="contact-card management-card"
+                    >
+                        <div class="contact-header">
+                            <div class="contact-name">{{ person.nama || 'Nama tidak tersedia' }}</div>
+                            <div class="contact-position" v-if="person.jabatan">{{ person.jabatan }}</div>
+                        </div>
+                        <div class="contact-details">
+                            <div v-if="person.telepon" class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ person.telepon }}</span>
+                            </div>
+                            <div v-if="person.email" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ person.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Level Management -->
+            <div class="info-section" v-if="vendor.mid_level && vendor.mid_level.length > 0">
+                <h4>
+                    <i class="fas fa-users"></i>
+                    Middle Level Management
+                </h4>
+                <div class="contacts-list">
+                    <div 
+                        v-for="(person, index) in vendor.mid_level" 
+                        :key="index"
+                        class="contact-card management-card"
+                    >
+                        <div class="contact-header">
+                            <div class="contact-name">{{ person.nama || 'Nama tidak tersedia' }}</div>
+                            <div class="contact-position" v-if="person.jabatan">{{ person.jabatan }}</div>
+                        </div>
+                        <div class="contact-details">
+                            <div v-if="person.telepon" class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ person.telepon }}</span>
+                            </div>
+                            <div v-if="person.email" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ person.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales/Marketing -->
+            <div class="info-section" v-if="vendor.sales_marketing && vendor.sales_marketing.length > 0">
+                <h4>
+                    <i class="fas fa-chart-line"></i>
+                    Sales/Marketing
+                </h4>
+                <div class="contacts-list">
+                    <div 
+                        v-for="(person, index) in vendor.sales_marketing" 
+                        :key="index"
+                        class="contact-card marketing-card"
+                    >
+                        <div class="contact-header">
+                            <div class="contact-name">{{ person.nama || 'Nama tidak tersedia' }}</div>
+                            <div class="contact-position" v-if="person.jabatan">{{ person.jabatan }}</div>
+                        </div>
+                        <div class="contact-details">
+                            <div v-if="person.telepon" class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ person.telepon }}</span>
+                            </div>
+                            <div v-if="person.email" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ person.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Summary -->
+            <div class="info-section" v-if="hasManagementData">
+                <h4>
+                    <i class="fas fa-chart-bar"></i>
+                    Ringkasan Tim
+                </h4>
+                <div class="stats-grid">
+                    <div class="stat-card" v-if="contactPersonCount > 0">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number">{{ contactPersonCount }}</span>
+                            <span class="stat-label">Contact Person</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" v-if="topLevelCount > 0">
+                        <div class="stat-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number">{{ topLevelCount }}</span>
+                            <span class="stat-label">Top Level</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" v-if="midLevelCount > 0">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number">{{ midLevelCount }}</span>
+                            <span class="stat-label">Middle Level</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" v-if="salesMarketingCount > 0">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number">{{ salesMarketingCount }}</span>
+                            <span class="stat-label">Sales/Marketing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forwarder Specific Info (if data exists) -->
             <div class="info-section" v-if="hasForwarderData">
                 <h4>
                     <i class="fas fa-ship"></i>
                     Informasi Forwarder
                 </h4>
                 <div class="info-grid">
-                    <div class="info-item" v-if="data.heavy_lift_capability">
+                    <div class="info-item full-width" v-if="data.heavy_lift_capability">
                         <label>Heavy Lift Capability:</label>
                         <span>{{ data.heavy_lift_capability }}</span>
                     </div>
-                    <div class="info-item" v-if="data.monitoring_management">
+                    <div class="info-item full-width" v-if="data.monitoring_management">
                         <label>Monitoring Management:</label>
                         <span>{{ data.monitoring_management }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.communication_system">
-                        <label>Communication System:</label>
-                        <span>{{ data.communication_system }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.project_execution_procedure">
-                        <label>Project Execution Procedure:</label>
-                        <span>{{ data.project_execution_procedure }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.shipping_line_relation">
-                        <label>Shipping Line Relation:</label>
-                        <span>{{ data.shipping_line_relation }}</span>
-                    </div>
-                    <div class="info-item" v-if="data.airlines_relation">
-                        <label>Airlines Relation:</label>
-                        <span>{{ data.airlines_relation }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Status Info -->
+            <!-- Status Information -->
             <div class="info-section">
                 <h4>
                     <i class="fas fa-chart-pie"></i>
@@ -151,10 +322,10 @@
                             <div class="progress-bar">
                                 <div 
                                     class="progress-fill"
-                                    :style="{ width: vendor.completion_percentage + '%' }"
+                                    :style="{ width: (vendor.completion_percentage || 0) + '%' }"
                                 ></div>
                             </div>
-                            <span class="progress-text">{{ vendor.completion_percentage }}%</span>
+                            <span class="progress-text">{{ vendor.completion_percentage || 0 }}%</span>
                         </div>
                     </div>
                     <div class="status-card">
@@ -175,52 +346,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Business Statistics -->
-            <!-- <div class="info-section">
-                <h4>
-                    <i class="fas fa-chart-bar"></i>
-                    Statistik Bisnis
-                </h4>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getBusinessAge() }}</span>
-                            <span class="stat-label">Tahun Beroperasi</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getBranchCount() }}</span>
-                            <span class="stat-label">Total Kantor Cabang</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-ship"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getShippingLinesCount() }}</span>
-                            <span class="stat-label">Shipping Lines</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-plane"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getAirlinesCount() }}</span>
-                            <span class="stat-label">Airlines</span>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
         </div>
     </div>
 </template>
@@ -231,7 +356,7 @@ import { computed } from 'vue'
 const props = defineProps({
     data: {
         type: Object,
-        required: true
+        default: () => ({})
     },
     vendor: {
         type: Object,
@@ -239,16 +364,87 @@ const props = defineProps({
     }
 })
 
+// Management Data Computed
+const contactPersonCount = computed(() => {
+    return props.vendor.contact_person ? props.vendor.contact_person.length : 0
+})
+
+const topLevelCount = computed(() => {
+    return props.vendor.top_level ? props.vendor.top_level.length : 0
+})
+
+const midLevelCount = computed(() => {
+    return props.vendor.mid_level ? props.vendor.mid_level.length : 0
+})
+
+const salesMarketingCount = computed(() => {
+    return props.vendor.sales_marketing ? props.vendor.sales_marketing.length : 0
+})
+
+const hasManagementData = computed(() => {
+    return contactPersonCount.value > 0 || topLevelCount.value > 0 || midLevelCount.value > 0 || salesMarketingCount.value > 0
+})
+
 const hasForwarderData = computed(() => {
     return !!(
         props.data.heavy_lift_capability ||
         props.data.monitoring_management ||
         props.data.communication_system ||
-        props.data.project_execution_procedure ||
-        props.data.shipping_line_relation ||
-        props.data.airlines_relation
+        props.data.project_execution_procedure
     )
 })
+
+// Fleet Information Functions
+function getFleetPossessionText(value) {
+    const mapping = {
+        'tidak': 'None / Tidak',
+        'satu': 'One / Satu',
+        'lebih dari satu': 'More than one / Lebih dari satu'
+    }
+    return mapping[value] || value
+}
+
+function getFleetPossessionClass(value) {
+    const mapping = {
+        'tidak': 'fleet-none',
+        'satu': 'fleet-one',
+        'lebih dari satu': 'fleet-multiple'
+    }
+    return mapping[value] || 'fleet-default'
+}
+
+function getFleetPossessionIcon(value) {
+    const mapping = {
+        'tidak': 'fas fa-times-circle',
+        'satu': 'fas fa-truck',
+        'lebih dari satu': 'fas fa-shipping-fast'
+    }
+    return mapping[value] || 'fas fa-truck'
+}
+
+function getFleetOwnershipText(value) {
+    const mapping = {
+        'sewa': 'On rent / Sewa',
+        'miliki pribadi': 'Own property / Miliki pribadi'
+    }
+    return mapping[value] || value
+}
+
+function getFleetOwnershipClass(value) {
+    const mapping = {
+        'sewa': 'fleet-rent',
+        'miliki pribadi': 'fleet-own'
+    }
+    return mapping[value] || 'fleet-default'
+}
+
+function getFleetOwnershipIcon(value) {
+    const mapping = {
+        'sewa': 'fas fa-handshake',
+        'miliki pribadi': 'fas fa-home'
+    }
+    return mapping[value] || 'fas fa-truck'
+}
 
 function formatDate(dateString) {
     if (!dateString) return "-"
@@ -259,33 +455,9 @@ function formatDate(dateString) {
         year: "numeric" 
     })
 }
-
-function getBusinessAge() {
-    if (props.vendor.tanggal_berdiri) {
-        const foundedYear = new Date(props.vendor.tanggal_berdiri).getFullYear()
-        const currentYear = new Date().getFullYear()
-        return currentYear - foundedYear
-    }
-    return '-'
-}
-
-function getBranchCount() {
-    const indonesian = Array.isArray(props.data.indonesian_branch_offices) ? props.data.indonesian_branch_offices.length : 0
-    const overseas = Array.isArray(props.data.overseas_branch_offices) ? props.data.overseas_branch_offices.length : 0
-    return indonesian + overseas
-}
-
-function getShippingLinesCount() {
-    return Array.isArray(props.data.shipping_lines) ? props.data.shipping_lines.length : 0
-}
-
-function getAirlinesCount() {
-    return Array.isArray(props.data.airlines) ? props.data.airlines.length : 0
-}
 </script>
 
 <style scoped>
-/* Menggunakan style yang sama seperti distributor, tapi dengan warna merah untuk tema forwarder */
 .forwarder-general-info {
     padding: 24px;
     background: #fff;
@@ -346,14 +518,22 @@ function getAirlinesCount() {
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
 }
 
 .info-item {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.info-item.full-width {
+    grid-column: 1 / -1;
 }
 
 .info-item label {
@@ -373,6 +553,27 @@ function getAirlinesCount() {
     line-height: 1.4;
 }
 
+.vendor-number {
+    background: #fef2f2;
+    color: #991b1b;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-family: monospace;
+    display: inline-block;
+}
+
+.company-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 1.1rem;
+}
+
+.text-content {
+    text-align: justify;
+    line-height: 1.6;
+}
+
 .website-link {
     color: #2563eb;
 }
@@ -385,27 +586,212 @@ function getAirlinesCount() {
 .type-badge.fwd {
     background: #fef2f2;
     color: #991b1b;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 8px;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    display: inline-block;
+    text-transform: uppercase;
 }
 
+/* Fleet Information Styles */
+.fleet-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.fleet-item {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.fleet-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fleet-value {
+    margin-left: 24px;
+}
+
+.fleet-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.fleet-badge.fleet-none {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.fleet-badge.fleet-one {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.fleet-badge.fleet-multiple {
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+.fleet-badge.fleet-rent {
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+.fleet-badge.fleet-own {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+/* Contact Cards */
+.contacts-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.contact-card {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.contact-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #dc2626;
+}
+
+.management-card {
+    border-left: 4px solid #dc2626;
+}
+
+.marketing-card {
+    border-left: 4px solid #f59e0b;
+}
+
+.contact-header {
+    margin-bottom: 12px;
+}
+
+.contact-name {
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.contact-position {
+    color: #dc2626;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.contact-item i {
+    width: 16px;
+    color: #9ca3af;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Status Grid */
 .status-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 16px;
     margin-top: 8px;
 }
 
 .status-card {
     background: #f8fafc;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid #e5e7eb;
-    padding: 12px 16px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
 }
 
 .status-header {
@@ -424,24 +810,25 @@ function getAirlinesCount() {
 
 .progress-bar {
     flex: 1;
-    height: 8px;
+    height: 10px;
     background: #f3f4f6;
-    border-radius: 4px;
+    border-radius: 5px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #dc2626, #ef4444);
-    border-radius: 4px;
+    border-radius: 5px;
     transition: width 0.5s ease;
 }
 
 .progress-text {
     font-weight: 700;
     color: #dc2626;
-    min-width: 40px;
+    min-width: 45px;
     text-align: right;
+    font-size: 0.875rem;
 }
 
 .verification-status {
@@ -466,50 +853,6 @@ function getAirlinesCount() {
     gap: 6px;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-top: 8px;
-}
-
-.stat-card {
-    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-    color: white;
-    padding: 16px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-}
-
-.stat-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.stat-number {
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    opacity: 0.8;
-}
-
 @media (max-width: 768px) {
     .forwarder-general-info {
         padding: 16px;
@@ -517,11 +860,23 @@ function getAirlinesCount() {
     
     .info-grid {
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 12px;
+    }
+    
+    .contacts-list {
+        grid-template-columns: 1fr;
     }
     
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .fleet-info {
         gap: 12px;
     }
 }

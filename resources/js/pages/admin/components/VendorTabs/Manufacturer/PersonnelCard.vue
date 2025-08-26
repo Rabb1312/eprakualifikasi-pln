@@ -6,153 +6,154 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="header-info">
-                    <h3>Personnel</h3>
-                    <p>Struktur personel dan tenaga kerja manufacturer</p>
+                    <h3>Personnel Management</h3>
+                    <p>Struktur organisasi dan jumlah karyawan tetap berdasarkan kategori departemen</p>
                 </div>
                 <div class="personnel-stats">
                     <div class="stat-badge">
-                        <span class="stat-number">{{ personnelList.length }}</span>
-                        <span class="stat-label">Personnel</span>
+                        <span class="stat-number">{{ personnelData.total_workforce || 0 }}</span>
+                        <span class="stat-label">Total Staff</span>
                     </div>
                 </div>
             </div>
 
             <div class="content-sections">
-                <!-- Personnel Grid -->
-                <div class="personnel-grid">
+                <!-- Personnel Categories Grid -->
+                <div class="categories-grid">
                     <div 
-                        v-for="(person, index) in personnelList"
-                        :key="`person-${index}`"
-                        class="personnel-item"
+                        v-for="(category, index) in personnelCategories"
+                        :key="category.key"
+                        class="category-item"
                     >
-                        <div class="personnel-header">
-                            <div class="personnel-avatar">
-                                <i :class="getPersonnelIcon(person?.position || person?.role)"></i>
+                        <div class="category-header">
+                            <div class="category-icon">
+                                <i :class="getCategoryIcon(category.key)"></i>
                             </div>
-                            <div class="personnel-info">
-                                <h5>{{ getPersonName(person, index) }}</h5>
-                                <span class="personnel-position">{{ getPersonPosition(person) }}</span>
-                                <div class="personnel-department" v-if="person?.department">
-                                    <i class="fas fa-building"></i>
-                                    <span>{{ person.department }}</span>
-                                </div>
+                            <div class="category-info">
+                                <h5>{{ category.label }}</h5>
+                                <span class="category-type">{{ getCategoryType(category.key) }}</span>
                             </div>
-                            <div class="personnel-level" v-if="person?.level">
-                                <span :class="['level-badge', getLevelClass(person.level)]">
-                                    {{ person.level }}
+                            <div class="category-count">
+                                <span class="count-badge">
+                                    <span class="count-number">{{ getPersonnelCount(category.key) }}</span>
+                                    <span class="count-label">orang</span>
                                 </span>
                             </div>
                         </div>
 
-                        <div class="personnel-details">
-                            <div class="personnel-qualifications" v-if="person?.qualifications">
-                                <h6>Qualifications:</h6>
-                                <div class="qualifications-list">
-                                    <div 
-                                        v-for="(qualification, qualIndex) in getQualifications(person.qualifications)"
-                                        :key="qualIndex"
-                                        class="qualification-item"
-                                    >
-                                        <i class="fas fa-graduation-cap"></i>
-                                        <span>{{ qualification }}</span>
+                        <div class="category-details">
+                            <div class="personnel-summary">
+                                <h6>Category Summary:</h6>
+                                <div class="summary-content">
+                                    <div class="summary-item">
+                                        <label>Jumlah Karyawan:</label>
+                                        <span>{{ getPersonnelCount(category.key) }} orang</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <label>Persentase:</label>
+                                        <span>{{ getCategoryPercentage(category.key) }}% dari total</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="personnel-experience" v-if="person?.experience">
-                                <h6>Experience:</h6>
-                                <div class="experience-info">
-                                    <i class="fas fa-calendar"></i>
-                                    <span>{{ person.experience }}</span>
-                                </div>
-                            </div>
-
-                            <div class="personnel-responsibilities" v-if="person?.responsibilities">
-                                <h6>Responsibilities:</h6>
-                                <div class="responsibilities-list">
-                                    <div 
-                                        v-for="(responsibility, respIndex) in getResponsibilities(person.responsibilities)"
-                                        :key="respIndex"
-                                        class="responsibility-item"
-                                    >
-                                        <i class="fas fa-check"></i>
-                                        <span>{{ responsibility }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="personnel-certifications" v-if="person?.certifications">
-                                <h6>Certifications:</h6>
-                                <div class="certifications-tags">
-                                    <span 
-                                        v-for="(cert, certIndex) in getCertifications(person.certifications)"
-                                        :key="certIndex"
-                                        class="certification-tag"
-                                    >
-                                        <i class="fas fa-certificate"></i>
-                                        {{ cert }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="personnel-contact" v-if="person?.email || person?.phone">
-                                <h6>Contact Information:</h6>
-                                <div class="contact-list">
-                                    <div v-if="person.email" class="contact-item">
-                                        <i class="fas fa-envelope"></i>
-                                        <span>{{ person.email }}</span>
-                                    </div>
-                                    <div v-if="person.phone" class="contact-item">
-                                        <i class="fas fa-phone"></i>
-                                        <span>{{ person.phone }}</span>
-                                    </div>
+                            <div class="category-description">
+                                <h6>Description:</h6>
+                                <div class="description-content">
+                                    <p>{{ getCategoryDescription(category.key) }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Personnel Statistics -->
-                <div class="personnel-statistics">
+                <!-- Organization Chart Section -->
+                <div class="organization-chart" v-if="personnelData.org_chart_name">
                     <h4>
-                        <i class="fas fa-chart-bar"></i>
-                        Personnel Statistics
+                        <i class="fas fa-sitemap"></i>
+                        Organization Chart
                     </h4>
-                    <div class="statistics-grid">
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ personnelList.length }}</span>
-                                <span class="statistic-label">Total Personnel</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getManagementCount() }}</span>
-                                <span class="statistic-label">Management Level</span>
+                    <div class="chart-content">
+                        <div class="chart-info">
+                            <div class="chart-file">
+                                <i class="fas fa-file-alt"></i>
+                                <div class="file-details">
+                                    <span class="file-name">{{ personnelData.org_chart_name }}</span>
+                                    <small class="file-type">Organization Structure Document</small>
+                                </div>
                             </div>
                         </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-certificate"></i>
+                    </div>
+                </div>
+
+                <!-- Personnel Overview -->
+                <div class="personnel-overview">
+                    <h4>
+                        <i class="fas fa-chart-pie"></i>
+                        Personnel Distribution Overview
+                    </h4>
+                    <div class="overview-content">
+                        <!-- Department Distribution -->
+                        <div class="distribution-summary">
+                            <div class="summary-header">
+                                <h6>Department Distribution</h6>
                             </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getCertifiedPersonnelCount() }}</span>
-                                <span class="statistic-label">Certified Personnel</span>
+                            <div class="distribution-items">
+                                <div 
+                                    v-for="category in getTopCategories()"
+                                    :key="category.key"
+                                    class="distribution-item"
+                                >
+                                    <span class="distribution-label">{{ category.label }}</span>
+                                    <div class="distribution-bar">
+                                        <div 
+                                            class="distribution-fill"
+                                            :style="{ width: category.percentage + '%' }"
+                                        ></div>
+                                    </div>
+                                    <span class="distribution-value">{{ category.count }} ({{ category.percentage }}%)</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getDepartmentCount() }}</span>
-                                <span class="statistic-label">Departments</span>
+
+                        <!-- Personnel Statistics -->
+                        <div class="personnel-statistics">
+                            <div class="statistics-grid">
+                                <div class="statistic-item">
+                                    <div class="statistic-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="statistic-info">
+                                        <span class="statistic-number">{{ personnelData.total_workforce || 0 }}</span>
+                                        <span class="statistic-label">Total Workforce</span>
+                                    </div>
+                                </div>
+                                <div class="statistic-item">
+                                    <div class="statistic-icon">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                    <div class="statistic-info">
+                                        <span class="statistic-number">{{ getPersonnelCount('management') }}</span>
+                                        <span class="statistic-label">Management</span>
+                                    </div>
+                                </div>
+                                <div class="statistic-item">
+                                    <div class="statistic-icon">
+                                        <i class="fas fa-industry"></i>
+                                    </div>
+                                    <div class="statistic-info">
+                                        <span class="statistic-number">{{ getPersonnelCount('production') }}</span>
+                                        <span class="statistic-label">Production</span>
+                                    </div>
+                                </div>
+                                <div class="statistic-item">
+                                    <div class="statistic-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="statistic-info">
+                                        <span class="statistic-number">{{ getActiveCategories() }}</span>
+                                        <span class="statistic-label">Active Departments</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -164,7 +165,7 @@
             <div class="no-data-illustration">
                 <i class="fas fa-users"></i>
                 <h4>Belum Ada Data Personnel</h4>
-                <p>Data personel belum dilengkapi untuk manufacturer ini</p>
+                <p>Data struktur organisasi dan personel belum dilengkapi untuk manufacturer ini</p>
             </div>
         </div>
     </div>
@@ -184,232 +185,167 @@ const props = defineProps({
     }
 })
 
-// Helper Functions
-const safeString = (value) => {
-    if (value === null || value === undefined) return ''
-    if (typeof value === 'string') return value
-    return String(value)
-}
-
-const isValidPersonObject = (person) => {
-    return person !== null && person !== undefined && typeof person === 'object'
-}
-
-const getPersonName = (person, index) => {
-    try {
-        if (person === null || person === undefined) {
-            return `Personnel ${index + 1}`
-        }
-        if (typeof person === 'string') {
-            return person
-        }
-        if (typeof person === 'object') {
-            return person.name || person.position || person.role || `Personnel ${index + 1}`
-        }
-        return `Personnel ${index + 1}`
-    } catch (error) {
-        console.error('Error getting person name:', error, person)
-        return `Personnel ${index + 1}`
-    }
-}
-
-const getPersonPosition = (person) => {
-    try {
-        if (!isValidPersonObject(person)) {
-            return 'Staff'
-        }
-        return person.position || person.role || 'Staff'
-    } catch (error) {
-        console.error('Error getting person position:', error, person)
-        return 'Staff'
-    }
-}
-
 const hasData = computed(() => {
-    return !!(props.data?.personnel)
+    return !!(props.data.personnel && Object.keys(props.data.personnel).length > 0)
 })
 
-const personnelList = computed(() => {
-    if (!props.data?.personnel) return []
+const personnelData = computed(() => {
+    if (!props.data.personnel) return {}
     
-    try {
-        // Handle JSON field dari database
-        if (Array.isArray(props.data.personnel)) {
-            return props.data.personnel.filter(person => person !== null && person !== undefined)
+    // Handle JSON field dari database
+    if (typeof props.data.personnel === 'string') {
+        try {
+            return JSON.parse(props.data.personnel)
+        } catch {
+            return {}
         }
-        
-        if (typeof props.data.personnel === 'string') {
-            try {
-                const parsed = JSON.parse(props.data.personnel)
-                if (Array.isArray(parsed)) {
-                    return parsed.filter(person => person !== null && person !== undefined)
-                }
-                return parsed ? [parsed] : []
-            } catch (parseError) {
-                console.error('Error parsing personnel JSON:', parseError)
-                return []
-            }
-        }
-        
-        if (typeof props.data.personnel === 'object' && props.data.personnel !== null) {
-            return Object.entries(props.data.personnel)
-                .filter(([key, value]) => key && value !== null && value !== undefined)
-                .map(([key, value]) => {
-                    try {
-                        if (typeof value === 'string') {
-                            return {
-                                position: key,
-                                name: value
-                            }
-                        }
-                        if (typeof value === 'object' && value !== null) {
-                            return {
-                                position: key,
-                                name: value.name || key,
-                                ...value
-                            }
-                        }
-                        return {
-                            position: key,
-                            name: String(value)
-                        }
-                    } catch (entryError) {
-                        console.error('Error processing personnel entry:', entryError, key, value)
-                        return {
-                            position: key,
-                            name: key
-                        }
-                    }
-                })
-        }
-    } catch (error) {
-        console.error('Error processing personnel list:', error, props.data.personnel)
     }
     
-    return []
+    return props.data.personnel || {}
 })
 
-function getPersonnelIcon(position) {
-    try {
-        const positionLower = safeString(position).toLowerCase()
-        const icons = {
-            'manager': 'fas fa-user-tie',
-            'director': 'fas fa-crown',
-            'supervisor': 'fas fa-user-check',
-            'engineer': 'fas fa-drafting-compass',
-            'technician': 'fas fa-wrench',
-            'operator': 'fas fa-cogs',
-            'quality': 'fas fa-check-double',
-            'safety': 'fas fa-hard-hat',
-            'admin': 'fas fa-clipboard',
-            'hr': 'fas fa-user-friends'
-        }
-        
-        for (const [key, icon] of Object.entries(icons)) {
-            if (positionLower.includes(key)) return icon
-        }
-        return 'fas fa-user'
-    } catch (error) {
-        console.error('Error getting personnel icon:', error, position)
-        return 'fas fa-user'
+// Categories sesuai dengan ManufacturePersonnel.vue
+const personnelCategories = [
+    { key: "management", label: "Management" },
+    { key: "admin_finance", label: "Admin/Finance" },
+    { key: "engineering", label: "Engineering" },
+    { key: "procurement", label: "Procurement" },
+    { key: "warehousing", label: "Warehousing" },
+    { key: "sales_marketing", label: "Sales/Marketing" },
+    { key: "production", label: "Production" },
+    { key: "qa_qc", label: "QA/QC" },
+    { key: "service", label: "Service" }
+]
+
+// Helper functions sesuai dengan ManufacturePersonnel.vue
+function getCategoryIcon(key) {
+    const icons = {
+        'management': 'fas fa-user-tie',
+        'admin_finance': 'fas fa-calculator',
+        'engineering': 'fas fa-cogs',
+        'procurement': 'fas fa-shopping-cart',
+        'warehousing': 'fas fa-warehouse',
+        'sales_marketing': 'fas fa-chart-line',
+        'production': 'fas fa-industry',
+        'qa_qc': 'fas fa-check-double',
+        'service': 'fas fa-tools'
     }
+    return icons[key] || 'fas fa-user'
 }
 
-function getLevelClass(level) {
-    try {
-        const levelLower = safeString(level).toLowerCase()
-        if (levelLower.includes('senior') || levelLower.includes('manager') || levelLower.includes('director')) {
-            return 'senior'
-        }
-        if (levelLower.includes('junior') || levelLower.includes('assistant')) {
-            return 'junior'
-        }
-        return 'regular'
-    } catch (error) {
-        console.error('Error getting level class:', error, level)
-        return 'regular'
+function getCategoryType(key) {
+    const types = {
+        'management': 'Executive Level',
+        'admin_finance': 'Administrative Support',
+        'engineering': 'Technical Division',
+        'procurement': 'Supply Chain',
+        'warehousing': 'Logistics Division',
+        'sales_marketing': 'Commercial Division',
+        'production': 'Manufacturing Division',
+        'qa_qc': 'Quality Assurance',
+        'service': 'Customer Support'
     }
+    return types[key] || 'Department'
 }
 
-function getQualifications(qualifications) {
-    try {
-        if (!qualifications) return []
-        if (Array.isArray(qualifications)) return qualifications.filter(q => q)
-        if (typeof qualifications === 'string') {
-            return qualifications.split(',').map(q => q.trim()).filter(q => q)
-        }
-        return []
-    } catch (error) {
-        console.error('Error getting qualifications:', error, qualifications)
-        return []
+function getCategoryDescription(key) {
+    const descriptions = {
+        'management': 'Tim manajemen yang bertanggung jawab atas pengambilan keputusan strategis dan operasional perusahaan.',
+        'admin_finance': 'Departemen yang menangani administrasi umum, keuangan, akuntansi, dan dukungan operasional.',
+        'engineering': 'Tim teknik yang bertanggung jawab atas desain, pengembangan produk, dan inovasi teknologi.',
+        'procurement': 'Departemen pengadaan yang mengelola pembelian bahan baku, komponen, dan layanan eksternal.',
+        'warehousing': 'Tim gudang yang mengelola penyimpanan, inventori, dan distribusi produk.',
+        'sales_marketing': 'Departemen penjualan dan pemasaran yang bertanggung jawab atas strategi komersial dan hubungan pelanggan.',
+        'production': 'Divisi produksi yang bertanggung jawab atas proses manufaktur dan operasi pabrik.',
+        'qa_qc': 'Tim quality assurance dan quality control yang memastikan standar kualitas produk.',
+        'service': 'Departemen layanan yang menangani dukungan pelanggan dan layanan purna jual.'
     }
+    return descriptions[key] || 'Departemen dalam struktur organisasi perusahaan.'
 }
 
-function getResponsibilities(responsibilities) {
-    try {
-        if (!responsibilities) return []
-        if (Array.isArray(responsibilities)) return responsibilities.filter(r => r)
-        if (typeof responsibilities === 'string') {
-            return responsibilities.split(',').map(r => r.trim()).filter(r => r)
-        }
-        return []
-    } catch (error) {
-        console.error('Error getting responsibilities:', error, responsibilities)
-        return []
+function getCategoryResponsibilities(key) {
+    const responsibilities = {
+        'management': [
+            'Strategic planning and decision making',
+            'Policy development and implementation',
+            'Resource allocation and budgeting',
+            'Performance monitoring and evaluation'
+        ],
+        'admin_finance': [
+            'Financial planning and analysis',
+            'Accounting and bookkeeping',
+            'Human resources management',
+            'Administrative support services'
+        ],
+        'engineering': [
+            'Product design and development',
+            'Technical specifications preparation',
+            'Process improvement initiatives',
+            'Technology innovation and research'
+        ],
+        'procurement': [
+            'Supplier evaluation and selection',
+            'Purchase order management',
+            'Contract negotiation',
+            'Vendor relationship management'
+        ],
+        'warehousing': [
+            'Inventory management and control',
+            'Storage optimization',
+            'Shipping and receiving operations',
+            'Distribution planning'
+        ],
+        'sales_marketing': [
+            'Market analysis and research',
+            'Customer relationship management',
+            'Sales target achievement',
+            'Marketing campaign execution'
+        ],
+        'production': [
+            'Manufacturing operations management',
+            'Production scheduling and planning',
+            'Equipment maintenance and operation',
+            'Safety protocol implementation'
+        ],
+        'qa_qc': [
+            'Quality standards implementation',
+            'Product testing and inspection',
+            'Quality documentation management',
+            'Continuous improvement processes'
+        ],
+        'service': [
+            'Customer support and assistance',
+            'After-sales service delivery',
+            'Technical support provision',
+            'Customer satisfaction monitoring'
+        ]
     }
+    return responsibilities[key] || []
 }
 
-function getCertifications(certifications) {
-    try {
-        if (!certifications) return []
-        if (Array.isArray(certifications)) return certifications.filter(c => c)
-        if (typeof certifications === 'string') {
-            return certifications.split(',').map(c => c.trim()).filter(c => c)
-        }
-        return []
-    } catch (error) {
-        console.error('Error getting certifications:', error, certifications)
-        return []
-    }
+function getPersonnelCount(key) {
+    return parseInt(personnelData.value[key]) || 0
 }
 
-function getManagementCount() {
-    try {
-        return personnelList.value.filter(person => {
-            if (!isValidPersonObject(person)) return false
-            const position = safeString(person.position || person.role).toLowerCase()
-            return position.includes('manager') || position.includes('director') || position.includes('supervisor')
-        }).length
-    } catch (error) {
-        console.error('Error getting management count:', error)
-        return 0
-    }
+function getCategoryPercentage(key) {
+    const total = personnelData.value.total_workforce || 0
+    const count = getPersonnelCount(key)
+    return total > 0 ? Math.round((count / total) * 100) : 0
 }
 
-function getCertifiedPersonnelCount() {
-    try {
-        return personnelList.value.filter(person => {
-            return isValidPersonObject(person) && person.certifications
-        }).length
-    } catch (error) {
-        console.error('Error getting certified personnel count:', error)
-        return 0
-    }
+function getTopCategories() {
+    return personnelCategories
+        .map(category => ({
+            ...category,
+            count: getPersonnelCount(category.key),
+            percentage: getCategoryPercentage(category.key)
+        }))
+        .filter(category => category.count > 0)
+        .sort((a, b) => b.count - a.count)
 }
 
-function getDepartmentCount() {
-    try {
-        const departments = new Set()
-        personnelList.value.forEach(person => {
-            if (isValidPersonObject(person) && person.department) {
-                departments.add(person.department)
-            }
-        })
-        return departments.size
-    } catch (error) {
-        console.error('Error getting department count:', error)
-        return 0
-    }
+function getActiveCategories() {
+    return personnelCategories.filter(category => getPersonnelCount(category.key) > 0).length
 }
 </script>
 
@@ -431,14 +367,14 @@ function getDepartmentCount() {
 .header-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 1.5rem;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .header-info {
@@ -488,13 +424,13 @@ function getDepartmentCount() {
     gap: 32px;
 }
 
-.personnel-grid {
+.categories-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 24px;
 }
 
-.personnel-item {
+.category-item {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
@@ -502,12 +438,12 @@ function getDepartmentCount() {
     transition: all 0.3s ease;
 }
 
-.personnel-item:hover {
+.category-item:hover {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
 
-.personnel-header {
+.category-header {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -516,12 +452,12 @@ function getDepartmentCount() {
     border-bottom: 1px solid #e5e7eb;
 }
 
-.personnel-avatar {
+.category-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     color: white;
-    border-radius: 50%;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -529,168 +465,136 @@ function getDepartmentCount() {
     flex-shrink: 0;
 }
 
-.personnel-info {
+.category-info {
     flex: 1;
 }
 
-.personnel-info h5 {
+.category-info h5 {
     margin: 0 0 4px 0;
     font-weight: 700;
     color: #1f2937;
     font-size: 1.125rem;
 }
 
-.personnel-position {
+.category-type {
     font-size: 0.875rem;
     color: #6b7280;
     font-weight: 500;
-    display: block;
-    margin-bottom: 8px;
 }
 
-.personnel-department {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.personnel-department i {
-    font-size: 0.75rem;
-}
-
-.personnel-level {
+.category-count {
     flex-shrink: 0;
 }
 
-.level-badge {
-    padding: 6px 12px;
-    border-radius: 12px;
+.count-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+    color: #6d28d9;
+    border-radius: 8px;
+}
+
+.count-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.count-label {
     font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
+    opacity: 0.8;
 }
 
-.level-badge.senior {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: white;
-}
-
-.level-badge.regular {
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-    color: white;
-}
-
-.level-badge.junior {
-    background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
-    color: #065f46;
-}
-
-.personnel-details {
+.category-details {
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
 
-.personnel-qualifications,
-.personnel-experience,
-.personnel-responsibilities,
-.personnel-certifications,
-.personnel-contact {
+.personnel-summary,
+.category-description,
+.category-responsibilities {
     background: #f8fafc;
     padding: 16px;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
 }
 
-.personnel-qualifications h6,
-.personnel-experience h6,
-.personnel-responsibilities h6,
-.personnel-certifications h6,
-.personnel-contact h6 {
+.personnel-summary h6,
+.category-description h6,
+.category-responsibilities h6 {
     margin: 0 0 12px 0;
     font-weight: 600;
     color: #374151;
     font-size: 0.875rem;
 }
 
-.qualifications-list,
-.responsibilities-list,
-.contact-list {
+.summary-content {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.qualification-item,
-.responsibility-item,
-.contact-item {
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+}
+
+.summary-item label {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.summary-item span {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.description-content p {
+    margin: 0;
+    color: #374151;
+    line-height: 1.6;
+    font-size: 0.875rem;
+    text-align: justify;
+}
+
+.responsibilities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.responsibility-item {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 0.875rem;
     color: #374151;
-}
-
-.qualification-item i {
-    color: #10b981;
-    font-size: 0.75rem;
 }
 
 .responsibility-item i {
-    color: #3b82f6;
+    color: #7c3aed;
     font-size: 0.75rem;
 }
 
-.contact-item i {
-    color: #f59e0b;
-    font-size: 0.75rem;
-    width: 14px;
-    text-align: center;
-}
-
-.experience-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #374151;
-    font-weight: 600;
-}
-
-.experience-info i {
-    color: #10b981;
-}
-
-.certifications-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.certification-tag {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.personnel-statistics {
+.organization-chart,
+.personnel-overview {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     overflow: hidden;
 }
 
-.personnel-statistics h4 {
+.organization-chart h4,
+.personnel-overview h4 {
     margin: 0;
     padding: 16px 24px;
     background: #f8fafc;
@@ -703,15 +607,128 @@ function getDepartmentCount() {
     gap: 8px;
 }
 
-.personnel-statistics h4 i {
-    color: #8b5cf6;
+.organization-chart h4 i {
+    color: #10b981;
+}
+
+.personnel-overview h4 i {
+    color: #7c3aed;
+}
+
+.chart-content,
+.overview-content {
+    padding: 24px;
+}
+
+.chart-info {
+    display: flex;
+    justify-content: center;
+}
+
+.chart-file {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    max-width: 400px;
+}
+
+.chart-file i {
+    color: #10b981;
+    font-size: 1.5rem;
+}
+
+.file-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.875rem;
+}
+
+.file-type {
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+.overview-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.distribution-summary {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.summary-header h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.distribution-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.distribution-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.distribution-label {
+    flex: 0 0 120px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.distribution-bar {
+    flex: 1;
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.distribution-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7c3aed 0%, #a855f7 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.distribution-value {
+    flex: 0 0 80px;
+    text-align: right;
+    font-weight: 600;
+    color: #7c3aed;
+    font-size: 0.875rem;
 }
 
 .statistics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
-    padding: 24px;
 }
 
 .statistic-item {
@@ -719,7 +736,7 @@ function getDepartmentCount() {
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     color: white;
     border-radius: 8px;
 }
@@ -787,7 +804,8 @@ function getDepartmentCount() {
         padding: 16px;
     }
     
-    .personnel-grid,
+    .categories-grid,
+    .distribution-summary,
     .statistics-grid {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -799,10 +817,26 @@ function getDepartmentCount() {
         gap: 12px;
     }
     
-    .personnel-header {
+    .category-header {
         flex-direction: column;
         text-align: center;
         gap: 12px;
+    }
+    
+    .distribution-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .distribution-label {
+        flex: none;
+        text-align: center;
+    }
+    
+    .distribution-value {
+        flex: none;
+        text-align: center;
     }
 }
 </style>

@@ -130,7 +130,104 @@
         </div>
       </div>
 
+      <!-- Fleet Ownership Section -->
+      <div class="form-row">
+        <div class="form-group full-width">
+          <h4 class="section-title">
+            <i class="fas fa-truck"></i>
+            Fleet Information / Informasi Armada
+          </h4>
+        </div>
+      </div>
+
+      <!-- In Possession -->
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label>a. In possession / Kepemilikan:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input
+                type="radio"
+                id="possession_none"
+                value="tidak"
+                v-model="formData.kepemilikan"
+              />
+              <label for="possession_none" class="radio-label">
+                <i class="fas fa-times-circle"></i>
+                None / Tidak
+              </label>
+            </div>
+            <div class="radio-option">
+              <input
+                type="radio"
+                id="possession_one"
+                value="satu"
+                v-model="formData.kepemilikan"
+              />
+              <label for="possession_one" class="radio-label">
+                <i class="fas fa-truck"></i>
+                One / Satu
+              </label>
+            </div>
+            <div class="radio-option">
+              <input
+                type="radio"
+                id="possession_more"
+                value="lebih dari satu"
+                v-model="formData.kepemilikan"
+              />
+              <label for="possession_more" class="radio-label">
+                <i class="fas fa-shipping-fast"></i>
+                More than one / Lebih dari satu
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fleet Ownership Status -->
+      <div class="form-row" v-if="formData.kepemilikan && formData.kepemilikan !== 'tidak'">
+        <div class="form-group full-width">
+          <label>b. Fleet Ownership status / Status kepemilikan armada:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input
+                type="radio"
+                id="ownership_rent"
+                value="sewa"
+                v-model="formData.kepemilikan_armada"
+              />
+              <label for="ownership_rent" class="radio-label">
+                <i class="fas fa-handshake"></i>
+                On rent / Sewa
+              </label>
+            </div>
+            <div class="radio-option">
+              <input
+                type="radio"
+                id="ownership_own"
+                value="miliki pribadi"
+                v-model="formData.kepemilikan_armada"
+              />
+              <label for="ownership_own" class="radio-label">
+                <i class="fas fa-home"></i>
+                Own property / Miliki pribadi
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Contact Person -->
+      <div class="form-row">
+        <div class="form-group full-width">
+          <h4 class="section-title">
+            <i class="fas fa-users"></i>
+            Personnel Information / Informasi Personel
+          </h4>
+        </div>
+      </div>
+
       <div class="form-row">
         <div class="form-group full-width">
           <label>Contact Person</label>
@@ -159,16 +256,17 @@
               type="email"
               placeholder="Email"
             />
-            <button @click="removeContactPerson(idx)" type="button">
+            <button @click="removeContactPerson(idx)" type="button" class="btn-delete">
               🗑️
             </button>
           </div>
           <button
             @click="addContactPerson"
             type="button"
-            class="btn btn-sm"
+            class="btn btn-sm btn-add"
           >
-            + Add Contact Person
+            <i class="fas fa-plus"></i>
+            Add Contact Person
           </button>
         </div>
       </div>
@@ -202,16 +300,17 @@
               type="email"
               placeholder="Email"
             />
-            <button @click="removeTopLevel(idx)" type="button">
+            <button @click="removeTopLevel(idx)" type="button" class="btn-delete">
               🗑️
             </button>
           </div>
           <button
             @click="addTopLevel"
             type="button"
-            class="btn btn-sm"
+            class="btn btn-sm btn-add"
           >
-            + Add Top Level
+            <i class="fas fa-plus"></i>
+            Add Top Level
           </button>
         </div>
       </div>
@@ -245,16 +344,17 @@
               type="email"
               placeholder="Email"
             />
-            <button @click="removeMidLevel(idx)" type="button">
+            <button @click="removeMidLevel(idx)" type="button" class="btn-delete">
               🗑️
             </button>
           </div>
           <button
             @click="addMidLevel"
             type="button"
-            class="btn btn-sm"
+            class="btn btn-sm btn-add"
           >
-            + Add Middle Level
+            <i class="fas fa-plus"></i>
+            Add Middle Level
           </button>
         </div>
       </div>
@@ -291,6 +391,7 @@
             <button
               @click="removeSalesMarketing(idx)"
               type="button"
+              class="btn-delete"
             >
               🗑️
             </button>
@@ -298,70 +399,11 @@
           <button
             @click="addSalesMarketing"
             type="button"
-            class="btn btn-sm"
+            class="btn btn-sm btn-add"
           >
-            + Add Sales/Marketing
+            <i class="fas fa-plus"></i>
+            Add Sales/Marketing
           </button>
-        </div>
-      </div>
-
-      <!-- Paid-up Capital, Issued Capital, Number of Shareholders, CEO, Employees, Bagian Grup -->
-      <div class="form-row">
-        <div class="form-group">
-          <label>Paid-up Capital (Modal Dasar)</label>
-          <input
-            v-model="formData.modal_dasar"
-            type="number"
-            min="0"
-            placeholder="Modal Dasar"
-          />
-        </div>
-        <div class="form-group">
-          <label>Issued Capital (Modal Dikeluarkan)</label>
-          <input
-            v-model="formData.modal_dikeluarkan"
-            type="number"
-            min="0"
-            placeholder="Modal Dikeluarkan"
-          />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Number of Shareholders</label>
-          <input
-            v-model="formData.pemegang_saham"
-            type="number"
-            min="0"
-            placeholder="Jumlah Pemegang Saham"
-          />
-        </div>
-        <div class="form-group">
-          <label>CEO / Operation Director</label>
-          <input
-            v-model="formData.nama_direktur"
-            type="text"
-            placeholder="Nama CEO/Direktur Operasi"
-          />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Number of Employees</label>
-          <input
-            v-model="formData.jumlah_karyawan"
-            type="number"
-            min="0"
-            placeholder="Jumlah Karyawan"
-          />
-        </div>
-        <div class="form-group">
-          <label>Bagian Grup</label>
-          <select v-model="formData.bagian_grup">
-            <option value="">Pilih...</option>
-            <option value="ya">Ya</option>
-            <option value="tidak">Tidak</option>
-          </select>
         </div>
       </div>
     </div>
@@ -414,12 +456,8 @@ const formData = reactive({
   top_level: [],
   mid_level: [],
   sales_marketing: [],
-  modal_dasar: "",
-  modal_dikeluarkan: "",
-  pemegang_saham: "",
-  nama_direktur: "",
-  jumlah_karyawan: "",
-  bagian_grup: ""
+  kepemilikan: "", // Field baru untuk possession
+  kepemilikan_armada: "", // Field baru untuk fleet ownership status
 });
 
 watch(
@@ -432,6 +470,16 @@ watch(
     { immediate: true, deep: true }
 );
 
+watch(
+  () => formData.kepemilikan,
+  (newValue) => {
+    // Reset kepemilikan_armada jika kepemilikan berubah ke "tidak"
+    if (newValue === "tidak") {
+      formData.kepemilikan_armada = "";
+    }
+  }
+);
+
 function initializeFormData() {
   if (!props.vendor) return;
   formData.npwp = props.vendor.npwp || "";
@@ -441,18 +489,13 @@ function initializeFormData() {
   formData.alamat = props.vendor.alamat || "";
   formData.kode_pos = props.vendor.kode_pos || "";
   formData.website = props.vendor.website || "";
-  formData.alamat_kantor_operasional =
-    props.vendor.alamat_kantor_operasional || "";
+  formData.alamat_kantor_operasional = props.vendor.alamat_kantor_operasional || "";
   formData.contact_person = props.vendor.contact_person || [];
   formData.top_level = props.vendor.top_level || [];
   formData.mid_level = props.vendor.mid_level || [];
   formData.sales_marketing = props.vendor.sales_marketing || [];
-  formData.modal_dasar = props.vendor.modal_dasar || "";
-  formData.modal_dikeluarkan = props.vendor.modal_dikeluarkan || "";
-  formData.pemegang_saham = props.vendor.pemegang_saham || "";
-  formData.nama_direktur = props.vendor.nama_direktur || "";
-  formData.jumlah_karyawan = props.vendor.jumlah_karyawan || "";
-  formData.bagian_grup = props.vendor.bagian_grup || "";
+  formData.kepemilikan = props.vendor.kepemilikan || "";
+  formData.kepemilikan_armada = props.vendor.kepemilikan_armada || "";
 }
 
 // Array handler functions
@@ -532,15 +575,19 @@ function showAlert(type, message) {
 .forwarder-general {
   max-width: 800px;
 }
+
 .management-row,
 .contact-person-row {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
+  align-items: center;
 }
+
 .tab-header {
   margin-bottom: 2rem;
 }
+
 .tab-header h3 {
   color: #212529;
   margin-bottom: 0.5rem;
@@ -548,32 +595,51 @@ function showAlert(type, message) {
   align-items: center;
   gap: 0.5rem;
 }
+
 .tab-header p {
   color: #6c757d;
   margin: 0;
 }
+
 .form-grid {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
 }
+
 .form-group.full-width {
   grid-column: 1 / -1;
 }
+
 .form-group label {
   font-weight: 500;
   color: #495057;
   margin-bottom: 0.5rem;
 }
+
+.section-title {
+  color: #007bff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 1rem 0;
+  padding: 0.75rem 0;
+  border-bottom: 2px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .form-group input,
 .form-group textarea,
 .form-group select {
@@ -583,23 +649,75 @@ function showAlert(type, message) {
   font-size: 0.875rem;
   transition: border-color 0.2s;
 }
+
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
+
 .readonly-input {
   background: #f8f9fa !important;
   color: #6c757d !important;
   cursor: not-allowed;
 }
+
+/* Radio Group Styles */
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+  margin-right: 0.5rem;
+  transform: scale(1.2);
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #495057;
+  padding: 0.5rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: #f8f9fa;
+}
+
+.radio-label:hover {
+  border-color: #007bff;
+  background: #e3f2fd;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.radio-label i {
+  font-size: 1rem;
+}
+
 .form-actions {
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid #dee2e6;
 }
+
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -611,24 +729,69 @@ function showAlert(type, message) {
   align-items: center;
   gap: 0.5rem;
 }
+
 .btn-primary {
   background: #007bff;
   color: white;
 }
+
 .btn-primary:hover:not(:disabled) {
   background: #0056b3;
 }
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
 .btn-sm {
   padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
 }
+
+.btn-add {
+  background: #28a745;
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.btn-add:hover {
+  background: #218838;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
+  }
+  
+  .radio-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .management-row,
+  .contact-person-row {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
 </style>

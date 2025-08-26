@@ -5,13 +5,13 @@
                 <i class="fas fa-store"></i>
             </div>
             <div class="header-info">
-                <h3>Informasi Umum Distributor</h3>
-                <p>Data profil utama vendor Distributor</p>
+                <h3>General Information</h3>
+                <p>Basic information about your company from vendor registration</p>
             </div>
         </div>
 
         <div class="info-sections">
-            <!-- Company Info -->
+            <!-- Company Identity -->
             <div class="info-section">
                 <h4>
                     <i class="fas fa-id-card"></i>
@@ -20,15 +20,15 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <label>Nomor Vendor:</label>
-                        <span>{{ vendor.nomor_vendor }}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Nama Perusahaan:</label>
-                        <span>{{ vendor.nama_perusahaan }}</span>
+                        <span class="vendor-number">{{ vendor.nomor_vendor || '-' }}</span>
                     </div>
                     <div class="info-item">
                         <label>Tipe Perusahaan:</label>
-                        <span class="type-badge dist">Distributor</span>
+                        <span class="type-badge dist">{{ vendor.tipe_perusahaan === 'DS' ? 'Distributor' : vendor.tipe_perusahaan }}</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <label>Nama Perusahaan:</label>
+                        <span class="company-name">{{ vendor.nama_perusahaan || '-' }}</span>
                     </div>
                     <div class="info-item" v-if="vendor.npwp">
                         <label>NPWP:</label>
@@ -38,23 +38,23 @@
                         <label>Tanggal Berdiri:</label>
                         <span>{{ formatDate(vendor.tanggal_berdiri) }}</span>
                     </div>
+                    <div class="info-item" v-if="vendor.tanggal_beroperasi">
+                        <label>Tanggal Mulai Beroperasi:</label>
+                        <span>{{ formatDate(vendor.tanggal_beroperasi) }}</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Contact Info -->
-            <div class="info-section" v-if="vendor.phone || vendor.website || vendor.email">
+            <!-- Contact Information -->
+            <div class="info-section" v-if="vendor.phone || vendor.website">
                 <h4>
                     <i class="fas fa-phone"></i>
                     Kontak Perusahaan
                 </h4>
                 <div class="info-grid">
                     <div class="info-item" v-if="vendor.phone">
-                        <label>Telepon:</label>
+                        <label>Nomor Telepon:</label>
                         <span>{{ vendor.phone }}</span>
-                    </div>
-                    <div class="info-item" v-if="vendor.email">
-                        <label>Email:</label>
-                        <span>{{ vendor.email }}</span>
                     </div>
                     <div class="info-item" v-if="vendor.website">
                         <label>Website:</label>
@@ -65,16 +65,16 @@
                 </div>
             </div>
 
-            <!-- Address Info -->
+            <!-- Address Information -->
             <div class="info-section" v-if="vendor.alamat || vendor.kode_pos">
                 <h4>
                     <i class="fas fa-map-marker-alt"></i>
-                    Alamat Perusahaan
+                    Alamat
                 </h4>
                 <div class="info-grid">
-                    <div class="info-item" v-if="vendor.alamat">
+                    <div class="info-item full-width" v-if="vendor.alamat">
                         <label>Alamat:</label>
-                        <span>{{ vendor.alamat }}</span>
+                        <span class="text-content">{{ vendor.alamat }}</span>
                     </div>
                     <div class="info-item" v-if="vendor.kode_pos">
                         <label>Kode Pos:</label>
@@ -83,55 +83,191 @@
                 </div>
             </div>
 
-            <!-- Legal Info -->
-            <div class="info-section" v-if="vendor.legal_status || vendor.izin_usaha">
+            <!-- Contact Person -->
+            <div class="info-section" v-if="vendor.contact_person && vendor.contact_person.length > 0">
                 <h4>
-                    <i class="fas fa-file-contract"></i>
-                    Legalitas & Izin
+                    <i class="fas fa-user-tie"></i>
+                    Contact Person
                 </h4>
-                <div class="info-grid">
-                    <div class="info-item" v-if="vendor.legal_status">
-                        <label>Status Badan Hukum:</label>
-                        <span>{{ vendor.legal_status }}</span>
-                    </div>
-                    <div class="info-item" v-if="vendor.izin_usaha">
-                        <label>Izin Usaha:</label>
-                        <span>{{ vendor.izin_usaha }}</span>
+                <div class="contacts-list">
+                    <div 
+                        v-for="(contact, index) in vendor.contact_person" 
+                        :key="index"
+                        class="contact-card"
+                    >
+                        <div class="contact-header">
+                            <div class="contact-name">{{ contact.nama || 'Nama tidak tersedia' }}</div>
+                            <div class="contact-position" v-if="contact.jabatan">{{ contact.jabatan }}</div>
+                        </div>
+                        <div class="contact-details">
+                            <div v-if="contact.telepon" class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ contact.telepon }}</span>
+                            </div>
+                            <div v-if="contact.email" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ contact.email }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Distributor Specific Info -->
-            <div class="info-section" v-if="hasDistributorData">
+            <!-- Top Level Management -->
+            <div class="info-section" v-if="vendor.top_level && vendor.top_level.length > 0">
                 <h4>
-                    <i class="fas fa-truck-loading"></i>
-                    Informasi Distributor
+                    <i class="fas fa-users-cog"></i>
+                    Top Level Management
                 </h4>
-                <div class="info-grid">
-                    <div class="info-item full-width" v-if="data.company_profile">
-                        <label>Company Profile:</label>
-                        <span class="text-content">{{ data.company_profile }}</span>
-                    </div>
-                    <div class="info-item full-width" v-if="data.company_overview">
-                        <label>Company Overview:</label>
-                        <span class="text-content">{{ data.company_overview }}</span>
-                    </div>
-                    <div class="info-item" v-if="servicesOfferedText">
-                        <label>Services Offered:</label>
-                        <span>{{ servicesOfferedText }}</span>
-                    </div>
-                    <div class="info-item" v-if="targetMarketsText">
-                        <label>Target Markets:</label>
-                        <span>{{ targetMarketsText }}</span>
-                    </div>
-                    <div class="info-item" v-if="keyPersonnelCount">
-                        <label>Key Personnel:</label>
-                        <span>{{ keyPersonnelCount }} Personnel</span>
+                <div class="contacts-list">
+                    <div 
+                        v-for="(person, index) in vendor.top_level" 
+                        :key="index"
+                        class="contact-card management-card"
+                    >
+                        <div class="contact-header">
+                            <div class="contact-name">{{ person.nama || 'Nama tidak tersedia' }}</div>
+                            <div class="contact-position" v-if="person.jabatan">{{ person.jabatan }}</div>
+                        </div>
+                        <div class="contact-details">
+                            <div v-if="person.telepon" class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ person.telepon }}</span>
+                            </div>
+                            <div v-if="person.email" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ person.email }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Status Info -->
+            <!-- Middle Level Management -->
+            <div class="info-section" v-if="vendor.mid_level && vendor.mid_level.length > 0">
+                <h4>
+                    <i class="fas fa-users"></i>
+                    Middle Level Management
+                </h4>
+                <div class="contacts-list">
+                    <div 
+                        v-for="(person, index) in vendor.mid_level" 
+                        :key="index"
+                        class="contact-card management-card"
+                    >
+                        <div class="contact-header">
+                            <div class="contact-name">{{ person.nama || 'Nama tidak tersedia' }}</div>
+                            <div class="contact-position" v-if="person.jabatan">{{ person.jabatan }}</div>
+                        </div>
+                        <div class="contact-details">
+                            <div v-if="person.telepon" class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ person.telepon }}</span>
+                            </div>
+                            <div v-if="person.email" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ person.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales/Marketing -->
+            <div class="info-section" v-if="vendor.sales_marketing && vendor.sales_marketing.length > 0">
+                <h4>
+                    <i class="fas fa-chart-line"></i>
+                    Sales/Marketing
+                </h4>
+                <div class="contacts-list">
+                    <div 
+                        v-for="(person, index) in vendor.sales_marketing" 
+                        :key="index"
+                        class="contact-card marketing-card"
+                    >
+                        <div class="contact-header">
+                            <div class="contact-name">{{ person.nama || 'Nama tidak tersedia' }}</div>
+                            <div class="contact-position" v-if="person.jabatan">{{ person.jabatan }}</div>
+                        </div>
+                        <div class="contact-details">
+                            <div v-if="person.telepon" class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ person.telepon }}</span>
+                            </div>
+                            <div v-if="person.email" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ person.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent Corporation -->
+            <div class="info-section" v-if="vendor.nama_perusahaan_induk || vendor.alamat_perusahaan_induk">
+                <h4>
+                    <i class="fas fa-building"></i>
+                    Parent Corporation
+                </h4>
+                <div class="info-grid">
+                    <div class="info-item full-width" v-if="vendor.nama_perusahaan_induk">
+                        <label>Parent Corporation Name / Nama Perusahaan Induk:</label>
+                        <span class="company-name">{{ vendor.nama_perusahaan_induk }}</span>
+                    </div>
+                    <div class="info-item full-width" v-if="vendor.alamat_perusahaan_induk">
+                        <label>Parent Corporation Address / Alamat Perusahaan Induk:</label>
+                        <span class="text-content">{{ vendor.alamat_perusahaan_induk }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Summary -->
+            <div class="info-section" v-if="hasManagementData">
+                <h4>
+                    <i class="fas fa-chart-bar"></i>
+                    Ringkasan Tim
+                </h4>
+                <div class="stats-grid">
+                    <div class="stat-card" v-if="contactPersonCount > 0">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number">{{ contactPersonCount }}</span>
+                            <span class="stat-label">Contact Person</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" v-if="topLevelCount > 0">
+                        <div class="stat-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number">{{ topLevelCount }}</span>
+                            <span class="stat-label">Top Level</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" v-if="midLevelCount > 0">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number">{{ midLevelCount }}</span>
+                            <span class="stat-label">Middle Level</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" v-if="salesMarketingCount > 0">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number">{{ salesMarketingCount }}</span>
+                            <span class="stat-label">Sales/Marketing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Information -->
             <div class="info-section">
                 <h4>
                     <i class="fas fa-chart-pie"></i>
@@ -147,10 +283,10 @@
                             <div class="progress-bar">
                                 <div 
                                     class="progress-fill"
-                                    :style="{ width: vendor.completion_percentage + '%' }"
+                                    :style="{ width: (vendor.completion_percentage || 0) + '%' }"
                                 ></div>
                             </div>
-                            <span class="progress-text">{{ vendor.completion_percentage }}%</span>
+                            <span class="progress-text">{{ vendor.completion_percentage || 0 }}%</span>
                         </div>
                     </div>
                     <div class="status-card">
@@ -171,52 +307,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Business Statistics -->
-            <!-- <div class="info-section">
-                <h4>
-                    <i class="fas fa-chart-bar"></i>
-                    Statistik Bisnis
-                </h4>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ getBusinessAge() }}</span>
-                            <span class="stat-label">Tahun Beroperasi</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-handshake"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ servicesOffered.length }}</span>
-                            <span class="stat-label">Layanan</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-globe"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ targetMarkets.length }}</span>
-                            <span class="stat-label">Target Market</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-number">{{ keyPersonnel.length }}</span>
-                            <span class="stat-label">Key Personnel</span>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
         </div>
     </div>
 </template>
@@ -227,7 +317,7 @@ import { computed } from 'vue'
 const props = defineProps({
     data: {
         type: Object,
-        required: true
+        default: () => ({})
     },
     vendor: {
         type: Object,
@@ -235,52 +325,25 @@ const props = defineProps({
     }
 })
 
-const hasDistributorData = computed(() => {
-    return !!(
-        props.data.company_profile ||
-        props.data.company_overview ||
-        props.data.services_offered ||
-        props.data.target_markets ||
-        props.data.key_personnel
-    )
+// Management Data Computed
+const contactPersonCount = computed(() => {
+    return props.vendor.contact_person ? props.vendor.contact_person.length : 0
 })
 
-const servicesOffered = computed(() => {
-    if (!props.data.services_offered) return []
-    if (Array.isArray(props.data.services_offered)) return props.data.services_offered
-    if (typeof props.data.services_offered === 'string') {
-        return props.data.services_offered.split(',').map(s => ({ name: s.trim() }))
-    }
-    return []
+const topLevelCount = computed(() => {
+    return props.vendor.top_level ? props.vendor.top_level.length : 0
 })
 
-const targetMarkets = computed(() => {
-    if (!props.data.target_markets) return []
-    if (Array.isArray(props.data.target_markets)) return props.data.target_markets
-    if (typeof props.data.target_markets === 'string') {
-        return props.data.target_markets.split(',').map(s => ({ name: s.trim() }))
-    }
-    return []
+const midLevelCount = computed(() => {
+    return props.vendor.mid_level ? props.vendor.mid_level.length : 0
 })
 
-const keyPersonnel = computed(() => {
-    if (!props.data.key_personnel) return []
-    if (Array.isArray(props.data.key_personnel)) return props.data.key_personnel
-    return []
+const salesMarketingCount = computed(() => {
+    return props.vendor.sales_marketing ? props.vendor.sales_marketing.length : 0
 })
 
-const servicesOfferedText = computed(() => {
-    if (servicesOffered.value.length === 0) return ''
-    return servicesOffered.value.map(s => s.name || s).join(', ')
-})
-
-const targetMarketsText = computed(() => {
-    if (targetMarkets.value.length === 0) return ''
-    return targetMarkets.value.map(m => m.name || m).join(', ')
-})
-
-const keyPersonnelCount = computed(() => {
-    return keyPersonnel.value.length > 0 ? keyPersonnel.value.length : null
+const hasManagementData = computed(() => {
+    return contactPersonCount.value > 0 || topLevelCount.value > 0 || midLevelCount.value > 0 || salesMarketingCount.value > 0
 })
 
 function formatDate(dateString) {
@@ -291,15 +354,6 @@ function formatDate(dateString) {
         month: "long", 
         year: "numeric" 
     })
-}
-
-function getBusinessAge() {
-    if (props.vendor.tanggal_berdiri) {
-        const foundedYear = new Date(props.vendor.tanggal_berdiri).getFullYear()
-        const currentYear = new Date().getFullYear()
-        return currentYear - foundedYear
-    }
-    return '-'
 }
 </script>
 
@@ -324,7 +378,7 @@ function getBusinessAge() {
 .header-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -364,14 +418,18 @@ function getBusinessAge() {
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
 }
 
 .info-item {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
 }
 
 .info-item.full-width {
@@ -395,6 +453,22 @@ function getBusinessAge() {
     line-height: 1.4;
 }
 
+.vendor-number {
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-family: monospace;
+    display: inline-block;
+}
+
+.company-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 1.1rem;
+}
+
 .text-content {
     text-align: justify;
     line-height: 1.6;
@@ -412,27 +486,149 @@ function getBusinessAge() {
 .type-badge.dist {
     background: #d1fae5;
     color: #065f46;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 8px;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    display: inline-block;
+    text-transform: uppercase;
 }
 
+/* Contact Cards */
+.contacts-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.contact-card {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.contact-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #3b82f6;
+}
+
+.management-card {
+    border-left: 4px solid #10b981;
+}
+
+.marketing-card {
+    border-left: 4px solid #f59e0b;
+}
+
+.contact-header {
+    margin-bottom: 12px;
+}
+
+.contact-name {
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.contact-position {
+    color: #3b82f6;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.contact-item i {
+    width: 16px;
+    color: #9ca3af;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Status Grid */
 .status-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 16px;
     margin-top: 8px;
 }
 
 .status-card {
     background: #f8fafc;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid #e5e7eb;
-    padding: 12px 16px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
 }
 
 .status-header {
@@ -451,24 +647,25 @@ function getBusinessAge() {
 
 .progress-bar {
     flex: 1;
-    height: 8px;
+    height: 10px;
     background: #f3f4f6;
-    border-radius: 4px;
+    border-radius: 5px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #059669, #10b981);
-    border-radius: 4px;
+    background: linear-gradient(90deg, #10b981, #059669);
+    border-radius: 5px;
     transition: width 0.5s ease;
 }
 
 .progress-text {
     font-weight: 700;
-    color: #059669;
-    min-width: 40px;
+    color: #10b981;
+    min-width: 45px;
     text-align: right;
+    font-size: 0.875rem;
 }
 
 .verification-status {
@@ -478,7 +675,7 @@ function getBusinessAge() {
 }
 
 .verified {
-    color: #059669;
+    color: #10b981;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -486,55 +683,11 @@ function getBusinessAge() {
 }
 
 .unverified {
-    color: #d97706;
+    color: #f59e0b;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 6px;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-top: 8px;
-}
-
-.stat-card {
-    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-    color: white;
-    padding: 16px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-}
-
-.stat-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.stat-number {
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    opacity: 0.8;
 }
 
 @media (max-width: 768px) {
@@ -544,12 +697,20 @@ function getBusinessAge() {
     
     .info-grid {
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 12px;
+    }
+    
+    .contacts-list {
+        grid-template-columns: 1fr;
     }
     
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
+    }
+    
+    .status-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>

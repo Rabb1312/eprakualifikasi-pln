@@ -55,6 +55,22 @@
                                 ></textarea>
                             </div>
                         </div>
+
+                        <!-- Manual Monitoring Note -->
+                        <div v-if="isManualMonitoring()" class="manual-monitoring-note animate-fade-in">
+                            <div class="note-header">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Note for Manual Monitoring</span>
+                            </div>
+                            <div class="note-content">
+                                <div class="note-text-en">
+                                    <strong>English:</strong> If your monitoring management is Manual, please describe how would your coordination with your shipping partners, vendor, and client.
+                                </div>
+                                <div class="note-text-id">
+                                    <strong>Bahasa Indonesia:</strong> Jika manajemen pengawasan perusahaan Anda dalam bentuk Manual, harap jelaskan bagaimana bentuk koordinasi yang dilakukan dengan partner, vendor, dan klien Anda.
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Software Systems -->
@@ -313,6 +329,12 @@ export default {
             }
         },
 
+        // Check if monitoring management is manual
+        isManualMonitoring() {
+            return this.formData.monitoring_management && 
+                   this.formData.monitoring_management.toLowerCase().includes('manual');
+        },
+
         async saveData() {
             try {
                 this.saving = true;
@@ -440,6 +462,69 @@ export default {
     font-weight: 700;
     color: #2c3e50;
     margin: 0;
+}
+
+/* Manual Monitoring Note Styles */
+.manual-monitoring-note {
+    background: linear-gradient(135deg, #fef3c7 0%, #fff9e6 100%);
+    border: 2px solid #fbbf24;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.manual-monitoring-note::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+}
+
+.note-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: #92400e;
+    font-size: 1rem;
+}
+
+.note-header i {
+    color: #f59e0b;
+    font-size: 1.2rem;
+}
+
+.note-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.note-text-en,
+.note-text-id {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+    color: #92400e;
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+.note-text-en strong,
+.note-text-id strong {
+    color: #78350f;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-grid {
@@ -679,6 +764,20 @@ input:focus {
     
     .checkbox-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .note-content {
+        gap: 0.75rem;
+    }
+    
+    .note-text-en,
+    .note-text-id {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    .manual-monitoring-note {
+        padding: 1rem;
     }
 }
 </style>

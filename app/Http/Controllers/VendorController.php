@@ -2742,64 +2742,121 @@ class VendorController extends Controller
     /**
      * Get tabs configuration for vendor type
      */
-    private function getTabsForVendorType(string $type)
-    {
-        $baseTabs = [
-            [
-                'key' => 'general',
-                'label' => 'Informasi Umum',
-                'icon' => 'fas fa-building',
-                'component' => 'VendorGeneralTab'
-            ]
-        ];
+    // private function getTabsForVendorType(string $type)
+    // {
+    //     // $baseTabs = [
+    //     //     [
+    //     //         'key' => 'general',
+    //     //         'label' => 'Informasi Umum',
+    //     //         'icon' => 'fas fa-building',
+    //     //         'component' => 'VendorGeneralTab'
+    //     //     ]
+    //     // ];
 
-        $specificTab = $this->getSpecificTab($type);
-        if ($specificTab) {
-            $baseTabs[] = $specificTab;
-        }
+    //     $specificTab = $this->getSpecificTab($type);
+    //     if ($specificTab) {
+    //         $baseTabs[] = $specificTab;
+    //     }
 
-        $baseTabs[] = [
-            'key' => 'documents',
-            'label' => 'Dokumen',
-            'icon' => 'fas fa-file-alt',
-            'component' => 'VendorDocumentsTab'
-        ];
+    //     $baseTabs[] = [
+    //         'key' => 'documents',
+    //         'label' => 'Dokumen',
+    //         'icon' => 'fas fa-file-alt',
+    //         'component' => 'VendorDocumentsTab'
+    //     ];
 
-        return $baseTabs;
-    }
+    //     return $baseTabs;
+    // }
 
     /**
-     * Get specific tab configuration for vendor type
-     */
-    private function getSpecificTab(string $type)
-    {
-        $tabs = [
-            'SC' => [
+ * Get tabs configuration for vendor type
+ */
+private function getTabsForVendorType(string $type)
+{
+    $tabs = [];
+
+    // ✅ SPECIFIC TABS: Hanya tab yang spesifik untuk setiap vendor type
+    switch ($type) {
+        case 'SC':
+            $tabs[] = [
                 'key' => 'subcontractor',
                 'label' => 'Detail Subcontractor',
                 'icon' => 'fas fa-tools',
                 'component' => 'SubcontractorTab'
-            ],
-            'DS' => [
+            ];
+            break;
+            
+        case 'DS':
+            $tabs[] = [
                 'key' => 'distributor',
                 'label' => 'Detail Distributor',
                 'icon' => 'fas fa-truck',
                 'component' => 'DistributorTab'
-            ],
-            'FW' => [
+            ];
+            break;
+            
+        case 'FW':
+            $tabs[] = [
                 'key' => 'forwarder',
                 'label' => 'Detail Forwarder',
                 'icon' => 'fas fa-ship',
                 'component' => 'ForwarderTab'
-            ],
-            'MF' => [
+            ];
+            break;
+            
+        case 'MF':
+            $tabs[] = [
                 'key' => 'manufacture',
                 'label' => 'Detail Manufacturer',
                 'icon' => 'fas fa-industry',
                 'component' => 'ManufactureTab'
-            ]
-        ];
-
-        return $tabs[$type] ?? null;
+            ];
+            break;
     }
+
+    // ✅ DOCUMENTS TAB: Selalu ada untuk semua vendor type
+    $tabs[] = [
+        'key' => 'documents',
+        'label' => 'Dokumen',
+        'icon' => 'fas fa-file-alt',
+        'component' => 'VendorDocumentsTab'
+    ];
+
+    return $tabs;
+}
+
+    /**
+     * Get specific tab configuration for vendor type
+     */
+    // private function getSpecificTab(string $type)
+    // {
+    //     $tabs = [
+    //         'SC' => [
+    //             'key' => 'subcontractor',
+    //             'label' => 'Detail Subcontractor',
+    //             'icon' => 'fas fa-tools',
+    //             'component' => 'SubcontractorTab'
+    //         ],
+    //         'DS' => [
+    //             'key' => 'distributor',
+    //             'label' => 'Detail Distributor',
+    //             'icon' => 'fas fa-truck',
+    //             'component' => 'DistributorTab'
+    //         ],
+    //         'FW' => [
+    //             'key' => 'forwarder',
+    //             'label' => 'Detail Forwarder',
+    //             'icon' => 'fas fa-ship',
+    //             'component' => 'ForwarderTab'
+    //         ],
+    //         'MF' => [
+    //             'key' => 'manufacture',
+    //             'label' => 'Detail Manufacturer',
+    //             'icon' => 'fas fa-industry',
+    //             'component' => 'ManufactureTab'
+    //         ]
+    //     ];
+
+    //     return $tabs[$type] ?? null;
+    // }
 }

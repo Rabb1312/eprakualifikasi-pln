@@ -6,13 +6,13 @@
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <div class="header-info">
-                    <h3>Insurance Coverage</h3>
+                    <h3>Perlindungan Asuransi</h3>
                     <p>Layanan asuransi dan perlindungan barang yang disediakan forwarder</p>
                 </div>
                 <div class="insurance-stats">
                     <div class="stat-badge">
                         <span class="stat-number">{{ getInsuranceTypesCount() }}</span>
-                        <span class="stat-label">Coverage Types</span>
+                        <span class="stat-label">Jenis Asuransi</span>
                     </div>
                 </div>
             </div>
@@ -22,7 +22,7 @@
                 <div class="insurance-types">
                     <h4>
                         <i class="fas fa-umbrella"></i>
-                        Insurance Types Available
+                        Jenis Asuransi yang Tersedia
                     </h4>
                     <div class="types-grid">
                         <div class="type-item" :class="{ active: !data.insurance_none }">
@@ -31,13 +31,13 @@
                                     <i class="fas fa-info-circle"></i>
                                 </div>
                                 <div class="type-info">
-                                    <h5>Insurance Availability</h5>
-                                    <span class="type-status">{{ data.insurance_none ? 'No Insurance' : 'Insurance Available' }}</span>
+                                    <h5>Ketersediaan Asuransi</h5>
+                                    <span class="type-status">{{ data.insurance_none ? 'Tidak Ada Asuransi' : 'Asuransi Tersedia' }}</span>
                                 </div>
                                 <div class="type-indicator">
                                     <span :class="['status-badge', data.insurance_none ? 'unavailable' : 'available']">
                                         <i :class="data.insurance_none ? 'fas fa-times-circle' : 'fas fa-check-circle'"></i>
-                                        {{ data.insurance_none ? 'None' : 'Available' }}
+                                        {{ data.insurance_none ? 'Tidak Ada' : 'Tersedia' }}
                                     </span>
                                 </div>
                             </div>
@@ -49,18 +49,18 @@
                                     <i class="fas fa-shield-check"></i>
                                 </div>
                                 <div class="type-info">
-                                    <h5>All Risk Coverage</h5>
-                                    <span class="type-status">Covered by Company</span>
+                                    <h5>Asuransi All Risk</h5>
+                                    <span class="type-status">Ditanggung oleh Perusahaan</span>
                                 </div>
                                 <div class="type-indicator">
                                     <span class="status-badge available">
                                         <i class="fas fa-check-circle"></i>
-                                        Active
+                                        Aktif
                                     </span>
                                 </div>
                             </div>
                             <div class="type-description">
-                                <p>Comprehensive all-risk insurance coverage provided directly by the company for maximum protection.</p>
+                                <p>Asuransi all risk komprehensif yang disediakan langsung oleh perusahaan untuk perlindungan maksimal terhadap segala risiko.</p>
                             </div>
                         </div>
 
@@ -70,18 +70,18 @@
                                     <i class="fas fa-balance-scale"></i>
                                 </div>
                                 <div class="type-info">
-                                    <h5>Liability Insurance</h5>
-                                    <span class="type-status">External Insurance Company</span>
+                                    <h5>Asuransi Tanggung Jawab</h5>
+                                    <span class="type-status">Melalui Perusahaan Asuransi Eksternal</span>
                                 </div>
                                 <div class="type-indicator">
                                     <span class="status-badge available">
                                         <i class="fas fa-check-circle"></i>
-                                        Active
+                                        Aktif
                                     </span>
                                 </div>
                             </div>
                             <div class="type-description">
-                                <p>Professional liability coverage through partnership with established insurance companies.</p>
+                                <p>Perlindungan tanggung jawab profesional melalui kemitraan dengan perusahaan asuransi yang telah mapan dan terpercaya.</p>
                             </div>
                         </div>
 
@@ -91,18 +91,18 @@
                                     <i class="fas fa-handshake"></i>
                                 </div>
                                 <div class="type-info">
-                                    <h5>Negotiable Insurance</h5>
-                                    <span class="type-status">Flexible Coverage</span>
+                                    <h5>Asuransi Negosiasi</h5>
+                                    <span class="type-status">Perlindungan Fleksibel</span>
                                 </div>
                                 <div class="type-indicator">
                                     <span class="status-badge available">
                                         <i class="fas fa-check-circle"></i>
-                                        Available
+                                        Tersedia
                                     </span>
                                 </div>
                             </div>
                             <div class="type-description">
-                                <p>Flexible insurance options that can be negotiated with or without additional insurance coverage based on client needs.</p>
+                                <p>Opsi asuransi fleksibel yang dapat dinegosiasikan dengan atau tanpa tambahan perlindungan asuransi berdasarkan kebutuhan klien.</p>
                             </div>
                         </div>
 
@@ -112,13 +112,13 @@
                                     <i class="fas fa-plus-circle"></i>
                                 </div>
                                 <div class="type-info">
-                                    <h5>Other Insurance Types</h5>
-                                    <span class="type-status">Custom Solutions</span>
+                                    <h5>Jenis Asuransi Lainnya</h5>
+                                    <span class="type-status">Solusi Khusus</span>
                                 </div>
                                 <div class="type-indicator">
                                     <span class="status-badge available">
                                         <i class="fas fa-check-circle"></i>
-                                        Available
+                                        Tersedia
                                     </span>
                                 </div>
                             </div>
@@ -129,11 +129,11 @@
                     </div>
                 </div>
 
-                <!-- Claims Process -->
-                <div v-if="data.insurance_claim_arrangement_description" class="claims-section">
+                <!-- Claims Process Section -->
+                <div v-if="hasClaimsProcess()" class="claims-section">
                     <h4>
                         <i class="fas fa-clipboard-list"></i>
-                        Claims Arrangement Process
+                        Proses Klaim Asuransi
                     </h4>
                     <div class="claims-content">
                         <div class="claims-process">
@@ -142,92 +142,12 @@
                                     <i class="fas fa-file-invoice"></i>
                                 </div>
                                 <div class="process-info">
-                                    <h5>Insurance Claims Procedure</h5>
-                                    <span class="process-type">Standard Process</span>
+                                    <h5>Pengaturan Klaim Asuransi</h5>
+                                    <span class="process-type">Prosedur dan Ketentuan</span>
                                 </div>
                             </div>
                             <div class="process-description">
                                 <p>{{ data.insurance_claim_arrangement_description }}</p>
-                            </div>
-                        </div>
-
-                        <div class="claims-steps">
-                            <h6>Standard Claims Process:</h6>
-                            <div class="steps-list">
-                                <div class="step-item">
-                                    <div class="step-number">1</div>
-                                    <div class="step-content">
-                                        <h6>Incident Reporting</h6>
-                                        <p>Immediate notification of any damage or loss incidents</p>
-                                    </div>
-                                </div>
-                                <div class="step-item">
-                                    <div class="step-number">2</div>
-                                    <div class="step-content">
-                                        <h6>Documentation</h6>
-                                        <p>Complete documentation and evidence gathering</p>
-                                    </div>
-                                </div>
-                                <div class="step-item">
-                                    <div class="step-number">3</div>
-                                    <div class="step-content">
-                                        <h6>Assessment</h6>
-                                        <p>Professional damage assessment and evaluation</p>
-                                    </div>
-                                </div>
-                                <div class="step-item">
-                                    <div class="step-number">4</div>
-                                    <div class="step-content">
-                                        <h6>Settlement</h6>
-                                        <p>Claims processing and compensation settlement</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Insurance Statistics -->
-                <div class="insurance-statistics">
-                    <h4>
-                        <i class="fas fa-chart-bar"></i>
-                        Insurance Statistics
-                    </h4>
-                    <div class="statistics-grid">
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getInsuranceTypesCount() }}</span>
-                                <span class="statistic-label">Coverage Types</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-percentage"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getCoveragePercentage() }}%</span>
-                                <span class="statistic-label">Coverage Rate</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getInsuranceRating() }}</span>
-                                <span class="statistic-label">Insurance Rating</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-check-double"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ hasClaimsProcess() ? 'Yes' : 'No' }}</span>
-                                <span class="statistic-label">Claims Process</span>
                             </div>
                         </div>
                     </div>
@@ -238,7 +158,7 @@
         <div v-else class="no-data">
             <div class="no-data-illustration">
                 <i class="fas fa-shield-alt"></i>
-                <h4>Belum Ada Data Insurance</h4>
+                <h4>Belum Ada Data Asuransi</h4>
                 <p>Data layanan asuransi belum dilengkapi untuk forwarder ini</p>
             </div>
         </div>
@@ -282,7 +202,7 @@ function getInsuranceTypesCount() {
 function getCoveragePercentage() {
     if (props.data.insurance_none) return 0
     
-    const totalTypes = 4 // Total possible insurance types
+    const totalTypes = 4 // Total kemungkinan jenis asuransi
     const availableTypes = getInsuranceTypesCount()
     return totalTypes > 0 ? Math.round((availableTypes / totalTypes) * 100) : 0
 }

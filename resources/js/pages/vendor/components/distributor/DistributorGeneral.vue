@@ -122,18 +122,6 @@
                 </div>
             </div>
 
-            <!-- Row 7 -->
-            <div class="form-row">
-                <div class="form-group full-width">
-                    <label>Alamat Kantor Operasional</label>
-                    <textarea
-                        v-model="formData.alamat_kantor_operasional"
-                        rows="3"
-                        placeholder="Alamat kantor operasional (jika berbeda dengan alamat utama)"
-                    ></textarea>
-                </div>
-            </div>
-
             <!-- Contact Person  -->
             <div class="form-row">
                 <div class="form-group full-width">
@@ -309,63 +297,31 @@
                 </div>
             </div>
 
-            <!-- Paid-up Capital, Issued Capital, Number of Shareholders, CEO, Employees, Bagian Grup -->
+            <!-- Parent Corporation -->
             <div class="form-row">
-                <div class="form-group">
-                    <label>Paid-up Capital (Modal Dasar)</label>
+                <div class="form-group full-width">
+                    <label
+                        >Parent Corporation Name / Nama Perusahaan Induk</label
+                    >
                     <input
-                        v-model="formData.modal_dasar"
-                        type="number"
-                        min="0"
-                        placeholder="Modal Dasar"
-                    />
-                </div>
-                <div class="form-group">
-                    <label>Issued Capital (Modal Dikeluarkan)</label>
-                    <input
-                        v-model="formData.modal_dikeluarkan"
-                        type="number"
-                        min="0"
-                        placeholder="Modal Dikeluarkan"
-                    />
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Number of Shareholders</label>
-                    <input
-                        v-model="formData.pemegang_saham"
-                        type="number"
-                        min="0"
-                        placeholder="Jumlah Pemegang Saham"
-                    />
-                </div>
-                <div class="form-group">
-                    <label>CEO / Operation Director</label>
-                    <input
-                        v-model="formData.nama_direktur"
+                        v-model="formData.nama_perusahaan_induk"
                         type="text"
-                        placeholder="Nama CEO/Direktur Operasi"
+                        placeholder="Nama perusahaan induk (jika ada)"
                     />
                 </div>
             </div>
+
             <div class="form-row">
-                <div class="form-group">
-                    <label>Number of Employees</label>
-                    <input
-                        v-model="formData.jumlah_karyawan"
-                        type="number"
-                        min="0"
-                        placeholder="Jumlah Karyawan"
-                    />
-                </div>
-                <div class="form-group">
-                    <label>Bagian Grup</label>
-                    <select v-model="formData.bagian_grup">
-                        <option value="">Pilih...</option>
-                        <option value="ya">Ya</option>
-                        <option value="tidak">Tidak</option>
-                    </select>
+                <div class="form-group full-width">
+                    <label
+                        >Parent Corporation Address / Alamat Perusahaan
+                        Induk</label
+                    >
+                    <textarea
+                        v-model="formData.alamat_perusahaan_induk"
+                        rows="3"
+                        placeholder="Alamat lengkap perusahaan induk (jika ada)"
+                    ></textarea>
                 </div>
             </div>
         </div>
@@ -413,17 +369,12 @@ const formData = reactive({
     alamat: "",
     kode_pos: "",
     website: "",
-    alamat_kantor_operasional: "",
     contact_person: [],
     top_level: [],
     mid_level: [],
     sales_marketing: [],
-    modal_dasar: "",
-    modal_dikeluarkan: "",
-    pemegang_saham: "",
-    nama_direktur: "",
-    jumlah_karyawan: "",
-    bagian_grup: "",
+    nama_perusahaan_induk: "",
+    alamat_perusahaan_induk: "",
 });
 
 watch(
@@ -445,18 +396,12 @@ function initializeFormData() {
     formData.alamat = props.vendor.alamat || "";
     formData.kode_pos = props.vendor.kode_pos || "";
     formData.website = props.vendor.website || "";
-    formData.alamat_kantor_operasional =
-        props.vendor.alamat_kantor_operasional || "";
     formData.contact_person = props.vendor.contact_person || [];
     formData.top_level = props.vendor.top_level || [];
     formData.mid_level = props.vendor.mid_level || [];
     formData.sales_marketing = props.vendor.sales_marketing || [];
-    formData.modal_dasar = props.vendor.modal_dasar || "";
-    formData.modal_dikeluarkan = props.vendor.modal_dikeluarkan || "";
-    formData.pemegang_saham = props.vendor.pemegang_saham || "";
-    formData.nama_direktur = props.vendor.nama_direktur || "";
-    formData.jumlah_karyawan = props.vendor.jumlah_karyawan || "";
-    formData.bagian_grup = props.vendor.bagian_grup || "";
+    formData.nama_perusahaan_induk = props.vendor.nama_perusahaan_induk || "";
+    formData.alamat_perusahaan_induk = props.vendor.alamat_perusahaan_induk || "";
 }
 
 // Array handler functions

@@ -109,7 +109,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import VendorGeneralTab from './VendorTabs/VendorGeneralTab.vue'
+// import VendorGeneralTab from './VendorTabs/VendorGeneralTab.vue'
 import VendorDocumentsTab from './VendorTabs/VendorDocumentsTab.vue'
 
 // FIX: Import dengan path yang benar
@@ -126,7 +126,7 @@ const emit = defineEmits(['close', 'verify', 'reject'])
 const loading = ref(false)
 const specificData = ref({})
 const documents = ref([])
-const activeTab = ref('general')
+const activeTab = ref('')
 
 const tabComponents = {
     subcontractor: SubcontractorTab,
@@ -136,7 +136,7 @@ const tabComponents = {
 }
 
 const tabs = computed(() => {
-    const arr = [{ key: 'general', label: 'Informasi Umum', icon: 'fas fa-building' }]
+    const arr = []
     const specificTab = getSpecificTab(props.vendor.tipe_perusahaan)
     if (specificTab) arr.push(specificTab)
     arr.push({ key: 'documents', label: 'Dokumen', icon: 'fas fa-file-alt' })
@@ -187,7 +187,13 @@ async function loadVendorData() {
     }
 }
 
-onMounted(loadVendorData)
+onMounted(() => {
+    // Set active tab ke tab spesifik vendor sebagai default
+    const specificTabKey = getSpecificTabKey()
+    activeTab.value = specificTabKey || 'documents'
+    
+    loadVendorData()
+})
 </script>
 
 <style scoped>

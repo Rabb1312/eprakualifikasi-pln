@@ -3,11 +3,11 @@
         <div v-if="hasData" class="product-types-content">
             <div class="section-header">
                 <div class="header-icon">
-                    <i class="fas fa-boxes"></i>
+                    <i class="fas fa-cube"></i>
                 </div>
                 <div class="header-info">
-                    <h3>Product Types</h3>
-                    <p>Jenis-jenis produk yang diproduksi oleh manufacturer</p>
+                    <h3>Types of Product Manufactured</h3>
+                    <p>Jenis-jenis produk yang diproduksi oleh manufacturer beserta spesifikasinya</p>
                 </div>
                 <div class="types-stats">
                     <div class="stat-badge">
@@ -27,11 +27,15 @@
                     >
                         <div class="product-type-header">
                             <div class="product-type-icon">
-                                <i :class="getProductTypeIcon(productType)"></i>
+                                <i :class="getProductTypeIcon(productType.type)"></i>
                             </div>
                             <div class="product-type-info">
-                                <h5>{{ productType.name || productType.type || `Product Type ${index + 1}` }}</h5>
-                                <span class="product-category">{{ productType.category || 'Manufacturing Product' }}</span>
+                                <h5>{{ productType.type || `Product Type ${index + 1}` }}</h5>
+                                <span class="product-category">Manufacturing Product</span>
+                                <div class="product-number">
+                                    <i class="fas fa-hashtag"></i>
+                                    <span>Product #{{ index + 1 }}</span>
+                                </div>
                             </div>
                             <div class="product-status">
                                 <span class="status-badge active">
@@ -42,99 +46,70 @@
                         </div>
 
                         <div class="product-type-details">
-                            <div class="product-description" v-if="productType.description">
-                                <p>{{ productType.description }}</p>
-                            </div>
-
-                            <div class="product-specifications" v-if="productType.specifications">
-                                <h6>Specifications:</h6>
-                                <div class="specs-grid">
-                                    <div 
-                                        v-for="(spec, specIndex) in getSpecifications(productType.specifications)"
-                                        :key="specIndex"
-                                        class="spec-item"
-                                    >
-                                        <label>{{ spec.name }}:</label>
-                                        <span>{{ spec.value }}</span>
+                            <!-- Product Type -->
+                            <div class="product-info-section">
+                                <h6>Product Information:</h6>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <label>Jenis Produk:</label>
+                                        <span>{{ productType.type || 'Not specified' }}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="product-materials" v-if="productType.materials && productType.materials.length > 0">
-                                <h6>Materials Used:</h6>
-                                <div class="materials-tags">
-                                    <span 
-                                        v-for="(material, materialIndex) in productType.materials"
-                                        :key="materialIndex"
-                                        class="material-tag"
-                                    >
-                                        {{ material }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="product-capacity" v-if="productType.production_capacity">
-                                <h6>Production Capacity:</h6>
-                                <div class="capacity-info">
-                                    <div class="capacity-item">
-                                        <i class="fas fa-industry"></i>
-                                        <span>{{ productType.production_capacity }}</span>
+                            <!-- Size Range -->
+                            <div class="product-size-section" v-if="productType.size_range">
+                                <h6>Size Range / Rentang Ukuran:</h6>
+                                <div class="size-display">
+                                    <div class="size-item">
+                                        <i class="fas fa-ruler"></i>
+                                        <span>{{ productType.size_range }}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="product-applications" v-if="productType.applications && productType.applications.length > 0">
-                                <h6>Applications:</h6>
-                                <div class="applications-list">
-                                    <div 
-                                        v-for="(application, appIndex) in productType.applications"
-                                        :key="appIndex"
-                                        class="application-item"
-                                    >
-                                        <i class="fas fa-arrow-right"></i>
-                                        <span>{{ application }}</span>
+                            <!-- Speciality -->
+                            <div class="product-speciality-section" v-if="productType.speciality">
+                                <h6>Speciality / Spesialisasi:</h6>
+                                <div class="speciality-display">
+                                    <div class="speciality-item">
+                                        <i class="fas fa-star"></i>
+                                        <span>{{ productType.speciality }}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="product-certifications" v-if="productType.certifications && productType.certifications.length > 0">
-                                <h6>Certifications:</h6>
-                                <div class="certifications-tags">
-                                    <span 
-                                        v-for="(cert, certIndex) in productType.certifications"
-                                        :key="certIndex"
-                                        class="certification-tag"
-                                    >
-                                        <i class="fas fa-certificate"></i>
-                                        {{ cert }}
-                                    </span>
+                            <!-- Product Summary -->
+                            <div class="product-summary">
+                                <div class="summary-grid">
+                                    <div class="summary-item">
+                                        <div class="summary-icon">
+                                            <i class="fas fa-cube"></i>
+                                        </div>
+                                        <div class="summary-info">
+                                            <span class="summary-label">Type</span>
+                                            <span class="summary-value">{{ productType.type ? 'Specified' : 'Not specified' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-icon">
+                                            <i class="fas fa-ruler"></i>
+                                        </div>
+                                        <div class="summary-info">
+                                            <span class="summary-label">Size Range</span>
+                                            <span class="summary-value">{{ productType.size_range ? 'Defined' : 'Not defined' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-icon">
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        <div class="summary-info">
+                                            <span class="summary-label">Speciality</span>
+                                            <span class="summary-value">{{ productType.speciality ? 'Available' : 'Not specified' }}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product Categories Summary -->
-                <div class="categories-summary">
-                    <h4>
-                        <i class="fas fa-chart-pie"></i>
-                        Product Categories Distribution
-                    </h4>
-                    <div class="categories-grid">
-                        <div 
-                            v-for="(category, index) in getProductCategories()"
-                            :key="index"
-                            class="category-item"
-                        >
-                            <div class="category-icon">
-                                <i :class="getProductTypeIcon(category)"></i>
-                            </div>
-                            <div class="category-info">
-                                <h6>{{ category.name }}</h6>
-                                <span class="category-count">{{ category.count }} products</span>
-                            </div>
-                            <div class="category-percentage">
-                                <span class="percentage-value">{{ getCategoryPercentage(category.count) }}%</span>
                             </div>
                         </div>
                     </div>
@@ -144,9 +119,9 @@
 
         <div v-else class="no-data">
             <div class="no-data-illustration">
-                <i class="fas fa-boxes"></i>
+                <i class="fas fa-cube"></i>
                 <h4>Belum Ada Data Product Types</h4>
-                <p>Data jenis produk belum dilengkapi untuk manufacturer ini</p>
+                <p>Data jenis produk yang diproduksi belum dilengkapi untuk manufacturer ini</p>
             </div>
         </div>
     </div>
@@ -167,43 +142,44 @@ const props = defineProps({
 })
 
 const hasData = computed(() => {
-    return !!(props.data.product_types)
+    return !!(props.data.product_types && Array.isArray(props.data.product_types) && props.data.product_types.length > 0)
 })
 
 const productTypes = computed(() => {
     if (!props.data.product_types) return []
     
-    // Handle JSON field dari database
+    // Handle JSON field dari database - sesuai dengan ManufactureProductTypes.vue
     if (Array.isArray(props.data.product_types)) {
-        return props.data.product_types
+        return props.data.product_types.filter(product => 
+            product && (product.type || product.size_range || product.speciality)
+        )
     }
     
     if (typeof props.data.product_types === 'string') {
         try {
             const parsed = JSON.parse(props.data.product_types)
-            return Array.isArray(parsed) ? parsed : [parsed]
+            return Array.isArray(parsed) ? parsed.filter(product => 
+                product && (product.type || product.size_range || product.speciality)
+            ) : []
         } catch {
-            // Fallback jika bukan JSON valid
-            return props.data.product_types.split(',').map(s => ({ name: s.trim() }))
+            return []
         }
-    }
-    
-    if (typeof props.data.product_types === 'object') {
-        return Object.entries(props.data.product_types).map(([key, value]) => ({
-            name: key,
-            description: typeof value === 'string' ? value : JSON.stringify(value)
-        }))
     }
     
     return []
 })
 
-function getProductTypeIcon(productType) {
-    const typeName = (productType.name || productType.type || productType || '').toLowerCase()
+// Helper functions sesuai dengan struktur data ManufactureProductTypes
+function getProductTypeIcon(type) {
+    if (!type) return 'fas fa-cube'
+    
+    const typeLower = type.toLowerCase()
     const icons = {
+        'steel': 'fas fa-hammer',
+        'pipe': 'fas fa-tint',
+        'machinery': 'fas fa-cogs',
         'automotive': 'fas fa-car',
         'electronics': 'fas fa-microchip',
-        'machinery': 'fas fa-cogs',
         'textiles': 'fas fa-tshirt',
         'chemicals': 'fas fa-flask',
         'metals': 'fas fa-hammer',
@@ -212,41 +188,44 @@ function getProductTypeIcon(productType) {
         'pharmaceuticals': 'fas fa-pills',
         'construction': 'fas fa-hard-hat',
         'equipment': 'fas fa-tools',
-        'components': 'fas fa-puzzle-piece'
+        'components': 'fas fa-puzzle-piece',
+        'parts': 'fas fa-cog'
     }
     
     for (const [key, icon] of Object.entries(icons)) {
-        if (typeName.includes(key)) return icon
+        if (typeLower.includes(key)) return icon
     }
-    return 'fas fa-box'
+    return 'fas fa-cube'
 }
 
-function getSpecifications(specifications) {
-    if (Array.isArray(specifications)) {
-        return specifications
-    }
-    if (typeof specifications === 'object') {
-        return Object.entries(specifications).map(([name, value]) => ({ name, value }))
-    }
-    return []
+function getSpecifiedTypesCount() {
+    return productTypes.value.filter(product => product.type && product.type.trim()).length
 }
 
-function getProductCategories() {
-    const categories = {}
-    productTypes.value.forEach(product => {
-        const category = product.category || 'General'
-        if (!categories[category]) {
-            categories[category] = { name: category, count: 0 }
-        }
-        categories[category].count++
-    })
-    
-    return Object.values(categories).sort((a, b) => b.count - a.count)
+function getSizedProductsCount() {
+    return productTypes.value.filter(product => product.size_range && product.size_range.trim()).length
 }
 
-function getCategoryPercentage(count) {
+function getSpecializedProductsCount() {
+    return productTypes.value.filter(product => product.speciality && product.speciality.trim()).length
+}
+
+function getCompletedProductsCount() {
+    return productTypes.value.filter(product => 
+        product.type && product.type.trim() && 
+        product.size_range && product.size_range.trim() && 
+        product.speciality && product.speciality.trim()
+    ).length
+}
+
+function getSpecializedPercentage() {
     if (productTypes.value.length === 0) return 0
-    return Math.round((count / productTypes.value.length) * 100)
+    return Math.round((getSpecializedProductsCount() / productTypes.value.length) * 100)
+}
+
+function getSizedPercentage() {
+    if (productTypes.value.length === 0) return 0
+    return Math.round((getSizedProductsCount() / productTypes.value.length) * 100)
 }
 </script>
 
@@ -268,14 +247,14 @@ function getCategoryPercentage(count) {
 .header-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 1.5rem;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .header-info {
@@ -327,7 +306,7 @@ function getCategoryPercentage(count) {
 
 .product-types-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
     gap: 24px;
 }
 
@@ -354,15 +333,15 @@ function getCategoryPercentage(count) {
 }
 
 .product-type-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     color: white;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     flex-shrink: 0;
 }
 
@@ -381,6 +360,20 @@ function getCategoryPercentage(count) {
     font-size: 0.875rem;
     color: #6b7280;
     font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.product-number {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.product-number i {
+    font-size: 0.75rem;
 }
 
 .product-status {
@@ -411,147 +404,140 @@ function getCategoryPercentage(count) {
     gap: 20px;
 }
 
-.product-description {
+.product-info-section,
+.product-size-section,
+.product-speciality-section,
+.product-summary {
     background: #f8fafc;
     padding: 16px;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
 }
 
-.product-description p {
-    margin: 0;
-    color: #374151;
-    line-height: 1.6;
-    font-size: 0.875rem;
-}
-
-.product-specifications,
-.product-capacity {
-    background: #f8fafc;
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-}
-
-.product-specifications h6,
-.product-capacity h6,
-.product-materials h6,
-.product-applications h6,
-.product-certifications h6 {
+.product-info-section h6,
+.product-size-section h6,
+.product-speciality-section h6 {
     margin: 0 0 12px 0;
     font-weight: 600;
     color: #374151;
     font-size: 0.875rem;
 }
 
-.specs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 8px;
-}
-
-.spec-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 8px;
-    background: white;
-    border-radius: 4px;
-    font-size: 0.75rem;
-}
-
-.spec-item label {
-    color: #6b7280;
-    font-weight: 500;
-}
-
-.spec-item span {
-    color: #1f2937;
-    font-weight: 600;
-}
-
-.capacity-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.capacity-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #374151;
-    font-weight: 600;
-}
-
-.capacity-item i {
-    color: #f59e0b;
-}
-
-.product-materials,
-.product-applications,
-.product-certifications {
-    background: #f8fafc;
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-}
-
-.materials-tags,
-.certifications-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.material-tag {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #1e40af;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.certification-tag {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.applications-list {
+.info-grid {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.application-item {
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+}
+
+.info-item label {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.info-item span {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.size-display,
+.speciality-display {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.size-item,
+.speciality-item {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 0.875rem;
     color: #374151;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
 }
 
-.application-item i {
+.size-item i {
+    color: #7c3aed;
+    font-size: 0.75rem;
+}
+
+.speciality-item i {
     color: #f59e0b;
     font-size: 0.75rem;
 }
 
-.categories-summary {
+.product-summary {
+    margin-top: 8px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.summary-icon {
+    width: 24px;
+    height: 24px;
+    background: #7c3aed;
+    color: white;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.summary-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.summary-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.product-overview {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     overflow: hidden;
 }
 
-.categories-summary h4 {
+.product-overview h4 {
     margin: 0;
     padding: 16px 24px;
     background: #f8fafc;
@@ -564,70 +550,112 @@ function getCategoryPercentage(count) {
     gap: 8px;
 }
 
-.categories-summary h4 i {
-    color: #8b5cf6;
+.product-overview h4 i {
+    color: #7c3aed;
 }
 
-.categories-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
+.overview-content {
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
-.category-item {
+.product-categories {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.category-group h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.category-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.category-summary {
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-summary.specified {
+    background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+    color: #6d28d9;
+}
+
+.category-summary.sized {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    color: #4338ca;
+}
+
+.category-summary.specialized {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+}
+
+.category-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.category-count {
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.statistic-item {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.category-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.category-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     color: white;
+    border-radius: 8px;
+}
+
+.statistic-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.125rem;
-    flex-shrink: 0;
+    font-size: 1.25rem;
 }
 
-.category-info {
-    flex: 1;
+.statistic-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.category-info h6 {
-    margin: 0 0 4px 0;
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 1rem;
-}
-
-.category-count {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.category-percentage {
-    flex-shrink: 0;
-}
-
-.percentage-value {
+.statistic-number {
+    font-size: 1.5rem;
     font-weight: 700;
-    color: #8b5cf6;
-    font-size: 1.125rem;
+}
+
+.statistic-label {
+    font-size: 0.875rem;
+    opacity: 0.8;
 }
 
 .no-data {
@@ -667,7 +695,8 @@ function getCategoryPercentage(count) {
     }
     
     .product-types-grid,
-    .categories-grid {
+    .product-categories,
+    .statistics-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
@@ -682,6 +711,10 @@ function getCategoryPercentage(count) {
         flex-direction: column;
         text-align: center;
         gap: 12px;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>

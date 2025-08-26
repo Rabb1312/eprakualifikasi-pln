@@ -9,12 +9,12 @@
                     <h3>Subcontracting</h3>
                     <p>Informasi subkontrak dan kemitraan manufacturer</p>
                 </div>
-                <div class="subcontracting-stats">
+                <!-- <div class="subcontracting-stats">
                     <div class="stat-badge">
                         <span class="stat-number">{{ subcontractingPartners.length }}</span>
                         <span class="stat-label">Partners</span>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="content-sections">
@@ -119,140 +119,6 @@
                                             <span>{{ partner.contact.email }}</span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Subcontracting Types -->
-                <div class="subcontracting-types">
-                    <h4>
-                        <i class="fas fa-chart-pie"></i>
-                        Subcontracting Types & Benefits
-                    </h4>
-                    <div class="types-grid">
-                        <div class="type-item">
-                            <div class="type-icon">
-                                <i class="fas fa-industry"></i>
-                            </div>
-                            <div class="type-info">
-                                <h6>Manufacturing Subcontracting</h6>
-                                <p>Outsourcing production processes to specialized partners</p>
-                                <div class="type-benefits">
-                                    <span class="benefit-tag">Cost Reduction</span>
-                                    <span class="benefit-tag">Capacity Expansion</span>
-                                    <span class="benefit-tag">Specialization</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="type-item">
-                            <div class="type-icon">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            <div class="type-info">
-                                <h6>Process Subcontracting</h6>
-                                <p>Delegating specific manufacturing processes to experts</p>
-                                <div class="type-benefits">
-                                    <span class="benefit-tag">Quality Improvement</span>
-                                    <span class="benefit-tag">Technology Access</span>
-                                    <span class="benefit-tag">Risk Mitigation</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="type-item">
-                            <div class="type-icon">
-                                <i class="fas fa-tools"></i>
-                            </div>
-                            <div class="type-info">
-                                <h6>Service Subcontracting</h6>
-                                <p>Outsourcing support services and maintenance</p>
-                                <div class="type-benefits">
-                                    <span class="benefit-tag">Focus on Core</span>
-                                    <span class="benefit-tag">Expertise Access</span>
-                                    <span class="benefit-tag">Flexibility</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="type-item">
-                            <div class="type-icon">
-                                <i class="fas fa-globe"></i>
-                            </div>
-                            <div class="type-info">
-                                <h6>Strategic Partnerships</h6>
-                                <p>Long-term collaborative relationships with key partners</p>
-                                <div class="type-benefits">
-                                    <span class="benefit-tag">Market Access</span>
-                                    <span class="benefit-tag">Innovation</span>
-                                    <span class="benefit-tag">Scale Economy</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Subcontracting Analysis -->
-                <div class="subcontracting-analysis">
-                    <h4>
-                        <i class="fas fa-chart-line"></i>
-                        Subcontracting Analysis
-                    </h4>
-                    <div class="analysis-content">
-                        <div class="analysis-item">
-                            <div class="analysis-icon">
-                                <i class="fas fa-check-double"></i>
-                            </div>
-                            <div class="analysis-info">
-                                <h6>Quality Control</h6>
-                                <p>Stringent quality standards maintained across all subcontracted work</p>
-                                <div class="analysis-metrics">
-                                    <span class="metric">99.5% Quality Rate</span>
-                                    <span class="metric">ISO 9001 Compliant</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="analysis-item">
-                            <div class="analysis-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="analysis-info">
-                                <h6>Delivery Performance</h6>
-                                <p>Reliable delivery schedules through effective partner coordination</p>
-                                <div class="analysis-metrics">
-                                    <span class="metric">98% On-time Delivery</span>
-                                    <span class="metric">24/7 Monitoring</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="analysis-item">
-                            <div class="analysis-icon">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
-                            <div class="analysis-info">
-                                <h6>Risk Management</h6>
-                                <p>Comprehensive risk assessment and mitigation strategies</p>
-                                <div class="analysis-metrics">
-                                    <span class="metric">Multi-vendor Strategy</span>
-                                    <span class="metric">Backup Systems</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="analysis-item">
-                            <div class="analysis-icon">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
-                            <div class="analysis-info">
-                                <h6>Cost Efficiency</h6>
-                                <p>Optimized cost structure through strategic subcontracting</p>
-                                <div class="analysis-metrics">
-                                    <span class="metric">15-30% Cost Savings</span>
-                                    <span class="metric">Variable Cost Model</span>
                                 </div>
                             </div>
                         </div>

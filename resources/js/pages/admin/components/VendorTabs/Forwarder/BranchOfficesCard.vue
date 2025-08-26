@@ -3,10 +3,10 @@
         <div v-if="hasBranches" class="branches-content">
             <div class="section-header">
                 <div class="header-icon">
-                    <i class="fas fa-building"></i>
+                    <i class="fas fa-map-marker-alt"></i>
                 </div>
                 <div class="header-info">
-                    <h3>Branch Offices</h3>
+                    <h3>Branch Office Management</h3>
                     <p>Kantor cabang forwarder di Indonesia dan luar negeri</p>
                 </div>
                 <div class="branches-stats">
@@ -35,8 +35,8 @@
                                     <i class="fas fa-building"></i>
                                 </div>
                                 <div class="branch-info">
-                                    <h5>{{ branch.name || `Indonesian Branch ${index + 1}` }}</h5>
-                                    <span class="branch-location">{{ branch.city || branch.location || 'Indonesia' }}</span>
+                                    <h5>{{ getBranchName(branch, index, 'Indonesian') }}</h5>
+                                    <span class="branch-location">{{ getBranchLocation(branch) }}</span>
                                 </div>
                                 <div class="branch-flag">
                                     <div class="flag-badge indonesia">
@@ -47,35 +47,33 @@
                             </div>
 
                             <div class="branch-details">
-                                <div class="detail-grid">
-                                    <div class="detail-item" v-if="branch.address">
-                                        <label>Address:</label>
-                                        <span>{{ branch.address }}</span>
-                                    </div>
-                                    <div class="detail-item" v-if="branch.phone">
-                                        <label>Phone:</label>
-                                        <span>{{ branch.phone }}</span>
-                                    </div>
-                                    <div class="detail-item" v-if="branch.email">
-                                        <label>Email:</label>
-                                        <span>{{ branch.email }}</span>
-                                    </div>
-                                    <div class="detail-item" v-if="branch.manager">
-                                        <label>Manager:</label>
-                                        <span>{{ branch.manager }}</span>
+                                <!-- City & Address -->
+                                <div class="address-section">
+                                    <h6>Address Information:</h6>
+                                    <div class="address-content">
+                                        <div class="address-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <p>{{ branch.city_address || 'Address not specified' }}</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div v-if="branch.services && branch.services.length > 0" class="branch-services">
-                                    <h6>Available Services:</h6>
-                                    <div class="services-tags">
-                                        <span 
-                                            v-for="(service, serviceIndex) in branch.services"
-                                            :key="serviceIndex"
-                                            class="service-tag"
-                                        >
-                                            {{ service }}
-                                        </span>
+                                <!-- Contact Information -->
+                                <div class="contact-section">
+                                    <h6>Contact Information:</h6>
+                                    <div class="contact-grid">
+                                        <div v-if="branch.phone" class="contact-item">
+                                            <label>Phone:</label>
+                                            <span>{{ branch.phone }}</span>
+                                        </div>
+                                        <div v-if="branch.fax" class="contact-item">
+                                            <label>Fax:</label>
+                                            <span>{{ branch.fax }}</span>
+                                        </div>
+                                        <div v-if="branch.contact" class="contact-item full-width">
+                                            <label>Contact Person:</label>
+                                            <span>{{ branch.contact }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -96,12 +94,12 @@
                             class="branch-item"
                         >
                             <div class="branch-header">
-                                <div class="branch-icon">
+                                <div class="branch-icon overseas">
                                     <i class="fas fa-globe"></i>
                                 </div>
                                 <div class="branch-info">
-                                    <h5>{{ branch.name || `Overseas Branch ${index + 1}` }}</h5>
-                                    <span class="branch-location">{{ branch.country || branch.city || branch.location || 'International' }}</span>
+                                    <h5>{{ getBranchName(branch, index, 'Overseas') }}</h5>
+                                    <span class="branch-location">{{ getBranchLocation(branch) }}</span>
                                 </div>
                                 <div class="branch-flag">
                                     <div class="flag-badge overseas">
@@ -112,83 +110,35 @@
                             </div>
 
                             <div class="branch-details">
-                                <div class="detail-grid">
-                                    <div class="detail-item" v-if="branch.address">
-                                        <label>Address:</label>
-                                        <span>{{ branch.address }}</span>
-                                    </div>
-                                    <div class="detail-item" v-if="branch.phone">
-                                        <label>Phone:</label>
-                                        <span>{{ branch.phone }}</span>
-                                    </div>
-                                    <div class="detail-item" v-if="branch.email">
-                                        <label>Email:</label>
-                                        <span>{{ branch.email }}</span>
-                                    </div>
-                                    <div class="detail-item" v-if="branch.country">
-                                        <label>Country:</label>
-                                        <span>{{ branch.country }}</span>
+                                <!-- City & Address -->
+                                <div class="address-section">
+                                    <h6>Address Information:</h6>
+                                    <div class="address-content">
+                                        <div class="address-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <p>{{ branch.city_address || 'Address not specified' }}</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div v-if="branch.services && branch.services.length > 0" class="branch-services">
-                                    <h6>Available Services:</h6>
-                                    <div class="services-tags">
-                                        <span 
-                                            v-for="(service, serviceIndex) in branch.services"
-                                            :key="serviceIndex"
-                                            class="service-tag overseas"
-                                        >
-                                            {{ service }}
-                                        </span>
+                                <!-- Contact Information -->
+                                <div class="contact-section">
+                                    <h6>Contact Information:</h6>
+                                    <div class="contact-grid">
+                                        <div v-if="branch.phone" class="contact-item">
+                                            <label>Phone:</label>
+                                            <span>{{ branch.phone }}</span>
+                                        </div>
+                                        <div v-if="branch.fax" class="contact-item">
+                                            <label>Fax:</label>
+                                            <span>{{ branch.fax }}</span>
+                                        </div>
+                                        <div v-if="branch.contact" class="contact-item full-width">
+                                            <label>Contact Person:</label>
+                                            <span>{{ branch.contact }}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Branch Statistics -->
-                <div class="branches-statistics">
-                    <h4>
-                        <i class="fas fa-chart-bar"></i>
-                        Branch Statistics
-                    </h4>
-                    <div class="statistics-grid">
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-flag"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ indonesianBranches.length }}</span>
-                                <span class="statistic-label">Indonesian Offices</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-globe"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ overseasBranches.length }}</span>
-                                <span class="statistic-label">Overseas Offices</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ totalBranches }}</span>
-                                <span class="statistic-label">Total Branches</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-map"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getUniqueCountries() }}</span>
-                                <span class="statistic-label">Countries</span>
                             </div>
                         </div>
                     </div>
@@ -198,9 +148,9 @@
 
         <div v-else class="no-data">
             <div class="no-data-illustration">
-                <i class="fas fa-building"></i>
+                <i class="fas fa-map-marker-alt"></i>
                 <h4>Belum Ada Data Branch Offices</h4>
-                <p>Data kantor cabang belum dilengkapi untuk forwarder ini</p>
+                <p>Data kantor cabang belum dikonfigurasi untuk forwarder ini</p>
             </div>
         </div>
     </div>
@@ -220,17 +170,18 @@ const props = defineProps({
     }
 })
 
+// Computed properties sesuai dengan ForwarderBranchOffice.vue
 const indonesianBranches = computed(() => {
     if (!props.data.indonesian_branch_offices) return []
     return Array.isArray(props.data.indonesian_branch_offices) 
-        ? props.data.indonesian_branch_offices 
+        ? props.data.indonesian_branch_offices.filter(branch => branch && (branch.city_address || branch.phone || branch.fax || branch.contact))
         : []
 })
 
 const overseasBranches = computed(() => {
     if (!props.data.overseas_branch_offices) return []
     return Array.isArray(props.data.overseas_branch_offices) 
-        ? props.data.overseas_branch_offices 
+        ? props.data.overseas_branch_offices.filter(branch => branch && (branch.city_address || branch.phone || branch.fax || branch.contact))
         : []
 })
 
@@ -242,16 +193,94 @@ const hasBranches = computed(() => {
     return totalBranches.value > 0
 })
 
-function getUniqueCountries() {
-    const countries = new Set(['Indonesia']) // Indonesia always counted
-    
-    overseasBranches.value.forEach(branch => {
-        if (branch.country) {
-            countries.add(branch.country)
+// Helper functions sesuai dengan struktur data ForwarderBranchOffice
+function getBranchName(branch, index, type) {
+    // Coba ekstrak nama dari city_address jika ada
+    if (branch.city_address) {
+        const addressParts = branch.city_address.split('-')
+        if (addressParts.length > 0) {
+            const firstPart = addressParts[0].trim()
+            if (firstPart) {
+                return `${type} Branch - ${firstPart}`
+            }
         }
+    }
+    return `${type} Branch ${index + 1}`
+}
+
+function getBranchLocation(branch) {
+    if (branch.city_address) {
+        // Ekstrak bagian pertama sebelum tanda '-' atau ambil 50 karakter pertama
+        const addressParts = branch.city_address.split('-')
+        if (addressParts.length > 0) {
+            return addressParts[0].trim()
+        }
+        return branch.city_address.length > 50 
+            ? branch.city_address.substring(0, 50) + '...'
+            : branch.city_address
+    }
+    return 'Location not specified'
+}
+
+function getCountryFromAddress(cityAddress) {
+    if (!cityAddress) return 'International'
+    
+    // Coba ekstrak negara dari alamat (biasanya di awal atau akhir)
+    const addressParts = cityAddress.split('-')
+    if (addressParts.length > 0) {
+        const firstPart = addressParts[0].trim()
+        // Jika bagian pertama terlihat seperti nama negara atau kota
+        if (firstPart.length < 30) {
+            return firstPart
+        }
+    }
+    return 'International'
+}
+
+function getContactMethodsCount(branch) {
+    let count = 0
+    if (branch.phone) count++
+    if (branch.fax) count++
+    if (branch.contact) count++
+    return count
+}
+
+function getCompletionPercentage() {
+    if (totalBranches.value === 0) return 0
+    
+    let totalFields = 0
+    let filledFields = 0
+    
+    // Hitung untuk Indonesian branches
+    indonesianBranches.value.forEach(branch => {
+        totalFields += 4 // city_address, phone, fax, contact
+        if (branch.city_address) filledFields++
+        if (branch.phone) filledFields++
+        if (branch.fax) filledFields++
+        if (branch.contact) filledFields++
     })
     
-    return countries.size
+    // Hitung untuk Overseas branches
+    overseasBranches.value.forEach(branch => {
+        totalFields += 4 // city_address, phone, fax, contact
+        if (branch.city_address) filledFields++
+        if (branch.phone) filledFields++
+        if (branch.fax) filledFields++
+        if (branch.contact) filledFields++
+    })
+    
+    return totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0
+}
+
+function getDistributionPercentage(type) {
+    if (totalBranches.value === 0) return 0
+    
+    if (type === 'indonesian') {
+        return Math.round((indonesianBranches.value.length / totalBranches.value) * 100)
+    } else if (type === 'overseas') {
+        return Math.round((overseasBranches.value.length / totalBranches.value) * 100)
+    }
+    return 0
 }
 </script>
 
@@ -273,14 +302,14 @@ function getUniqueCountries() {
 .header-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 1.5rem;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .header-info {
@@ -353,7 +382,7 @@ function getUniqueCountries() {
 }
 
 .branches-section h4 i {
-    color: #3b82f6;
+    color: #7c3aed;
 }
 
 .branches-statistics h4 i {
@@ -362,7 +391,7 @@ function getUniqueCountries() {
 
 .branches-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 20px;
     padding: 24px;
 }
@@ -392,7 +421,7 @@ function getUniqueCountries() {
 .branch-icon {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     color: white;
     border-radius: 12px;
     display: flex;
@@ -400,6 +429,10 @@ function getUniqueCountries() {
     justify-content: center;
     font-size: 1.25rem;
     flex-shrink: 0;
+}
+
+.branch-icon.overseas {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
 }
 
 .branch-info {
@@ -447,32 +480,80 @@ function getUniqueCountries() {
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
 
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+.address-section,
+.contact-section,
+.branch-summary {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 16px;
+}
+
+.address-section h6,
+.contact-section h6,
+.branch-summary h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.address-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.address-item {
+    display: flex;
+    align-items: flex-start;
     gap: 12px;
 }
 
-.detail-item {
+.address-item i {
+    color: #7c3aed;
+    font-size: 1.125rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.address-item p {
+    margin: 0;
+    color: #374151;
+    line-height: 1.5;
+    font-size: 0.875rem;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.contact-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    background: white;
+    background: #f8fafc;
     border-radius: 6px;
     border: 1px solid #e5e7eb;
 }
 
-.detail-item label {
+.contact-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.contact-item label {
     font-weight: 500;
     color: #6b7280;
     font-size: 0.875rem;
 }
 
-.detail-item span {
+.contact-item span {
     font-weight: 600;
     color: #1f2937;
     font-size: 0.875rem;
@@ -481,45 +562,45 @@ function getUniqueCountries() {
     word-break: break-word;
 }
 
-.branch-services {
-    background: white;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    padding: 16px;
-}
-
-.branch-services h6 {
-    margin: 0 0 12px 0;
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.875rem;
-}
-
-.services-tags {
+.summary-items {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 8px;
 }
 
-.service-tag {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #1e40af;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
 }
 
-.service-tag.overseas {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
+.summary-label {
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.summary-value {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.875rem;
+}
+
+.statistics-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .statistics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
-    padding: 24px;
 }
 
 .statistic-item {
@@ -557,6 +638,71 @@ function getUniqueCountries() {
 .statistic-label {
     font-size: 0.875rem;
     opacity: 0.8;
+}
+
+.distribution-summary {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.distribution-header h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.distribution-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.distribution-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.distribution-label {
+    flex: 0 0 140px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.distribution-bar {
+    flex: 1;
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.distribution-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #dc2626 0%, #b91c1c 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.distribution-fill.overseas {
+    background: linear-gradient(90deg, #059669 0%, #047857 100%);
+}
+
+.distribution-value {
+    flex: 0 0 80px;
+    text-align: right;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
 }
 
 .no-data {
@@ -613,8 +759,24 @@ function getUniqueCountries() {
         gap: 12px;
     }
     
-    .detail-grid {
+    .contact-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .distribution-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .distribution-label {
+        flex: none;
+        text-align: center;
+    }
+    
+    .distribution-value {
+        flex: none;
+        text-align: center;
     }
 }
 </style>

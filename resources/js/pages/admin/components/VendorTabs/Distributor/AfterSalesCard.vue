@@ -18,15 +18,15 @@
           </h4>
           <ul class="simple-after-sales-list">
             <li>
-              <strong>Priority Treatment:</strong>
+              <strong>Priority Treatment: </strong>
               <span>{{ afterSalesInfo.priority_treatment || '-' }}</span>
             </li>
             <li>
-              <strong>Complaint Agreement:</strong>
+              <strong>Complaint Agreement: </strong>
               <span>{{ afterSalesInfo.complaint_agreement || '-' }}</span>
             </li>
             <li>
-              <strong>Contact Centre:</strong>
+              <strong>Contact Centre: </strong>
               <span>{{ afterSalesInfo.has_contact_centre || '-' }}</span>
             </li>
           </ul>

@@ -3,155 +3,145 @@
         <div v-if="hasData" class="after-sales-content">
             <div class="section-header">
                 <div class="header-icon">
-                    <i class="fas fa-wrench"></i>
+                    <i class="fas fa-headset"></i>
                 </div>
                 <div class="header-info">
-                    <h3>After Sales Service</h3>
-                    <p>Layanan purna jual dan dukungan teknis manufacturer</p>
+                    <h3>After Sales Support</h3>
+                    <p>Layanan purna jual dan dukungan teknis yang tersedia untuk pelanggan</p>
                 </div>
                 <div class="services-stats">
                     <div class="stat-badge">
-                        <span class="stat-number">{{ afterSalesServices.length }}</span>
-                        <span class="stat-label">Services</span>
+                        <span class="stat-number">{{ serviceScore }}%</span>
+                        <span class="stat-label">Coverage</span>
                     </div>
                 </div>
             </div>
 
             <div class="content-sections">
-                <!-- Services Grid -->
+                <!-- Service Options Grid -->
                 <div class="services-grid">
-                    <div 
-                        v-for="(service, index) in afterSalesServices"
-                        :key="index"
-                        class="service-item"
-                    >
+                    <!-- Priority Treatment -->
+                    <div class="service-item">
                         <div class="service-header">
-                            <div class="service-icon">
-                                <i :class="getServiceIcon(service.type)"></i>
+                            <div class="service-icon priority">
+                                <i class="fas fa-star"></i>
                             </div>
                             <div class="service-info">
-                                <h5>{{ service.name || service.type || `Service ${index + 1}` }}</h5>
-                                <span class="service-category">{{ service.category || 'After Sales Service' }}</span>
+                                <h5>Priority Treatment</h5>
+                                <span class="service-category">Issue Resolution Service</span>
+                                <div class="service-description">
+                                    <p>Priority treatment for over/short/damaged requests</p>
+                                </div>
                             </div>
                             <div class="service-availability">
-                                <span :class="['availability-badge', getAvailabilityClass(service.availability)]">
-                                    <i :class="getAvailabilityIcon(service.availability)"></i>
-                                    {{ getAvailabilityText(service.availability) }}
+                                <span :class="['availability-badge', getAvailabilityClass(afterSalesData.priority_treatment)]">
+                                    <i :class="getAvailabilityIcon(afterSalesData.priority_treatment)"></i>
+                                    {{ getAvailabilityText(afterSalesData.priority_treatment) }}
                                 </span>
                             </div>
                         </div>
 
                         <div class="service-details">
-                            <div class="service-description" v-if="service.description">
-                                <p>{{ service.description }}</p>
-                            </div>
-
-                            <div class="service-specs" v-if="service.response_time || service.coverage || service.warranty">
-                                <h6>Service Specifications:</h6>
+                            <div class="service-specs">
+                                <h6>Service Information:</h6>
                                 <div class="specs-grid">
-                                    <div v-if="service.response_time" class="spec-item">
-                                        <label>Response Time:</label>
-                                        <span>{{ service.response_time }}</span>
+                                    <div class="spec-item">
+                                        <label>Service Type:</label>
+                                        <span>Priority Issue Handling</span>
                                     </div>
-                                    <div v-if="service.coverage" class="spec-item">
+                                    <div class="spec-item">
                                         <label>Coverage:</label>
-                                        <span>{{ service.coverage }}</span>
+                                        <span>Over/Short/Damaged Requests</span>
                                     </div>
-                                    <div v-if="service.warranty" class="spec-item">
-                                        <label>Warranty:</label>
-                                        <span>{{ service.warranty }}</span>
-                                    </div>
-                                    <div v-if="service.cost" class="spec-item">
-                                        <label>Cost:</label>
-                                        <span>{{ service.cost }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="service-features" v-if="service.features">
-                                <h6>Key Features:</h6>
-                                <div class="features-list">
-                                    <div 
-                                        v-for="(feature, featureIndex) in getFeatures(service.features)"
-                                        :key="featureIndex"
-                                        class="feature-item"
-                                    >
-                                        <i class="fas fa-check-circle"></i>
-                                        <span>{{ feature }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="service-channels" v-if="service.channels">
-                                <h6>Service Channels:</h6>
-                                <div class="channels-grid">
-                                    <div 
-                                        v-for="(channel, channelIndex) in getChannels(service.channels)"
-                                        :key="channelIndex"
-                                        class="channel-item"
-                                    >
-                                        <i :class="getChannelIcon(channel)"></i>
-                                        <span>{{ channel }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="service-locations" v-if="service.locations">
-                                <h6>Service Locations:</h6>
-                                <div class="locations-tags">
-                                    <span 
-                                        v-for="(location, locationIndex) in getLocations(service.locations)"
-                                        :key="locationIndex"
-                                        class="location-tag"
-                                    >
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        {{ location }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="service-contact" v-if="service.contact">
-                                <h6>Contact Information:</h6>
-                                <div class="contact-info">
-                                    <div v-if="service.contact.phone" class="contact-item">
-                                        <i class="fas fa-phone"></i>
-                                        <span>{{ service.contact.phone }}</span>
-                                    </div>
-                                    <div v-if="service.contact.email" class="contact-item">
-                                        <i class="fas fa-envelope"></i>
-                                        <span>{{ service.contact.email }}</span>
-                                    </div>
-                                    <div v-if="service.contact.website" class="contact-item">
-                                        <i class="fas fa-globe"></i>
-                                        <span>{{ service.contact.website }}</span>
+                                    <div class="spec-item">
+                                        <label>Availability:</label>
+                                        <span>{{ afterSalesData.priority_treatment === 'yes' ? 'Available' : 'Not Available' }}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Service Categories -->
-                <div class="service-categories">
-                    <h4>
-                        <i class="fas fa-chart-pie"></i>
-                        Service Categories
-                    </h4>
-                    <div class="categories-grid">
-                        <div 
-                            v-for="(category, index) in getServiceCategories()"
-                            :key="index"
-                            class="category-item"
-                        >
-                            <div class="category-icon">
-                                <i :class="getServiceIcon(category.name)"></i>
+                    <!-- Returned Goods Procedure -->
+                    <div class="service-item">
+                        <div class="service-header">
+                            <div class="service-icon returns">
+                                <i class="fas fa-undo"></i>
                             </div>
-                            <div class="category-info">
-                                <h6>{{ category.name }}</h6>
-                                <span class="category-count">{{ category.count }} services</span>
+                            <div class="service-info">
+                                <h5>Returned Goods Procedure</h5>
+                                <span class="service-category">Returns Management</span>
+                                <div class="service-description">
+                                    <p>Standardized procedure for returned goods processing</p>
+                                </div>
                             </div>
-                            <div class="category-percentage">
-                                <span class="percentage-value">{{ getCategoryPercentage(category.count) }}%</span>
+                            <div class="service-availability">
+                                <span :class="['availability-badge', getAvailabilityClass(afterSalesData.procedure_returned_goods)]">
+                                    <i :class="getAvailabilityIcon(afterSalesData.procedure_returned_goods)"></i>
+                                    {{ getReturnsProcedureText(afterSalesData.procedure_returned_goods) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="service-details">
+                            <div class="service-specs">
+                                <h6>Procedure Information:</h6>
+                                <div class="specs-grid">
+                                    <div class="spec-item">
+                                        <label>Service Type:</label>
+                                        <span>Returns Processing</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <label>Process:</label>
+                                        <span>{{ afterSalesData.procedure_returned_goods === 'yes' ? 'Standardized Procedure' : 'No Procedure' }}</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <label>Status:</label>
+                                        <span>{{ afterSalesData.procedure_returned_goods === 'yes' ? 'Available' : 'Not Available' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Centre -->
+                    <div class="service-item">
+                        <div class="service-header">
+                            <div class="service-icon contact">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <div class="service-info">
+                                <h5>Contact Centre Service</h5>
+                                <span class="service-category">Customer Support</span>
+                                <div class="service-description">
+                                    <p>Dedicated contact centre for customer service</p>
+                                </div>
+                            </div>
+                            <div class="service-availability">
+                                <span :class="['availability-badge', getAvailabilityClass(afterSalesData.contact_centre)]">
+                                    <i :class="getAvailabilityIcon(afterSalesData.contact_centre)"></i>
+                                    {{ getContactCentreText(afterSalesData.contact_centre) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="service-details">
+                            <div class="service-specs">
+                                <h6>Contact Information:</h6>
+                                <div class="specs-grid">
+                                    <div class="spec-item">
+                                        <label>Service Type:</label>
+                                        <span>Customer Support Centre</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <label>Channel:</label>
+                                        <span>Phone Support</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <label>Availability:</label>
+                                        <span>{{ afterSalesData.contact_centre === 'yes' ? 'Available' : 'Not Available' }}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -161,9 +151,9 @@
 
         <div v-else class="no-data">
             <div class="no-data-illustration">
-                <i class="fas fa-wrench"></i>
+                <i class="fas fa-headset"></i>
                 <h4>Belum Ada Data After Sales</h4>
-                <p>Data layanan purna jual belum dilengkapi untuk manufacturer ini</p>
+                <p>Data layanan purna jual belum dikonfigurasi untuk manufacturer ini</p>
             </div>
         </div>
     </div>
@@ -184,131 +174,85 @@ const props = defineProps({
 })
 
 const hasData = computed(() => {
-    return !!(props.data.after_sales)
+    return !!(props.data.after_sales && Object.keys(props.data.after_sales).length > 0)
 })
 
-const afterSalesServices = computed(() => {
-    if (!props.data.after_sales) return []
+const afterSalesData = computed(() => {
+    if (!props.data.after_sales) return {}
     
     // Handle JSON field dari database
-    if (Array.isArray(props.data.after_sales)) {
-        return props.data.after_sales
-    }
-    
     if (typeof props.data.after_sales === 'string') {
         try {
-            const parsed = JSON.parse(props.data.after_sales)
-            return Array.isArray(parsed) ? parsed : [parsed]
+            return JSON.parse(props.data.after_sales)
         } catch {
-            return []
+            return {}
         }
     }
     
-    if (typeof props.data.after_sales === 'object') {
-        return Object.entries(props.data.after_sales).map(([key, value]) => ({
-            type: key,
-            ...value
-        }))
-    }
-    
-    return []
+    return props.data.after_sales || {}
 })
 
-function getServiceIcon(type) {
-    const typeLower = (type || '').toLowerCase()
-    const icons = {
-        'maintenance': 'fas fa-tools',
-        'repair': 'fas fa-wrench',
-        'installation': 'fas fa-hammer',
-        'training': 'fas fa-graduation-cap',
-        'support': 'fas fa-headset',
-        'warranty': 'fas fa-shield-alt',
-        'consultation': 'fas fa-comments',
-        'upgrade': 'fas fa-arrow-up',
-        'replacement': 'fas fa-exchange-alt',
-        'calibration': 'fas fa-sliders-h'
-    }
+// Helper functions sesuai dengan ManufactureAfterSales.vue
+const serviceScore = computed(() => {
+    const options = [
+        afterSalesData.value.priority_treatment,
+        afterSalesData.value.procedure_returned_goods,
+        afterSalesData.value.contact_centre
+    ]
     
-    for (const [key, icon] of Object.entries(icons)) {
-        if (typeLower.includes(key)) return icon
-    }
-    return 'fas fa-cog'
-}
+    const totalOptions = options.filter(option => option && option !== "").length
+    const yesOptions = options.filter(option => option === "yes").length
+    
+    if (totalOptions === 0) return 0
+    return Math.round((yesOptions / totalOptions) * 100)
+})
 
 function getAvailabilityClass(availability) {
-    const availabilityLower = (availability || 'available').toLowerCase()
-    if (availabilityLower.includes('24/7') || availabilityLower.includes('always')) return 'always'
-    if (availabilityLower.includes('limited') || availabilityLower.includes('business')) return 'limited'
-    if (availabilityLower.includes('on-demand') || availabilityLower.includes('request')) return 'on-demand'
-    return 'available'
+    if (availability === 'yes') return 'available'
+    if (availability === 'no') return 'unavailable'
+    return 'unknown'
 }
 
 function getAvailabilityIcon(availability) {
-    const availabilityClass = getAvailabilityClass(availability)
-    const icons = {
-        'always': 'fas fa-clock',
-        'available': 'fas fa-check-circle',
-        'limited': 'fas fa-business-time',
-        'on-demand': 'fas fa-phone'
-    }
-    return icons[availabilityClass] || 'fas fa-check-circle'
+    if (availability === 'yes') return 'fas fa-check-circle'
+    if (availability === 'no') return 'fas fa-times-circle'
+    return 'fas fa-question-circle'
 }
 
 function getAvailabilityText(availability) {
-    return availability || 'Available'
+    if (availability === 'yes') return 'Tersedia'
+    if (availability === 'no') return 'Tidak Tersedia'
+    return 'Tidak Ditentukan'
 }
 
-function getFeatures(features) {
-    if (Array.isArray(features)) return features
-    if (typeof features === 'string') return features.split(',').map(f => f.trim())
-    return []
+function getReturnsProcedureText(availability) {
+    if (availability === 'yes') return 'Ada Prosedur'
+    if (availability === 'no') return 'Tidak Ada Prosedur'
+    return 'Tidak Ditentukan'
 }
 
-function getChannels(channels) {
-    if (Array.isArray(channels)) return channels
-    if (typeof channels === 'string') return channels.split(',').map(c => c.trim())
-    return []
+function getContactCentreText(availability) {
+    if (availability === 'yes') return 'Tersedia'
+    if (availability === 'no') return 'Tidak Tersedia'
+    return 'Tidak Ditentukan'
 }
 
-function getChannelIcon(channel) {
-    const channelLower = (channel || '').toLowerCase()
-    const icons = {
-        'phone': 'fas fa-phone',
-        'email': 'fas fa-envelope',
-        'online': 'fas fa-globe',
-        'onsite': 'fas fa-map-marker-alt',
-        'remote': 'fas fa-desktop',
-        'chat': 'fas fa-comments'
-    }
-    
-    for (const [key, icon] of Object.entries(icons)) {
-        if (channelLower.includes(key)) return icon
-    }
-    return 'fas fa-headset'
+function getAvailableServicesCount() {
+    const services = [
+        afterSalesData.value.priority_treatment,
+        afterSalesData.value.procedure_returned_goods,
+        afterSalesData.value.contact_centre
+    ]
+    return services.filter(service => service === 'yes').length
 }
 
-function getLocations(locations) {
-    if (Array.isArray(locations)) return locations
-    if (typeof locations === 'string') return locations.split(',').map(l => l.trim())
-    return []
-}
-
-function getServiceCategories() {
-    const categories = {}
-    afterSalesServices.value.forEach(service => {
-        const category = service.category || service.type || 'General'
-        if (!categories[category]) {
-            categories[category] = { name: category, count: 0 }
-        }
-        categories[category].count++
-    })
-    
-    return Object.values(categories).sort((a, b) => b.count - a.count)
-}
-
-function getCategoryPercentage(count) {
-    if (afterSalesServices.value.length === 0) return 0
-    return Math.round((count / afterSalesServices.value.length) * 100)
+function getTotalServicesCount() {
+    const services = [
+        afterSalesData.value.priority_treatment,
+        afterSalesData.value.procedure_returned_goods,
+        afterSalesData.value.contact_centre
+    ]
+    return services.filter(service => service && service !== '').length
 }
 </script>
 
@@ -330,14 +274,14 @@ function getCategoryPercentage(count) {
 .header-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 1.5rem;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .header-info {
@@ -408,7 +352,7 @@ function getCategoryPercentage(count) {
 
 .service-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
     padding: 20px 24px;
     background: #f8fafc;
@@ -416,16 +360,27 @@ function getCategoryPercentage(count) {
 }
 
 .service-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    width: 56px;
+    height: 56px;
     color: white;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     flex-shrink: 0;
+}
+
+.service-icon.priority {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.service-icon.returns {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.service-icon.contact {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .service-info {
@@ -443,6 +398,19 @@ function getCategoryPercentage(count) {
     font-size: 0.875rem;
     color: #6b7280;
     font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.service-description {
+    margin-top: 8px;
+}
+
+.service-description p {
+    margin: 0;
+    color: #374151;
+    font-size: 0.875rem;
+    line-height: 1.4;
 }
 
 .service-availability {
@@ -461,24 +429,19 @@ function getCategoryPercentage(count) {
     letter-spacing: 0.025em;
 }
 
-.availability-badge.always {
+.availability-badge.available {
     background: #d1fae5;
     color: #065f46;
 }
 
-.availability-badge.available {
-    background: #dbeafe;
-    color: #1e40af;
+.availability-badge.unavailable {
+    background: #fef2f2;
+    color: #991b1b;
 }
 
-.availability-badge.limited {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.availability-badge.on-demand {
-    background: #e0e7ff;
-    color: #3730a3;
+.availability-badge.unknown {
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
 .service-details {
@@ -488,30 +451,16 @@ function getCategoryPercentage(count) {
     gap: 20px;
 }
 
-.service-description,
 .service-specs,
-.service-features,
-.service-channels,
-.service-locations,
-.service-contact {
+.service-features {
     background: #f8fafc;
     padding: 16px;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
 }
 
-.service-description p {
-    margin: 0;
-    color: #374151;
-    line-height: 1.6;
-    font-size: 0.875rem;
-}
-
 .service-specs h6,
-.service-features h6,
-.service-channels h6,
-.service-locations h6,
-.service-contact h6 {
+.service-features h6 {
     margin: 0 0 12px 0;
     font-weight: 600;
     color: #374151;
@@ -560,80 +509,18 @@ function getCategoryPercentage(count) {
 }
 
 .feature-item i {
-    color: #3b82f6;
+    color: #7c3aed;
     font-size: 0.75rem;
 }
 
-.channels-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
-}
-
-.channel-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-    font-size: 0.875rem;
-    color: #374151;
-}
-
-.channel-item i {
-    color: #3b82f6;
-    font-size: 0.875rem;
-}
-
-.locations-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.location-tag {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #1e40af;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.contact-info {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.contact-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #374151;
-}
-
-.contact-item i {
-    color: #3b82f6;
-    font-size: 0.875rem;
-    width: 16px;
-    text-align: center;
-}
-
-.service-categories {
+.service-summary {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     overflow: hidden;
 }
 
-.service-categories h4 {
+.service-summary h4 {
     margin: 0;
     padding: 16px 24px;
     background: #f8fafc;
@@ -646,70 +533,112 @@ function getCategoryPercentage(count) {
     gap: 8px;
 }
 
-.service-categories h4 i {
-    color: #8b5cf6;
+.service-summary h4 i {
+    color: #7c3aed;
 }
 
-.categories-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
+.summary-content {
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
-.category-item {
+.coverage-analysis {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.coverage-header h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.coverage-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.coverage-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.coverage-item.available {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+}
+
+.coverage-item.total {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+}
+
+.coverage-item.score {
+    background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+    color: #6d28d9;
+}
+
+.coverage-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.coverage-count {
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.statistic-item {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.category-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.category-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     color: white;
+    border-radius: 8px;
+}
+
+.statistic-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.125rem;
-    flex-shrink: 0;
+    font-size: 1.25rem;
 }
 
-.category-info {
-    flex: 1;
+.statistic-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.category-info h6 {
-    margin: 0 0 4px 0;
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 1rem;
-}
-
-.category-count {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.category-percentage {
-    flex-shrink: 0;
-}
-
-.percentage-value {
+.statistic-number {
+    font-size: 1.5rem;
     font-weight: 700;
-    color: #8b5cf6;
-    font-size: 1.125rem;
+}
+
+.statistic-label {
+    font-size: 0.875rem;
+    opacity: 0.8;
 }
 
 .no-data {
@@ -749,7 +678,8 @@ function getCategoryPercentage(count) {
     }
     
     .services-grid,
-    .categories-grid {
+    .coverage-analysis,
+    .statistics-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
@@ -766,8 +696,7 @@ function getCategoryPercentage(count) {
         gap: 12px;
     }
     
-    .specs-grid,
-    .channels-grid {
+    .specs-grid {
         grid-template-columns: 1fr;
     }
 }

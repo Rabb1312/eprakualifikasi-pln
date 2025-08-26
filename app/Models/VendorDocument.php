@@ -1704,50 +1704,50 @@ class VendorDocument extends Model
                 'group_name' => 'Business License'
             ],
 
-            // 4. Check List of Health, Safety and Environment (HSE) & HSE Documents from PLN Group
+            // 4. Company Profile (Last Updated)
             [
-                'type' => 'checklist_hse',
-                'name' => 'Check List of Health, Safety and Environment (HSE)',
-                'subtitle' => 'Daftar Periksa Kesehatan, Keselamatan dan Lingkungan',
-                'number' => '4.1',
+                'type' => 'company_profile',
+                'name' => 'Company Profile (Last Updated)',
+                'subtitle' => 'Profil Perusahaan (Terakhir Diperbarui)',
+                'number' => '4',
                 'required' => true,
                 'has_expiry' => false,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_1',
                 'group' => '4',
-                'group_name' => 'Check List of Health, Safety and Environment (HSE) & HSE Documents from PLN Group',
-                'has_template' => true,
-                'template_url' => 'https://docs.google.com/spreadsheets/d/1TwZ5Vj-p1p91MJX7WYr0oO85a5INLtrI/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1TwZ5Vj-p1p91MJX7WYr0oO85a5INLtrI/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_filename' => 'Template_HSE_Checklist.xlsx'
-            ],
-
-            // 5. Company Profile (Last Updated)
-            [
-                'type' => 'company_profile',
-                'name' => 'Company Profile (Last Updated)',
-                'subtitle' => 'Profil Perusahaan (Terakhir Diperbarui)',
-                'number' => '5',
-                'required' => true,
-                'has_expiry' => false,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_1',
-                'group' => '5',
                 'group_name' => 'Company Profile (Last Updated)'
             ],
 
-            // 6. Izin Lokasi OSS/PKKPR/Company Domicile Certificate
+            // 5. Izin Lokasi OSS/PKKPR/Company Domicile Certificate
             [
                 'type' => 'izin_lokasi_sppkr',
                 'name' => 'Izin Lokasi OSS/PKKPR/Company Domicile Certificate',
                 'subtitle' => 'Izin Lokasi OSS/PKKPR/Sertifikat Domisili Perusahaan',
-                'number' => '6',
+                'number' => '5',
                 'required' => true,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_1',
-                'group' => '6',
+                'group' => '5',
                 'group_name' => 'Izin Lokasi OSS/PKKPR/Company Domicile Certificate'
+            ],
+
+            // 6. Check List of Health, Safety and Environment (HSE) & HSE Documents from PLN Group
+            [
+                'type' => 'checklist_hse',
+                'name' => 'Check List of Health, Safety and Environment (HSE)',
+                'subtitle' => 'Daftar Periksa Kesehatan, Keselamatan dan Lingkungan',
+                'number' => '6.1',
+                'required' => true,
+                'has_expiry' => false,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_1',
+                'group' => '6',
+                'group_name' => 'Check List of Health, Safety and Environment (HSE) & HSE Documents from PLN Group',
+                'has_template' => true,
+                'template_url' => 'https://docs.google.com/spreadsheets/d/1a5eAA3E-xqAZf2LSfIE3o67VQsH1AVWX/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1a5eAA3E-xqAZf2LSfIE3o67VQsH1AVWX/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_filename' => 'Template_HSE_Checklist.xlsx'
             ],
 
             // 7. Copy of 3 biggest PO/Contract in the last 3-5 years
@@ -1874,8 +1874,8 @@ class VendorDocument extends Model
                 'group' => '10',
                 'group_name' => 'Integrity Pact',
                 'has_template' => true,
-                'template_url' => 'https://docs.google.com/document/d/1aRuRLUgxCImm8lFqmoWHIR6MhlP-C3In/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/document/d/1aRuRLUgxCImm8lFqmoWHIR6MhlP-C3In/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_url' => 'https://docs.google.com/document/d/1dZ5DPk52YoLrOf_wulqX7H6SkxA_glxD/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_download_url' => 'https://docs.google.com/document/d/1dZ5DPk52YoLrOf_wulqX7H6SkxA_glxD/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
                 'template_filename' => 'Template_Integrity_Pact.docx'
             ],
 
@@ -1993,31 +1993,44 @@ class VendorDocument extends Model
 
             // ============= ATTACHMENT 2 - STATUS [TAB] =============
 
-            // 1. Catalogue/Brochure
+            // 1. Articles of Logistic Networking Member
             [
-                'type' => 'catalogue_brochure',
-                'name' => 'Catalogue/Brochure',
-                'subtitle' => 'Katalog / Brosur',
+                'type' => 'articel_of_logistic_networking',
+                'name' => 'Articel of Logistic Networking',
+                'subtitle' => 'Sertifikat Ketenagaahlian Transport (PPJK, Angkat Angkut, Rigger dll)',
                 'number' => '1',
                 'required' => false,
                 'has_expiry' => false,
-                'allows_multiple' => true,
+                'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '1',
+                'group_name' => 'Article of Logistic Networking'
+            ],
+            // 2. Catalogue/Brochure
+            [
+                'type' => 'articel',
+                'name' => 'Catalogue/Brochure',
+                'subtitle' => 'Katalog / Brosur',
+                'number' => '2',
+                'required' => false,
+                'has_expiry' => false,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_2',
+                'group' => '2',
                 'group_name' => 'Catalogue/Brochure'
             ],
 
-            // 2. Certification (ISO, etc) / Sertifikat (ISO, dll)
+            // 3. Certification (ISO, etc) / Sertifikat (ISO, dll)
             [
                 'type' => 'iso_9001',
                 'name' => 'ISO 9001',
                 'subtitle' => '',
-                'number' => '2.1',
+                'number' => '3.1',
                 'required' => true,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
-                'group' => '2',
+                'group' => '3',
                 'group_name' => 'Certification (ISO, etc) / Sertifikat (ISO, dll)'
             ],
 
@@ -2025,12 +2038,12 @@ class VendorDocument extends Model
                 'type' => 'iso_14001',
                 'name' => 'ISO 14001',
                 'subtitle' => '',
-                'number' => '2.2',
+                'number' => '3.2',
                 'required' => false,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
-                'group' => '2',
+                'group' => '3',
                 'group_name' => 'Certification (ISO, etc) / Sertifikat (ISO, dll)'
             ],
 
@@ -2038,12 +2051,12 @@ class VendorDocument extends Model
                 'type' => 'iso_45001',
                 'name' => 'ISO 45001',
                 'subtitle' => '',
-                'number' => '2.3',
+                'number' => '3.3',
                 'required' => false,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
-                'group' => '2',
+                'group' => '3',
                 'group_name' => 'Certification (ISO, etc) / Sertifikat (ISO, dll)'
             ],
 
@@ -2051,12 +2064,12 @@ class VendorDocument extends Model
                 'type' => 'iso_37001',
                 'name' => 'ISO 37001',
                 'subtitle' => '',
-                'number' => '2.4',
+                'number' => '3.4',
                 'required' => false,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
-                'group' => '2',
+                'group' => '3',
                 'group_name' => 'Certification (ISO, etc) / Sertifikat (ISO, dll)'
             ],
 
@@ -2064,55 +2077,41 @@ class VendorDocument extends Model
                 'type' => 'others_certificate_smk3',
                 'name' => 'Others Certificate (SMK3, Kebijakan Anti Korupsi/Penyuapan, OHSAS, etc)',
                 'subtitle' => 'Siberikan opsi untuk menambahkan dokumen lainnya, lebih dari 1 dokumen/ditambah keterangan dan akses multiple upload',
-                'number' => '2.5',
+                'number' => '3.5',
                 'required' => false,
                 'has_expiry' => true,
                 'allows_multiple' => true,
                 'parent_type' => 'attachment_2',
-                'group' => '2',
+                'group' => '3',
                 'group_name' => 'Certification (ISO, etc) / Sertifikat (ISO, dll)'
             ],
 
-            // 3. Certificate of Association Membership
+            // 4. Certificate of Association Membership
             [
                 'type' => 'association_membership',
                 'name' => 'Certificate of Association Membership',
                 'subtitle' => 'Sertifikat Keanggotaan Asosiasi',
-                'number' => '3',
-                'required' => false,
-                'has_expiry' => true,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_2',
-                'group' => '3',
-                'group_name' => 'Certificate of Association Membership'
-            ],
-
-            // 4. Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)
-            [
-                'type' => 'dpt_pln_certificate',
-                'name' => 'Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)',
-                'subtitle' => 'Sertifikat Daftar Penyedia Terseleksi (DPT) PLN Group (if any)',
                 'number' => '4',
                 'required' => false,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '4',
-                'group_name' => 'Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)'
+                'group_name' => 'Certificate of Association Membership'
             ],
 
-            // 5. Copy of HSE Procedure
+            // 5. Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)
             [
-                'type' => 'hse_procedure',
-                'name' => 'Copy of HSE Procedure',
-                'subtitle' => 'Salinan Prosedur dan Kebijakan K3L/HSE',
+                'type' => 'dpt_pln_certificate',
+                'name' => 'Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)',
+                'subtitle' => 'Sertifikat Daftar Penyedia Terseleksi (DPT) PLN Group (if any)',
                 'number' => '5',
-                'required' => true,
-                'has_expiry' => false,
+                'required' => false,
+                'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '5',
-                'group_name' => 'Copy of HSE Procedure'
+                'group_name' => 'Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)'
             ],
 
             // 6. Copy of CV Keyperson/Manpower dan Certificate of Expertise (min. 3 Keyperson/Manpower)
@@ -2155,18 +2154,18 @@ class VendorDocument extends Model
                 'group_name' => 'Copy of CV Keyperson/Manpower dan Certificate of Expertise (min. 3 Keyperson/Manpower)'
             ],
 
-            // 7. List of Standard Operating Procedure (SOP) Documents Company
+            // 7. Copy of HSE Procedure
             [
-                'type' => 'sop_documents',
-                'name' => 'List of Standard Operating Procedure (SOP) Documents Company',
-                'subtitle' => 'Daftar Standar Operasional Prosedur (SOP) dan Instruksi Kerja Perusahaan',
+                'type' => 'hse_procedure',
+                'name' => 'Copy of HSE Procedure',
+                'subtitle' => 'Salinan Prosedur dan Kebijakan K3L/HSE',
                 'number' => '7',
-                'required' => false,
+                'required' => true,
                 'has_expiry' => false,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '7',
-                'group_name' => 'List of Standard Operating Procedure (SOP) Documents Company'
+                'group_name' => 'Copy of HSE Procedure'
             ],
 
             // 8. Current Project List (on going)
@@ -2182,8 +2181,8 @@ class VendorDocument extends Model
                 'group' => '8',
                 'group_name' => 'Current Project List (on going)',
                 'has_template' => true,
-                'template_url' => 'https://docs.google.com/spreadsheets/d/1HhvQES1GO38EuEK21gpbtyhSED7QGq6m/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1HhvQES1GO38EuEK21gpbtyhSED7QGq6m/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_url' => 'https://docs.google.com/spreadsheets/d/1dOVwgGoQgKYKiC6VEjTUzpTieJx98sA3/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1dOVwgGoQgKYKiC6VEjTUzpTieJx98sA3/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
                 'template_filename' => 'Template_Current_Project_List.xlsx'
             ],
 
@@ -2200,8 +2199,8 @@ class VendorDocument extends Model
                 'group' => '9',
                 'group_name' => 'Equipment List',
                 'has_template' => true,
-                'template_url' => 'https://docs.google.com/spreadsheets/d/10kWXe8IhsUySU4uqo21x1g9KAgQyPPPA/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/spreadsheets/d/10kWXe8IhsUySU4uqo21x1g9KAgQyPPPA/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_url' => 'https://docs.google.com/spreadsheets/d/1F9NbeJHtDuJEi9_xeQMnziqDPNtP8xr7/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1F9NbeJHtDuJEi9_xeQMnziqDPNtP8xr7/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
                 'template_filename' => 'Template_Equipment_List.xlsx'
             ],
 
@@ -2223,17 +2222,57 @@ class VendorDocument extends Model
                 'template_filename' => 'Template_Manpower_List.xlsx'
             ],
 
-            // 11. Quality Management System/Quality Manual Documents
+            // 11. Procedure
             [
-                'type' => 'quality_management',
-                'name' => 'Quality Management System/Quality Manual Documents',
-                'subtitle' => '',
-                'number' => '11',
-                'required' => false,
+                'type' => 'shipping_plan',
+                'name' => 'Shipping Plan',
+                'subtitle' => 'Shipping Plan',
+                'number' => '11.1',
+                'required' => true,
                 'has_expiry' => false,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '11',
+                'group_name' => 'Procedure'
+            ],
+
+            [
+                'type' => 'operation_plan',
+                'name' => 'Operation Plan',
+                'subtitle' => 'Operation Plan',
+                'number' => '11.2',
+                'required' => true,
+                'has_expiry' => false,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_2',
+                'group' => '11',
+                'group_name' => 'Procedure'
+            ],
+
+            [
+                'type' => 'cv_keyperson_3',
+                'name' => 'Project Execution Plan',
+                'subtitle' => 'Project Execution Plan',
+                'number' => '11.3',
+                'required' => true,
+                'has_expiry' => false,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_2',
+                'group' => '11',
+                'group_name' => 'Procedure'
+            ],
+
+            // 12. Quality Management System/Quality Manual Documents
+            [
+                'type' => 'quality_management',
+                'name' => 'Quality Management System/Quality Manual Documents',
+                'subtitle' => '',
+                'number' => '12',
+                'required' => false,
+                'has_expiry' => false,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_2',
+                'group' => '12',
                 'group_name' => 'Quality Management System/Quality Manual Documents'
             ]
         ];
@@ -2337,17 +2376,31 @@ class VendorDocument extends Model
                 'group_name' => 'Audited Financial Report (Audited last 3 years)'
             ],
 
-            // 3. Business License
+            // 3. Catalogue/Brochure
+            [
+                'type' => 'catalogue_brochure',
+                'name' => 'Catalogue/Brochure',
+                'subtitle' => 'Katalog / Brosur',
+                'number' => '3',
+                'required' => false,
+                'has_expiry' => false,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_1',
+                'group' => '3',
+                'group_name' => 'Catalogue/Brochure'
+            ],
+
+            // 4. Business License
             [
                 'type' => 'nib',
                 'name' => 'Nomor Induk Berusaha (NIB)',
                 'subtitle' => '',
-                'number' => '3.1',
+                'number' => '4.1',
                 'required' => true,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_1',
-                'group' => '3',
+                'group' => '4',
                 'group_name' => 'Business License'
             ],
 
@@ -2355,12 +2408,12 @@ class VendorDocument extends Model
                 'type' => 'sertifikat_standar',
                 'name' => 'Sertifikat Standar',
                 'subtitle' => '',
-                'number' => '3.2',
+                'number' => '4.2',
                 'required' => true,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_1',
-                'group' => '3',
+                'group' => '4',
                 'group_name' => 'Business License'
             ],
 
@@ -2368,12 +2421,12 @@ class VendorDocument extends Model
                 'type' => 'sbu_konstruksi',
                 'name' => 'Sertifikat Badan Usaha (SBU Konstruksi)',
                 'subtitle' => '',
-                'number' => '3.3',
+                'number' => '4.3',
                 'required' => true,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_1',
-                'group' => '3',
+                'group' => '4',
                 'group_name' => 'Business License'
             ],
 
@@ -2381,59 +2434,41 @@ class VendorDocument extends Model
                 'type' => 'others_business_license',
                 'name' => 'Others (SIUJK, SIUP, SIUJPTL, SBUJPTL, dll)',
                 'subtitle' => '',
-                'number' => '3.4',
+                'number' => '4.4',
                 'required' => false,
                 'has_expiry' => false,
                 'allows_multiple' => true,
                 'parent_type' => 'attachment_1',
-                'group' => '3',
+                'group' => '4',
                 'group_name' => 'Business License'
             ],
 
-            // 4. Check List of Health, Safety and Environment (HSE) & HSE Documents from PLN Group
-            [
-                'type' => 'checklist_hse',
-                'name' => 'Check List of Health, Safety and Environment (HSE)',
-                'subtitle' => 'Daftar Periksa Kesehatan, Keselamatan dan Lingkungan',
-                'number' => '4.1',
-                'required' => true,
-                'has_expiry' => false,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_1',
-                'group' => '4',
-                'group_name' => 'Check List of Health, Safety and Environment (HSE) & HSE Documents from PLN Group',
-                'has_template' => true,
-                'template_url' => 'https://docs.google.com/spreadsheets/d/1TwZ5Vj-p1p91MJX7WYr0oO85a5INLtrI/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1TwZ5Vj-p1p91MJX7WYr0oO85a5INLtrI/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_filename' => 'Template_HSE_Checklist.xlsx'
-            ],
-
-            // 5. Company Profile (Last Updated)
-            [
-                'type' => 'company_profile',
-                'name' => 'Company Profile (Last Updated)',
-                'subtitle' => 'Profil Perusahaan (Terakhir Diperbarui)',
-                'number' => '5',
-                'required' => true,
-                'has_expiry' => false,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_1',
-                'group' => '5',
-                'group_name' => 'Company Profile (Last Updated)'
-            ],
-
-            // 6. Izin Lokasi OSS/PKKPR/Company Domicile Certificate
+            // 5. Izin Lokasi OSS/PKKPR/Company Domicile Certificate
             [
                 'type' => 'izin_lokasi_sppkr',
                 'name' => 'Izin Lokasi OSS/PKKPR/Company Domicile Certificate',
                 'subtitle' => 'Izin Lokasi OSS/PKKPR/Sertifikat Domisili Perusahaan',
-                'number' => '6',
+                'number' => '5',
                 'required' => true,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_1',
-                'group' => '6',
+                'group' => '5',
                 'group_name' => 'Izin Lokasi OSS/PKKPR/Company Domicile Certificate'
+            ],
+
+            // 6. Company Profile (Last Updated)
+            [
+                'type' => 'company_profile',
+                'name' => 'Company Profile (Last Updated)',
+                'subtitle' => 'Profil Perusahaan (Terakhir Diperbarui)',
+                'number' => '6',
+                'required' => true,
+                'has_expiry' => false,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_1',
+                'group' => '6',
+                'group_name' => 'Company Profile (Last Updated)'
             ],
 
             // 7. Copy of 3 biggest PO/Contract in the last 3-5 years
@@ -2560,8 +2595,8 @@ class VendorDocument extends Model
                 'group' => '10',
                 'group_name' => 'Integrity Pact',
                 'has_template' => true,
-                'template_url' => 'https://docs.google.com/document/d/1aRuRLUgxCImm8lFqmoWHIR6MhlP-C3In/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/document/d/1aRuRLUgxCImm8lFqmoWHIR6MhlP-C3In/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_url' => 'https://docs.google.com/document/d/1c4oWoybW74B6MBArjnP36QaH9I5eMhtB/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_download_url' => 'https://docs.google.com/document/d/1c4oWoybW74B6MBArjnP36QaH9I5eMhtB/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
                 'template_filename' => 'Template_Integrity_Pact.docx'
             ],
 
@@ -2613,7 +2648,7 @@ class VendorDocument extends Model
                 'number' => '12',
                 'required' => true,
                 'has_expiry' => false,
-                'allows_multiple' => true,
+                'allows_multiple' => false,
                 'parent_type' => 'attachment_1',
                 'group' => '12',
                 'group_name' => 'Tax Payment Certificate (Yearly) / SPT PPh Tahun Terakhir'
@@ -2677,20 +2712,34 @@ class VendorDocument extends Model
                 'template_filename' => 'Template_Warehouse_Workshop.docx'
             ],
 
-            // ============= ATTACHMENT 2 - STATUS [TAB] =============
-
-            // 1. Catalogue/Brochure
+            // 15. Surat Pernyataan Self-Assessment atau Sertifikat TKDN 
             [
-                'type' => 'catalogue_brochure',
-                'name' => 'Catalogue/Brochure',
-                'subtitle' => 'Katalog / Brosur',
-                'number' => '1',
+                'type' => 'tkdn',
+                'name' => 'Self-Assessment Statement Letter or TKDN Certificate',
+                'subtitle' => 'Surat Pernyataan Self-Assessment atau Sertifikat TKDN',
+                'number' => '15',
                 'required' => false,
                 'has_expiry' => false,
-                'allows_multiple' => true,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_1',
+                'group' => '15',
+                'group_name' => 'Self-Assessment Statement Letter or TKDN Certificate'
+            ],
+
+            // ============= ATTACHMENT 2 - STATUS [TAB] =============
+
+            // 1. Certificate of Association Membership
+            [
+                'type' => 'association_membership',
+                'name' => 'Certificate of Association Membership',
+                'subtitle' => 'Sertifikat Keanggotaan Asosiasi',
+                'number' => '1',
+                'required' => false,
+                'has_expiry' => true,
+                'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '1',
-                'group_name' => 'Catalogue/Brochure'
+                'group_name' => 'Certificate of Association Membership'
             ],
 
             // 2. Certification (ISO, etc) / Sertifikat (ISO, dll)
@@ -2752,93 +2801,75 @@ class VendorDocument extends Model
                 'subtitle' => 'Siberikan opsi untuk menambahkan dokumen lainnya, lebih dari 1 dokumen/ditambah keterangan dan akses multiple upload',
                 'number' => '2.5',
                 'required' => false,
-                'has_expiry' => true,
+                'has_expiry' => false,
                 'allows_multiple' => true,
                 'parent_type' => 'attachment_2',
                 'group' => '2',
                 'group_name' => 'Certification (ISO, etc) / Sertifikat (ISO, dll)'
             ],
 
-            // 3. Certificate of Association Membership
+            // 3. Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)
             [
-                'type' => 'association_membership',
-                'name' => 'Certificate of Association Membership',
-                'subtitle' => 'Sertifikat Keanggotaan Asosiasi',
+                'type' => 'dpt_pln_certificate',
+                'name' => 'Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)',
+                'subtitle' => 'Sertifikat Daftar Penyedia Terseleksi (DPT) PLN Group (if any)',
                 'number' => '3',
                 'required' => false,
                 'has_expiry' => true,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '3',
-                'group_name' => 'Certificate of Association Membership'
-            ],
-
-            // 4. Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)
-            [
-                'type' => 'dpt_pln_certificate',
-                'name' => 'Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)',
-                'subtitle' => 'Sertifikat Daftar Penyedia Terseleksi (DPT) PLN Group (if any)',
-                'number' => '4',
-                'required' => false,
-                'has_expiry' => true,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_2',
-                'group' => '4',
                 'group_name' => 'Certificate of Daftar Penyedia Terseleksi (DPT) PLN Group (if any)'
             ],
 
-            // 5. Copy of HSE Procedure
+            // 4. Current Project List (on going)
             [
-                'type' => 'hse_procedure',
-                'name' => 'Copy of HSE Procedure',
-                'subtitle' => 'Salinan Prosedur dan Kebijakan K3L/HSE',
+                'type' => 'current_project_list',
+                'name' => 'Current Project List (on going)',
+                'subtitle' => 'Daftar Pekerjaan yang Sedang Berjalan',
+                'number' => '4',
+                'required' => false,
+                'has_expiry' => false,
+                'allows_multiple' => false,
+                'parent_type' => 'attachment_2',
+                'group' => '4',
+                'group_name' => 'Current Project List (on going)',
+                'has_template' => true,
+                'template_url' => 'https://docs.google.com/spreadsheets/d/1HhvQES1GO38EuEK21gpbtyhSED7QGq6m/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1HhvQES1GO38EuEK21gpbtyhSED7QGq6m/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_filename' => 'Template_Current_Project_List.xlsx'
+            ],
+
+            // 5. Equipment List
+            [
+                'type' => 'equipment_list',
+                'name' => 'Equipment List',
+                'subtitle' => 'Daftar Peralatan Kerja',
                 'number' => '5',
                 'required' => true,
                 'has_expiry' => false,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '5',
-                'group_name' => 'Copy of HSE Procedure'
+                'group_name' => 'Equipment List',
+                'has_template' => true,
+                'template_url' => 'https://docs.google.com/spreadsheets/d/10kWXe8IhsUySU4uqo21x1g9KAgQyPPPA/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_download_url' => 'https://docs.google.com/spreadsheets/d/10kWXe8IhsUySU4uqo21x1g9KAgQyPPPA/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_filename' => 'Template_Equipment_List.xlsx'
             ],
-
-            // 6. Copy of CV Keyperson/Manpower dan Certificate of Expertise (min. 3 Keyperson/Manpower)
+            
+            // 6. Inspection and Test Procedure (ITP)
             [
-                'type' => 'cv_keyperson_1',
-                'name' => 'Copy of CV Keyperson/Manpower and Certificate of Expertise 1',
-                'subtitle' => 'Salinan CV dan Sertifikat Tenaga Ahli 1',
-                'number' => '6.1',
-                'required' => true,
+                'type' => 'inspection_test_procedure',
+                'name' => 'Inspection and Test Procedure (ITP)',
+                'subtitle' => 'Prosedur Inspeksi dan Pengujian (ITP)',
+                'number' => '6',
+                'required' => false,
                 'has_expiry' => false,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
                 'group' => '6',
-                'group_name' => 'Copy of CV Keyperson/Manpower dan Certificate of Expertise (min. 3 Keyperson/Manpower)'
-            ],
-
-            [
-                'type' => 'cv_keyperson_2',
-                'name' => 'Copy of CV Keyperson/Manpower and Certificate of Expertise 2',
-                'subtitle' => 'Salinan CV dan Sertifikat Tenaga Ahli 2',
-                'number' => '6.2',
-                'required' => true,
-                'has_expiry' => false,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_2',
-                'group' => '6',
-                'group_name' => 'Copy of CV Keyperson/Manpower dan Certificate of Expertise (min. 3 Keyperson/Manpower)'
-            ],
-
-            [
-                'type' => 'cv_keyperson_3',
-                'name' => 'Copy of CV Keyperson/Manpower and Certificate of Expertise 3',
-                'subtitle' => 'Salinan CV dan Sertifikat Tenaga Ahli 3',
-                'number' => '6.3',
-                'required' => true,
-                'has_expiry' => false,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_2',
-                'group' => '6',
-                'group_name' => 'Copy of CV Keyperson/Manpower dan Certificate of Expertise (min. 3 Keyperson/Manpower)'
+                'group_name' => 'Equipment List',
             ],
 
             // 7. List of Standard Operating Procedure (SOP) Documents Company
@@ -2855,73 +2886,37 @@ class VendorDocument extends Model
                 'group_name' => 'List of Standard Operating Procedure (SOP) Documents Company'
             ],
 
-            // 8. Current Project List (on going)
-            [
-                'type' => 'current_project_list',
-                'name' => 'Current Project List (on going)',
-                'subtitle' => 'Daftar Pekerjaan yang Sedang Berjalan',
-                'number' => '8',
-                'required' => false,
-                'has_expiry' => false,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_2',
-                'group' => '8',
-                'group_name' => 'Current Project List (on going)',
-                'has_template' => true,
-                'template_url' => 'https://docs.google.com/spreadsheets/d/1HhvQES1GO38EuEK21gpbtyhSED7QGq6m/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1HhvQES1GO38EuEK21gpbtyhSED7QGq6m/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_filename' => 'Template_Current_Project_List.xlsx'
-            ],
-
-            // 9. Equipment List
-            [
-                'type' => 'equipment_list',
-                'name' => 'Equipment List',
-                'subtitle' => 'Daftar Peralatan Kerja',
-                'number' => '9',
-                'required' => true,
-                'has_expiry' => false,
-                'allows_multiple' => false,
-                'parent_type' => 'attachment_2',
-                'group' => '9',
-                'group_name' => 'Equipment List',
-                'has_template' => true,
-                'template_url' => 'https://docs.google.com/spreadsheets/d/10kWXe8IhsUySU4uqo21x1g9KAgQyPPPA/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/spreadsheets/d/10kWXe8IhsUySU4uqo21x1g9KAgQyPPPA/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_filename' => 'Template_Equipment_List.xlsx'
-            ],
-
-            // 10. Manpower List
+            // 8. Manpower List
             [
                 'type' => 'manpower_list',
                 'name' => 'Manpower List',
                 'subtitle' => 'Daftar Tenaga Kerja',
-                'number' => '10',
+                'number' => '8',
                 'required' => true,
                 'has_expiry' => false,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
-                'group' => '10',
+                'group' => '8',
                 'group_name' => 'Manpower List',
                 'has_template' => true,
-                'template_url' => 'https://docs.google.com/spreadsheets/d/1XILWy_wlgBd3eqd1y2D7tveC_mjUgC_U/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
-                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1XILWy_wlgBd3eqd1y2D7tveC_mjUgC_U/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_url' => 'https://docs.google.com/spreadsheets/d/1WyOWzyZKFHSJx2PDSBbrW4OpZ0LT2ceu/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
+                'template_download_url' => 'https://docs.google.com/spreadsheets/d/1WyOWzyZKFHSJx2PDSBbrW4OpZ0LT2ceu/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
                 'template_filename' => 'Template_Manpower_List.xlsx'
             ],
 
-            // 11. Quality Management System/Quality Manual Documents
+            // 9. Manual Book of Product (if any)
             [
-                'type' => 'quality_management',
-                'name' => 'Quality Management System/Quality Manual Documents',
-                'subtitle' => '',
-                'number' => '11',
+                'type' => 'manual_book_product',
+                'name' => 'Manual Book of Product (if any)',
+                'subtitle' => 'Buku Manual Produk (jika ada)',
+                'number' => '9',
                 'required' => false,
                 'has_expiry' => false,
                 'allows_multiple' => false,
                 'parent_type' => 'attachment_2',
-                'group' => '11',
-                'group_name' => 'Quality Management System/Quality Manual Documents'
-            ]
+                'group' => '9',
+                'group_name' => 'Manual Book of Product (if any)'
+            ],
         ];
     }
 

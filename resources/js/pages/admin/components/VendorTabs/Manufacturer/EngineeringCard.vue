@@ -7,196 +7,171 @@
                 </div>
                 <div class="header-info">
                     <h3>Engineering Design</h3>
-                    <p>Kemampuan desain dan rekayasa yang dimiliki manufacturer</p>
+                    <p>Kapabilitas engineering dan prosedur design yang tersedia di perusahaan</p>
                 </div>
-                <div class="engineering-stats">
+                <!-- <div class="engineering-stats">
                     <div class="stat-badge">
-                        <span class="stat-number">{{ engineeringCapabilities.length }}</span>
-                        <span class="stat-label">Capabilities</span>
+                        <span class="stat-number">{{ configurationScore }}%</span>
+                        <span class="stat-label">Configured</span>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="content-sections">
-                <!-- Engineering Capabilities Grid -->
-                <div class="capabilities-grid">
-                    <div 
-                        v-for="(capability, index) in engineeringCapabilities"
-                        :key="index"
-                        class="capability-item"
-                    >
+                <!-- Engineering Configuration Grid -->
+                <div class="engineering-grid">
+                    <!-- Principal Engineering Capability -->
+                    <div class="capability-item">
                         <div class="capability-header">
-                            <div class="capability-icon">
-                                <i :class="getCapabilityIcon(capability.type)"></i>
+                            <div class="capability-icon principal">
+                                <i class="fas fa-tools"></i>
                             </div>
                             <div class="capability-info">
-                                <h5>{{ capability.name || capability.type || `Capability ${index + 1}` }}</h5>
-                                <span class="capability-category">{{ capability.category || 'Engineering Service' }}</span>
-                            </div>
-                            <div class="capability-level">
-                                <span :class="['level-badge', getLevelClass(capability.level)]">
-                                    {{ capability.level || 'Standard' }}
-                                </span>
+                                <h5>Principal Engineering Capability</h5>
+                                <span class="capability-category">Core Engineering Services</span>
+                                <div class="capability-status">
+                                    <span :class="['status-badge', engineeringData.principal_engineering_capability ? 'configured' : 'not-configured']">
+                                        <i :class="engineeringData.principal_engineering_capability ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+                                        {{ engineeringData.principal_engineering_capability ? 'Configured' : 'Not Configured' }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
                         <div class="capability-details">
-                            <div class="capability-description" v-if="capability.description">
-                                <p>{{ capability.description }}</p>
+                            <div class="capability-description">
+                                <h6>Engineering Capabilities:</h6>
+                                <div class="description-content">
+                                    <p>{{ engineeringData.principal_engineering_capability || 'Kapabilitas engineering utama belum didefinisikan.' }}</p>
+                                </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div class="capability-software" v-if="capability.software">
-                                <h6>Software & Tools:</h6>
-                                <div class="software-tags">
-                                    <span 
-                                        v-for="(software, softwareIndex) in getSoftware(capability.software)"
-                                        :key="softwareIndex"
-                                        class="software-tag"
-                                    >
-                                        <i :class="getSoftwareIcon(software)"></i>
-                                        {{ software }}
+                    <!-- Design Control Responsibility -->
+                    <div class="capability-item">
+                        <div class="capability-header">
+                            <div class="capability-icon control">
+                                <i class="fas fa-user-cog"></i>
+                            </div>
+                            <div class="capability-info">
+                                <h5>Design Control Responsibility</h5>
+                                <span class="capability-category">Quality Management</span>
+                                <div class="capability-status">
+                                    <span :class="['status-badge', engineeringData.responsible_design_control ? 'configured' : 'not-configured']">
+                                        <i :class="engineeringData.responsible_design_control ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+                                        {{ engineeringData.responsible_design_control ? 'Defined' : 'Not Defined' }}
                                     </span>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="capability-standards" v-if="capability.standards">
-                                <h6>Standards & Codes:</h6>
-                                <div class="standards-list">
-                                    <div 
-                                        v-for="(standard, standardIndex) in getStandards(capability.standards)"
-                                        :key="standardIndex"
-                                        class="standard-item"
-                                    >
-                                        <i class="fas fa-certificate"></i>
-                                        <span>{{ standard }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="capability-experience" v-if="capability.experience">
-                                <h6>Experience & Projects:</h6>
-                                <div class="experience-info">
-                                    <div v-if="capability.experience.years" class="experience-item">
-                                        <i class="fas fa-calendar"></i>
-                                        <span>{{ capability.experience.years }} years experience</span>
-                                    </div>
-                                    <div v-if="capability.experience.projects" class="experience-item">
-                                        <i class="fas fa-project-diagram"></i>
-                                        <span>{{ capability.experience.projects }} completed projects</span>
-                                    </div>
-                                    <div v-if="capability.experience.clients" class="experience-item">
-                                        <i class="fas fa-users"></i>
-                                        <span>{{ capability.experience.clients }} clients served</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="capability-deliverables" v-if="capability.deliverables">
-                                <h6>Deliverables:</h6>
-                                <div class="deliverables-grid">
-                                    <div 
-                                        v-for="(deliverable, deliverableIndex) in getDeliverables(capability.deliverables)"
-                                        :key="deliverableIndex"
-                                        class="deliverable-item"
-                                    >
-                                        <i :class="getDeliverableIcon(deliverable)"></i>
-                                        <span>{{ deliverable }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="capability-timeline" v-if="capability.timeline">
-                                <h6>Typical Timeline:</h6>
-                                <div class="timeline-info">
-                                    <i class="fas fa-clock"></i>
-                                    <span>{{ capability.timeline }}</span>
-                                </div>
-                            </div>
-
-                            <div class="capability-team" v-if="capability.team">
-                                <h6>Team Composition:</h6>
-                                <div class="team-composition">
-                                    <div 
-                                        v-for="(member, memberIndex) in getTeamMembers(capability.team)"
-                                        :key="memberIndex"
-                                        class="team-member"
-                                    >
-                                        <div class="member-role">{{ member.role || member }}</div>
-                                        <div class="member-count" v-if="member.count">{{ member.count }} persons</div>
+                        <div class="capability-details">
+                            <div class="responsibility-info">
+                                <h6>Design Control Responsibility:</h6>
+                                <div class="responsibility-content">
+                                    <div class="responsibility-item">
+                                        <i class="fas fa-user-check"></i>
+                                        <span>{{ engineeringData.responsible_design_control || 'Penanggung jawab design control belum ditentukan.' }}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Engineering Statistics -->
-                <div class="engineering-statistics">
-                    <h4>
-                        <i class="fas fa-chart-line"></i>
-                        Engineering Statistics
-                    </h4>
-                    <div class="statistics-grid">
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-drafting-compass"></i>
+                    <!-- Documented Procedures -->
+                    <div class="capability-item">
+                        <div class="capability-header">
+                            <div class="capability-icon procedures">
+                                <i class="fas fa-file-alt"></i>
                             </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ engineeringCapabilities.length }}</span>
-                                <span class="statistic-label">Design Capabilities</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-laptop"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getTotalSoftware() }}</span>
-                                <span class="statistic-label">Software Tools</span>
+                            <div class="capability-info">
+                                <h5>Documented Procedures</h5>
+                                <span class="capability-category">Process Documentation</span>
+                                <div class="capability-status">
+                                    <span :class="['status-badge', getProceduresStatusClass()]">
+                                        <i :class="getProceduresStatusIcon()"></i>
+                                        {{ getProceduresStatusText() }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-certificate"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getTotalStandards() }}</span>
-                                <span class="statistic-label">Standards Applied</span>
-                            </div>
-                        </div>
-                        <div class="statistic-item">
-                            <div class="statistic-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="statistic-info">
-                                <span class="statistic-number">{{ getTotalTeamSize() }}</span>
-                                <span class="statistic-label">Engineering Team</span>
+
+                        <div class="capability-details">
+                            <div class="procedures-info">
+                                <h6>Procedure Status:</h6>
+                                <div class="procedures-content">
+                                    <div class="procedure-status-item">
+                                        <i :class="engineeringData.documented_procedures === 'yes' ? 'fas fa-check-circle text-success' : 'fas fa-times-circle text-danger'"></i>
+                                        <span>{{ engineeringData.documented_procedures === 'yes' ? 'Prosedur terdokumentasi tersedia' : engineeringData.documented_procedures === 'no' ? 'Prosedur tidak tersedia' : 'Status belum ditentukan' }}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Capability Categories -->
-                <div class="capability-categories">
-                    <h4>
-                        <i class="fas fa-chart-pie"></i>
-                        Engineering Categories
-                    </h4>
-                    <div class="categories-grid">
-                        <div 
-                            v-for="(category, index) in getCapabilityCategories()"
-                            :key="index"
-                            class="category-item"
-                        >
-                            <div class="category-icon">
-                                <i :class="getCapabilityIcon(category.name)"></i>
+                    <!-- Design Involvement Depth -->
+                    <div class="capability-item">
+                        <div class="capability-header">
+                            <div class="capability-icon involvement">
+                                <i class="fas fa-layer-group"></i>
                             </div>
-                            <div class="category-info">
-                                <h6>{{ category.name }}</h6>
-                                <span class="category-count">{{ category.count }} capabilities</span>
+                            <div class="capability-info">
+                                <h5>Design Involvement Depth</h5>
+                                <span class="capability-category">Service Level</span>
+                                <div class="capability-status">
+                                    <span :class="['status-badge', getInvolvementCount() > 0 ? 'configured' : 'not-configured']">
+                                        <i :class="getInvolvementCount() > 0 ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+                                        {{ getInvolvementCount() }} Level{{ getInvolvementCount() !== 1 ? 's' : '' }}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="category-percentage">
-                                <span class="percentage-value">{{ getCategoryPercentage(category.count) }}%</span>
+                        </div>
+
+                        <div class="capability-details">
+                            <div class="involvement-levels">
+                                <h6>Service Levels:</h6>
+                                <div class="levels-grid">
+                                    <div class="level-item design-works" :class="{ active: hasDesignWorks() }">
+                                        <div class="level-icon">
+                                            <i class="fas fa-pencil-ruler"></i>
+                                        </div>
+                                        <div class="level-info">
+                                            <span class="level-title">Design Works</span>
+                                            <small>Basic Design & Conceptual Engineering</small>
+                                        </div>
+                                        <div class="level-status">
+                                            <i :class="hasDesignWorks() ? 'fas fa-check-circle text-success' : 'fas fa-minus-circle text-muted'"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="level-item shop-drawings" :class="{ active: hasShopDrawings() }">
+                                        <div class="level-icon">
+                                            <i class="fas fa-drafting-compass"></i>
+                                        </div>
+                                        <div class="level-info">
+                                            <span class="level-title">Shop Drawings</span>
+                                            <small>Detail Design & Technical Drawings</small>
+                                        </div>
+                                        <div class="level-status">
+                                            <i :class="hasShopDrawings() ? 'fas fa-check-circle text-success' : 'fas fa-minus-circle text-muted'"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="involvement-summary" v-if="getInvolvementCount() > 0">
+                                <h6>Active Services:</h6>
+                                <div class="services-badges">
+                                    <span 
+                                        v-for="involvement in getActiveInvolvements()"
+                                        :key="involvement"
+                                        class="service-badge"
+                                    >
+                                        <i :class="getInvolvementIcon(involvement)"></i>
+                                        {{ getInvolvementLabel(involvement) }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -208,7 +183,7 @@
             <div class="no-data-illustration">
                 <i class="fas fa-drafting-compass"></i>
                 <h4>Belum Ada Data Engineering Design</h4>
-                <p>Data kemampuan engineering design belum dilengkapi untuk manufacturer ini</p>
+                <p>Konfigurasi engineering design belum dilengkapi untuk manufacturer ini</p>
             </div>
         </div>
     </div>
@@ -229,170 +204,114 @@ const props = defineProps({
 })
 
 const hasData = computed(() => {
-    return !!(props.data.engineering_design)
+    return !!(props.data.engineering_design && Object.keys(props.data.engineering_design).length > 0)
 })
 
-const engineeringCapabilities = computed(() => {
-    if (!props.data.engineering_design) return []
+const engineeringData = computed(() => {
+    if (!props.data.engineering_design) return {}
     
     // Handle JSON field dari database
-    if (Array.isArray(props.data.engineering_design)) {
-        return props.data.engineering_design
-    }
-    
     if (typeof props.data.engineering_design === 'string') {
         try {
-            const parsed = JSON.parse(props.data.engineering_design)
-            return Array.isArray(parsed) ? parsed : [parsed]
+            return JSON.parse(props.data.engineering_design)
         } catch {
-            return []
+            return {}
         }
     }
     
-    if (typeof props.data.engineering_design === 'object') {
-        return Object.entries(props.data.engineering_design).map(([key, value]) => ({
-            type: key,
-            ...value
-        }))
-    }
-    
-    return []
+    return props.data.engineering_design || {}
 })
 
-function getCapabilityIcon(type) {
-    const typeLower = (type || '').toLowerCase()
+// Helper functions sesuai dengan ManufactureEngineering.vue
+const configurationScore = computed(() => {
+    const items = [
+        engineeringData.value.principal_engineering_capability,
+        engineeringData.value.responsible_design_control,
+        engineeringData.value.documented_procedures,
+        engineeringData.value.depth_design_involvement?.length > 0
+    ]
+    
+    const configuredItems = items.filter(item => item && item !== '').length
+    return Math.round((configuredItems / items.length) * 100)
+})
+
+function getPrincipalCapabilities() {
+    const text = engineeringData.value.principal_engineering_capability || ''
+    if (!text) return []
+    
+    // Split by common separators and clean up
+    return text
+        .split(/[,;.\n]/)
+        .map(cap => cap.trim())
+        .filter(cap => cap.length > 0)
+        .slice(0, 5) // Limit to 5 items for display
+}
+
+function getProceduresStatusClass() {
+    if (engineeringData.value.documented_procedures === 'yes') return 'available'
+    if (engineeringData.value.documented_procedures === 'no') return 'unavailable'
+    return 'not-configured'
+}
+
+function getProceduresStatusIcon() {
+    if (engineeringData.value.documented_procedures === 'yes') return 'fas fa-check-circle'
+    if (engineeringData.value.documented_procedures === 'no') return 'fas fa-times-circle'
+    return 'fas fa-exclamation-circle'
+}
+
+function getProceduresStatusText() {
+    if (engineeringData.value.documented_procedures === 'yes') return 'Available'
+    if (engineeringData.value.documented_procedures === 'no') return 'Not Available'
+    return 'Not Configured'
+}
+
+function getInvolvementCount() {
+    return Array.isArray(engineeringData.value.depth_design_involvement) 
+        ? engineeringData.value.depth_design_involvement.length 
+        : 0
+}
+
+function hasDesignWorks() {
+    return Array.isArray(engineeringData.value.depth_design_involvement) && 
+           engineeringData.value.depth_design_involvement.includes('design_works')
+}
+
+function hasShopDrawings() {
+    return Array.isArray(engineeringData.value.depth_design_involvement) && 
+           engineeringData.value.depth_design_involvement.includes('shop_drawings')
+}
+
+function getActiveInvolvements() {
+    return Array.isArray(engineeringData.value.depth_design_involvement) 
+        ? engineeringData.value.depth_design_involvement 
+        : []
+}
+
+function getInvolvementIcon(involvement) {
     const icons = {
-        'mechanical': 'fas fa-cogs',
-        'electrical': 'fas fa-bolt',
-        'civil': 'fas fa-building',
-        'structural': 'fas fa-home',
-        'process': 'fas fa-industry',
-        'piping': 'fas fa-pipe',
-        'instrumentation': 'fas fa-gauge',
-        'control': 'fas fa-sliders-h',
-        'automation': 'fas fa-robot',
-        'software': 'fas fa-code',
-        '3d_modeling': 'fas fa-cube',
-        'simulation': 'fas fa-chart-line',
-        'analysis': 'fas fa-calculator'
+        'design_works': 'fas fa-pencil-ruler',
+        'shop_drawings': 'fas fa-drafting-compass'
     }
+    return icons[involvement] || 'fas fa-cog'
+}
+
+function getInvolvementLabel(involvement) {
+    const labels = {
+        'design_works': 'Design Works',
+        'shop_drawings': 'Shop Drawings'
+    }
+    return labels[involvement] || involvement
+}
+
+function getConfiguredItemsCount() {
+    const items = [
+        engineeringData.value.principal_engineering_capability,
+        engineeringData.value.responsible_design_control,
+        engineeringData.value.documented_procedures,
+        engineeringData.value.depth_design_involvement?.length > 0
+    ]
     
-    for (const [key, icon] of Object.entries(icons)) {
-        if (typeLower.includes(key)) return icon
-    }
-    return 'fas fa-drafting-compass'
-}
-
-function getLevelClass(level) {
-    const levelLower = (level || '').toLowerCase()
-    if (levelLower.includes('expert') || levelLower.includes('advanced')) return 'expert'
-    if (levelLower.includes('intermediate') || levelLower.includes('standard')) return 'intermediate'
-    if (levelLower.includes('basic') || levelLower.includes('entry')) return 'basic'
-    return 'standard'
-}
-
-function getSoftware(software) {
-    if (Array.isArray(software)) return software
-    if (typeof software === 'string') return software.split(',').map(s => s.trim())
-    return []
-}
-
-function getSoftwareIcon(software) {
-    const softwareLower = (software || '').toLowerCase()
-    const icons = {
-        'autocad': 'fas fa-drafting-compass',
-        'solidworks': 'fas fa-cube',
-        'catia': 'fas fa-cube',
-        'inventor': 'fas fa-cube',
-        'ansys': 'fas fa-calculator',
-        'matlab': 'fas fa-chart-line',
-        'python': 'fas fa-code',
-        'excel': 'fas fa-table'
-    }
-    
-    for (const [key, icon] of Object.entries(icons)) {
-        if (softwareLower.includes(key)) return icon
-    }
-    return 'fas fa-laptop'
-}
-
-function getStandards(standards) {
-    if (Array.isArray(standards)) return standards
-    if (typeof standards === 'string') return standards.split(',').map(s => s.trim())
-    return []
-}
-
-function getDeliverables(deliverables) {
-    if (Array.isArray(deliverables)) return deliverables
-    if (typeof deliverables === 'string') return deliverables.split(',').map(d => d.trim())
-    return []
-}
-
-function getDeliverableIcon(deliverable) {
-    const deliverableLower = (deliverable || '').toLowerCase()
-    const icons = {
-        'drawing': 'fas fa-file-alt',
-        'model': 'fas fa-cube',
-        'report': 'fas fa-file-pdf',
-        'calculation': 'fas fa-calculator',
-        'specification': 'fas fa-list-alt',
-        'manual': 'fas fa-book'
-    }
-    
-    for (const [key, icon] of Object.entries(icons)) {
-        if (deliverableLower.includes(key)) return icon
-    }
-    return 'fas fa-file'
-}
-
-function getTeamMembers(team) {
-    if (Array.isArray(team)) return team
-    if (typeof team === 'object') {
-        return Object.entries(team).map(([role, count]) => ({ role, count }))
-    }
-    if (typeof team === 'string') {
-        return team.split(',').map(t => ({ role: t.trim() }))
-    }
-    return []
-}
-
-function getTotalSoftware() {
-    return engineeringCapabilities.value.reduce((total, capability) => {
-        const software = getSoftware(capability.software || [])
-        return total + software.length
-    }, 0)
-}
-
-function getTotalStandards() {
-    return engineeringCapabilities.value.reduce((total, capability) => {
-        const standards = getStandards(capability.standards || [])
-        return total + standards.length
-    }, 0)
-}
-
-function getTotalTeamSize() {
-    return engineeringCapabilities.value.reduce((total, capability) => {
-        const members = getTeamMembers(capability.team || [])
-        return total + members.reduce((sum, member) => sum + (parseInt(member.count) || 1), 0)
-    }, 0)
-}
-
-function getCapabilityCategories() {
-    const categories = {}
-    engineeringCapabilities.value.forEach(capability => {
-        const category = capability.category || capability.type || 'General'
-        if (!categories[category]) {
-            categories[category] = { name: category, count: 0 }
-        }
-        categories[category].count++
-    })
-    
-    return Object.values(categories).sort((a, b) => b.count - a.count)
-}
-
-function getCategoryPercentage(count) {
-    if (engineeringCapabilities.value.length === 0) return 0
-    return Math.round((count / engineeringCapabilities.value.length) * 100)
+    return items.filter(item => item && item !== '').length
 }
 </script>
 
@@ -414,14 +333,14 @@ function getCategoryPercentage(count) {
 .header-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 1.5rem;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .header-info {
@@ -471,7 +390,7 @@ function getCategoryPercentage(count) {
     gap: 32px;
 }
 
-.capabilities-grid {
+.engineering-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
     gap: 24px;
@@ -492,7 +411,7 @@ function getCategoryPercentage(count) {
 
 .capability-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
     padding: 20px 24px;
     background: #f8fafc;
@@ -502,7 +421,6 @@ function getCategoryPercentage(count) {
 .capability-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
     color: white;
     border-radius: 12px;
     display: flex;
@@ -510,6 +428,22 @@ function getCategoryPercentage(count) {
     justify-content: center;
     font-size: 1.5rem;
     flex-shrink: 0;
+}
+
+.capability-icon.principal {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.capability-icon.control {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.capability-icon.procedures {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.capability-icon.involvement {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
 }
 
 .capability-info {
@@ -527,39 +461,40 @@ function getCategoryPercentage(count) {
     font-size: 0.875rem;
     color: #6b7280;
     font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
 }
 
-.capability-level {
-    flex-shrink: 0;
+.capability-status {
+    margin-top: 8px;
 }
 
-.level-badge {
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 6px 12px;
-    border-radius: 12px;
+    border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
 }
 
-.level-badge.expert {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    color: white;
+.status-badge.configured,
+.status-badge.available {
+    background: #d1fae5;
+    color: #065f46;
 }
 
-.level-badge.intermediate {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: white;
+.status-badge.unavailable {
+    background: #fef2f2;
+    color: #991b1b;
 }
 
-.level-badge.basic {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-}
-
-.level-badge.standard {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
+.status-badge.not-configured {
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
 .capability-details {
@@ -570,62 +505,52 @@ function getCategoryPercentage(count) {
 }
 
 .capability-description,
-.capability-software,
-.capability-standards,
-.capability-experience,
-.capability-deliverables,
-.capability-timeline,
-.capability-team {
+.responsibility-info,
+.procedures-info,
+.involvement-levels,
+.capability-highlights,
+.control-features,
+.procedure-benefits,
+.involvement-summary {
     background: #f8fafc;
     padding: 16px;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
 }
 
-.capability-description p {
-    margin: 0;
-    color: #374151;
-    line-height: 1.6;
-    font-size: 0.875rem;
-}
-
-.capability-software h6,
-.capability-standards h6,
-.capability-experience h6,
-.capability-deliverables h6,
-.capability-timeline h6,
-.capability-team h6 {
+.capability-description h6,
+.responsibility-info h6,
+.procedures-info h6,
+.involvement-levels h6,
+.capability-highlights h6,
+.control-features h6,
+.procedure-benefits h6,
+.involvement-summary h6 {
     margin: 0 0 12px 0;
     font-weight: 600;
     color: #374151;
     font-size: 0.875rem;
 }
 
-.software-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+.description-content p {
+    margin: 0;
+    color: #374151;
+    line-height: 1.6;
+    font-size: 0.875rem;
+    text-align: justify;
 }
 
-.software-tag {
-    background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
-    color: #6d28d9;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.standards-list {
+.highlights-list,
+.features-list,
+.benefits-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.standard-item {
+.highlight-item,
+.feature-item,
+.benefit-item {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -633,105 +558,133 @@ function getCategoryPercentage(count) {
     color: #374151;
 }
 
-.standard-item i {
-    color: #8b5cf6;
+.highlight-item i {
+    color: #3b82f6;
     font-size: 0.75rem;
 }
 
-.experience-info {
+.feature-item i {
+    color: #10b981;
+    font-size: 0.75rem;
+}
+
+.benefit-item i {
+    color: #f59e0b;
+    font-size: 0.75rem;
+}
+
+.responsibility-content,
+.procedures-content {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.experience-item {
+.responsibility-item,
+.procedure-status-item {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 0.875rem;
     color: #374151;
-    font-weight: 600;
-}
-
-.experience-item i {
-    color: #8b5cf6;
-    font-size: 0.875rem;
-    width: 16px;
-    text-align: center;
-}
-
-.deliverables-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-}
-
-.deliverable-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     padding: 8px 12px;
     background: white;
     border-radius: 6px;
     border: 1px solid #e5e7eb;
-    font-size: 0.875rem;
-    color: #374151;
 }
 
-.deliverable-item i {
-    color: #8b5cf6;
+.responsibility-item i {
+    color: #10b981;
     font-size: 0.875rem;
 }
 
-.timeline-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #374151;
-    font-weight: 600;
-}
-
-.timeline-info i {
-    color: #8b5cf6;
-}
-
-.team-composition {
+.levels-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px;
 }
 
-.team-member {
+.level-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding: 12px;
     background: white;
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-    text-align: center;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
-.member-role {
+.level-item.active {
+    border-color: #7c3aed;
+    background: linear-gradient(135deg, #f3f0ff 0%, #ffffff 100%);
+}
+
+.level-icon {
+    width: 40px;
+    height: 40px;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
+.level-item.active .level-icon {
+    background: #7c3aed;
+    color: white;
+}
+
+.level-info {
+    flex: 1;
+}
+
+.level-title {
+    display: block;
     font-weight: 600;
     color: #1f2937;
     font-size: 0.875rem;
     margin-bottom: 4px;
 }
 
-.member-count {
-    font-size: 0.75rem;
+.level-info small {
     color: #6b7280;
+    font-size: 0.75rem;
 }
 
-.engineering-statistics,
-.capability-categories {
+.level-status {
+    flex-shrink: 0;
+    font-size: 1.125rem;
+}
+
+.services-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.service-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.engineering-summary {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     overflow: hidden;
 }
 
-.engineering-statistics h4,
-.capability-categories h4 {
+.engineering-summary h4 {
     margin: 0;
     padding: 16px 24px;
     background: #f8fafc;
@@ -744,20 +697,80 @@ function getCategoryPercentage(count) {
     gap: 8px;
 }
 
-.engineering-statistics h4 i {
-    color: #ef4444;
+.engineering-summary h4 i {
+    color: #7c3aed;
 }
 
-.capability-categories h4 i {
-    color: #f59e0b;
-}
-
-.statistics-grid,
-.categories-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+.summary-content {
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.configuration-status {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.status-header h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.status-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.status-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-item.capability {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+}
+
+.status-item.control {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+}
+
+.status-item.procedures {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+}
+
+.status-item.involvement {
+    background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
+    color: #6d28d9;
+}
+
+.status-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.status-value {
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
 }
 
 .statistic-item {
@@ -765,7 +778,7 @@ function getCategoryPercentage(count) {
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
     color: white;
     border-radius: 8px;
 }
@@ -797,59 +810,16 @@ function getCategoryPercentage(count) {
     opacity: 0.8;
 }
 
-.category-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+.text-success {
+    color: #059669 !important;
 }
 
-.category-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.text-danger {
+    color: #dc2626 !important;
 }
 
-.category-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: white;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-    flex-shrink: 0;
-}
-
-.category-info {
-    flex: 1;
-}
-
-.category-info h6 {
-    margin: 0 0 4px 0;
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 1rem;
-}
-
-.category-count {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.category-percentage {
-    flex-shrink: 0;
-}
-
-.percentage-value {
-    font-weight: 700;
-    color: #f59e0b;
-    font-size: 1.125rem;
+.text-muted {
+    color: #9ca3af !important;
 }
 
 .no-data {
@@ -888,9 +858,9 @@ function getCategoryPercentage(count) {
         padding: 16px;
     }
     
-    .capabilities-grid,
-    .statistics-grid,
-    .categories-grid {
+    .engineering-grid,
+    .configuration-status,
+    .statistics-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
@@ -907,8 +877,7 @@ function getCategoryPercentage(count) {
         gap: 12px;
     }
     
-    .deliverables-grid,
-    .team-composition {
+    .status-items {
         grid-template-columns: 1fr;
     }
 }
