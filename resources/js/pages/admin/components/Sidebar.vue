@@ -125,60 +125,120 @@
             </div>
 
             <div class="nav-section">
-                <!-- <div v-if="!isCollapsed" class="section-title">
-                    Reports
-                </div> -->
+                <div v-if="!isCollapsed" class="section-title">VMS</div>
 
-                <!-- Reports -->
-                <!-- <div class="nav-item-group">
+                <!-- VMS -->
+                <div class="nav-item-group">
                     <div
-                        @click="toggleSubmenu('reports')"
+                        @click="toggleSubmenu('vms')"
                         :class="[
                             'nav-item',
                             'has-submenu',
-                            { active: activeSubmenu === 'reports' },
+                            { active: activeSubmenu === 'vms' },
                         ]"
                     >
                         <i class="fas fa-chart-bar"></i>
-                        <span v-if="!isCollapsed">Reports</span>
+                        <span v-if="!isCollapsed">VMS</span>
                         <i
                             v-if="!isCollapsed"
                             :class="[
                                 'submenu-arrow',
                                 'fas',
-                                activeSubmenu === 'reports'
+                                activeSubmenu === 'vms'
                                     ? 'fa-chevron-up'
                                     : 'fa-chevron-down',
                             ]"
                         ></i>
                     </div>
                     <div
-                        v-if="!isCollapsed && activeSubmenu === 'reports'"
+                        v-if="!isCollapsed && activeSubmenu === 'vms'"
                         class="submenu"
                     >
-                        <router-link
-                            to="/admin/reports/users"
-                            class="submenu-item"
-                        >
+                        <router-link to="/admin/vms/users" class="submenu-item">
                             <i class="fas fa-users"></i>
-                            <span>User Reports</span>
+                            <span>VMS Vendor List</span>
                         </router-link>
-                        <router-link
-                            to="/admin/reports/vendors"
-                            class="submenu-item"
+                        <!-- Praqualifikasi dengan sub-menu vendor -->
+                        <div
+                            class="submenu-item praqualifikasi-parent"
+                            @click="togglePraqualifikasi"
                         >
                             <i class="fas fa-building"></i>
-                            <span>Vendor Reports</span>
-                        </router-link>
-                        <router-link
-                            to="/admin/reports/activity"
-                            class="submenu-item"
+                            <span>Praqualifikasi</span>
+                            <i
+                                class="submenu-arrow"
+                                :class="[
+                                    'fas',
+                                    expandedPraqualifikasi
+                                        ? 'fa-chevron-up'
+                                        : 'fa-chevron-down',
+                                ]"
+                                style="margin-left: auto"
+                            ></i>
+                        </div>
+                        <ul v-if="expandedPraqualifikasi" class="sub-submenu">
+                            <li>
+                                <router-link to="/admin/vms/pq/distributor">
+                                    Distributor
+                                </router-link>
+                            </li>
+                            <li>
+                                <router-link to="/admin/vms/pq/subcontractor">
+                                    Subcontractor
+                                </router-link>
+                            </li>
+                            <li>
+                                <router-link to="/admin/vms/pq/manufacture">
+                                    Manufacture
+                                </router-link>
+                            </li>
+                            <li>
+                                <router-link to="/admin/vms/pq/forwarder">
+                                    Forwarder
+                                </router-link>
+                            </li>
+                        </ul>
+                        <div
+                            class="submenu-item repraqualifikasi-parent"
+                            @click="toggleRePraqualifikasi"
                         >
                             <i class="fas fa-history"></i>
-                            <span>Activity Logs</span>
-                        </router-link>
+                            <span>Re - Praqualifikasi</span>
+                            <i
+                                class="submenu-arrow"
+                                :class="[
+                                    'fas',
+                                    expandedRePraqualifikasi
+                                        ? 'fa-chevron-up'
+                                        : 'fa-chevron-down',
+                                ]"
+                                style="margin-left: auto"
+                            ></i>
+                        </div>
+                        <ul v-if="expandedRePraqualifikasi" class="sub-submenu">
+                            <li>
+                                <router-link to="/admin/vms/rpq/distributor">
+                                    Distributor
+                                </router-link>
+                            </li>
+                            <li>
+                                <router-link to="/admin/vms/rpq/subcontractor">
+                                    Subcontractor
+                                </router-link>
+                            </li>
+                            <li>
+                                <router-link to="/admin/vms/rpq/manufacture">
+                                    Manufacture
+                                </router-link>
+                            </li>
+                            <li>
+                                <router-link to="/admin/vms/rpq/forwarder">
+                                    Forwarder
+                                </router-link>
+                            </li>
+                        </ul>
                     </div>
-                </div> -->
+                </div>
             </div>
 
             <div class="nav-section">
@@ -300,6 +360,16 @@ const toggleSubmenu = (menu) => {
     activeSubmenu.value = activeSubmenu.value === menu ? "" : menu;
 };
 
+const expandedPraqualifikasi = ref(false);
+const togglePraqualifikasi = () => {
+    expandedPraqualifikasi.value = !expandedPraqualifikasi.value;
+};
+
+const expandedRePraqualifikasi = ref(false);
+const toggleRePraqualifikasi = () => {
+    expandedRePraqualifikasi.value = !expandedRePraqualifikasi.value;
+};
+
 const checkMobile = () => {
     isMobile.value = window.innerWidth <= 768;
     if (isMobile.value) {
@@ -365,12 +435,12 @@ onUnmounted(() => {
 
 .logo {
     display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 6px;
-  background: transparent;
-  padding: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 6px;
+    background: transparent;
+    padding: 0;
 }
 
 .logo:hover {
@@ -538,6 +608,40 @@ onUnmounted(() => {
 .submenu-item:hover i,
 .submenu-item.active i {
     color: #fbbf24;
+}
+
+/* Sub-submenu styling for vendor list under Praqualifikasi */
+.sub-submenu {
+    list-style: none;
+    padding-left: 62px; /* Indent from submenu */
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.sub-submenu li {
+    margin-bottom: 4px;
+}
+
+.sub-submenu li .router-link-active,
+.sub-submenu li .router-link-exact-active {
+    color: #fbbf24;
+    font-weight: 600;
+}
+
+.sub-submenu li > a {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 0 6px 0;
+    display: block;
+    border-radius: 5px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.sub-submenu li > a:hover {
+    background: #232f3e;
+    color: #fbbf24;
+    text-decoration: none;
 }
 
 /* Footer Section */
