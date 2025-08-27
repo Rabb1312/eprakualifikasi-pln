@@ -367,13 +367,13 @@ function formatFileSize(size) {
 }
 
 .btn-action.download {
-    background: #d1fae5;
-    color: #065f46;
+    background: #fef3c7;
+    color: #92400e;
 }
 
 .btn-action.review {
-    background: #fef3c7;
-    color: #92400e;
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .btn-action:hover {

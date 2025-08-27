@@ -54,13 +54,15 @@ class VendorDocument extends Model
         'uploaded_at' => 'datetime',
     ];
 
+    protected $appends = ['file_url'];
+
     // Relationships
     public function vendor()
     {
         return $this->belongsTo(Vendor::class);
     }
 
-    public function reviewer()
+    public function reviewedBy()
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
@@ -794,18 +796,31 @@ class VendorDocument extends Model
             return null;
         }
 
+        // Jika file_path sudah mengandung storage/vendor_documents/... atau /admin/vendor_documents/..., normalisasi dulu
+        $relativePath = $this->file_path;
+
+        // Jika path mengandung /admin/vendor_documents/, ubah ke vendor_documents/
+        if (strpos($relativePath, '/admin/vendor_documents/') === 0) {
+            $relativePath = str_replace('/admin/vendor_documents/', 'vendor_documents/', $relativePath);
+        }
+        // Jika path mengandung /storage/vendor_documents/, ubah ke vendor_documents/
+        if (strpos($relativePath, '/storage/vendor_documents/') === 0) {
+            $relativePath = str_replace('/storage/vendor_documents/', 'vendor_documents/', $relativePath);
+        }
+        // Hilangkan awalan slash jika ada
+        $relativePath = ltrim($relativePath, '/');
+
+        // Gunakan storage:link Laravel (harus sudah dijalankan)
         try {
-            if (method_exists(Storage::disk('public'), 'url')) {
-                return Storage::disk('public')->url($this->file_path);
-            } else {
-                return asset('storage/' . $this->file_path);
-            }
+            return asset('storage/' . $relativePath);
+            // atau jika ingin pakai Storage::disk('public')->url():
+            // return Storage::disk('public')->url($relativePath);
         } catch (\Exception $e) {
             Log::warning('Storage URL generation failed: ' . $e->getMessage(), [
                 'file_path' => $this->file_path,
                 'document_id' => $this->id
             ]);
-            return asset('storage/' . $this->file_path);
+            return asset('storage/' . $relativePath);
         }
     }
 
@@ -2857,7 +2872,7 @@ class VendorDocument extends Model
                 'template_download_url' => 'https://docs.google.com/spreadsheets/d/10kWXe8IhsUySU4uqo21x1g9KAgQyPPPA/edit?usp=drive_link&ouid=101184604452390201389&rtpof=true&sd=true',
                 'template_filename' => 'Template_Equipment_List.xlsx'
             ],
-            
+
             // 6. Inspection and Test Procedure (ITP)
             [
                 'type' => 'inspection_test_procedure',
@@ -2922,20 +2937,20 @@ class VendorDocument extends Model
 
     // ✅ TAMBAH: Method untuk get document templates tanpa create
     public static function getDocumentTemplatesForVendor($vendorType = 'SC')
-{
-    $docTypes = [];
+    {
+        $docTypes = [];
 
-    if ($vendorType === 'SC') {
-        $docTypes = self::getFlattenedDocumentTypes();
-    } else if ($vendorType === 'DS') {
-        $docTypes = self::getFlattenedDistributorDocumentTypes();
-    } else if ($vendorType === 'FW') {
-        $docTypes = self::getFlattenedForwarderDocumentTypes();
-    } else if ($vendorType === 'MF') {
-        $docTypes = self::getFlattenedManufactureDocumentTypes();
+        if ($vendorType === 'SC') {
+            $docTypes = self::getFlattenedDocumentTypes();
+        } else if ($vendorType === 'DS') {
+            $docTypes = self::getFlattenedDistributorDocumentTypes();
+        } else if ($vendorType === 'FW') {
+            $docTypes = self::getFlattenedForwarderDocumentTypes();
+        } else if ($vendorType === 'MF') {
+            $docTypes = self::getFlattenedManufactureDocumentTypes();
+        }
+        return $docTypes; // <== tambah ini
     }
-    return $docTypes; // <== tambah ini
-}
 
     // ✅ UBAH: Method untuk create document saat upload saja
     public static function createDocumentOnUpload($vendorId, $documentType, $vendorType)
@@ -2989,4 +3004,9 @@ class VendorDocument extends Model
             throw $e;
         }
     }
+
+    public function getFileUrlAttribute()
+{
+    return $this->getFileUrl();
+}
 }

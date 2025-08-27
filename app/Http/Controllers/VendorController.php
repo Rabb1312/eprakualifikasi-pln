@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 
 class VendorController extends Controller
@@ -1759,7 +1760,7 @@ class VendorController extends Controller
 
         // Get uploaded documents
         $uploadedDocuments = VendorDocument::where('vendor_id', $vendor->id)
-            ->with('reviewer:id,fullname')
+            ->with('reviewedBy:id,fullname')
             ->get();
 
         Log::info('Hybrid mode data', [
@@ -2825,38 +2826,341 @@ private function getTabsForVendorType(string $type)
     return $tabs;
 }
 
-    /**
-     * Get specific tab configuration for vendor type
+ /**
+     * Get all documents for admin with pagination and filters
      */
-    // private function getSpecificTab(string $type)
-    // {
-    //     $tabs = [
-    //         'SC' => [
-    //             'key' => 'subcontractor',
-    //             'label' => 'Detail Subcontractor',
-    //             'icon' => 'fas fa-tools',
-    //             'component' => 'SubcontractorTab'
-    //         ],
-    //         'DS' => [
-    //             'key' => 'distributor',
-    //             'label' => 'Detail Distributor',
-    //             'icon' => 'fas fa-truck',
-    //             'component' => 'DistributorTab'
-    //         ],
-    //         'FW' => [
-    //             'key' => 'forwarder',
-    //             'label' => 'Detail Forwarder',
-    //             'icon' => 'fas fa-ship',
-    //             'component' => 'ForwarderTab'
-    //         ],
-    //         'MF' => [
-    //             'key' => 'manufacture',
-    //             'label' => 'Detail Manufacturer',
-    //             'icon' => 'fas fa-industry',
-    //             'component' => 'ManufactureTab'
-    //         ]
-    //     ];
+    public function getAdminDocuments(Request $request)
+    {
+        try {
+            $query = VendorDocument::with(['vendor:id,nomor_vendor,nama_perusahaan', 'reviewedBy:id,username']);
 
-    //     return $tabs[$type] ?? null;
-    // }
+            // Filter by status
+            if ($request->has('status') && !empty($request->status)) {
+                $query->where('status', $request->status);
+            }
+
+            // Filter by vendor
+            if ($request->has('vendor_id') && !empty($request->vendor_id)) {
+                $query->where('vendor_id', $request->vendor_id);
+            }
+
+            // Search by document name or vendor name
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('document_name', 'LIKE', "%{$search}%")
+                      ->orWhere('file_name', 'LIKE', "%{$search}%")
+                      ->orWhereHas('vendor', function($vendorQuery) use ($search) {
+                          $vendorQuery->where('nama_perusahaan', 'LIKE', "%{$search}%")
+                                     ->orWhere('nomor_vendor', 'LIKE', "%{$search}%");
+                      });
+                });
+            }
+
+            // Filter by expiry
+            if ($request->has('expiry_filter')) {
+                switch ($request->expiry_filter) {
+                    case 'expired':
+                        $query->where('expiry_date', '<', now());
+                        break;
+                    case 'expiring_soon':
+                        $query->where('expiry_date', '>', now())
+                              ->where('expiry_date', '<=', now()->addDays(30));
+                        break;
+                    case 'valid':
+                        $query->where(function($q) {
+                            $q->whereNull('expiry_date')
+                              ->orWhere('expiry_date', '>', now());
+                        });
+                        break;
+                }
+            }
+
+            // Sort
+            $sortBy = $request->get('sort_by', 'created_at');
+            $sortOrder = $request->get('sort_order', 'desc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Pagination
+            $perPage = $request->get('per_page', 15);
+            $documents = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $documents,
+                'meta' => [
+                    'total' => $documents->total(),
+                    'per_page' => $documents->perPage(),
+                    'current_page' => $documents->currentPage(),
+                    'last_page' => $documents->lastPage(),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting admin documents: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve documents',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pending documents for admin review
+     */
+    public function getPendingDocuments(Request $request)
+    {
+        try {
+            $query = VendorDocument::with(['vendor:id,nomor_vendor,nama_perusahaan'])
+                ->whereIn('status', ['uploaded', 'under_review']);
+
+            // Sort by upload date (oldest first for review priority)
+            $query->orderBy('uploaded_at', 'asc');
+
+            // Pagination
+            $perPage = $request->get('per_page', 20);
+            $documents = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $documents,
+                'meta' => [
+                    'total' => $documents->total(),
+                    'pending_count' => VendorDocument::whereIn('status', ['uploaded', 'under_review'])->count(),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting pending documents: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve pending documents',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get specific document details for admin
+     */
+    public function getDocumentDetails($id)
+    {
+        try {
+            $document = VendorDocument::with([
+                'vendor:id,nomor_vendor,nama_perusahaan,email,phone,tipe_perusahaan',
+                'vendor.user:id,username,email',
+                'reviewedBy:id,username,fullname'
+            ])->findOrFail($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => $document
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Document not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error getting document details: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve document details',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Approve a document
+     */
+    public function approveDocument(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'admin_notes' => 'nullable|string|max:1000',
+            ]);
+
+            $document = VendorDocument::findOrFail($id);
+
+            // Check if document can be approved
+            if (!in_array($document->status, ['uploaded', 'under_review', 'rejected'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Document cannot be approved in current status: ' . $document->status
+                ], 400);
+            }
+
+            // Update document status
+            $document->update([
+                'status' => 'approved',
+                'admin_notes' => $request->admin_notes,
+                'rejection_reason' => null, // Clear rejection reason if any
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
+
+            // Log the approval
+            Log::info('Document approved', [
+                'document_id' => $document->id,
+                'document_name' => $document->document_name,
+                'vendor_id' => $document->vendor_id,
+                'admin_id' => auth()->id(),
+                'admin_notes' => $request->admin_notes
+            ]);
+
+            // Load fresh data with relationships
+            $document->load(['vendor:id,nomor_vendor,nama_perusahaan', 'reviewedBy:id,username']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document approved successfully',
+                'data' => $document
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Document not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error approving document: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to approve document',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject a document
+     */
+    public function rejectDocument(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'rejection_reason' => 'required|string|max:255',
+                'admin_notes' => 'nullable|string|max:1000',
+            ]);
+
+            $document = VendorDocument::findOrFail($id);
+
+            // Check if document can be rejected
+            if (!in_array($document->status, ['uploaded', 'under_review', 'approved'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Document cannot be rejected in current status: ' . $document->status
+                ], 400);
+            }
+
+            // Update document status
+            $document->update([
+                'status' => 'rejected',
+                'rejection_reason' => $request->rejection_reason,
+                'admin_notes' => $request->admin_notes,
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
+
+            // Log the rejection
+            Log::info('Document rejected', [
+                'document_id' => $document->id,
+                'document_name' => $document->document_name,
+                'vendor_id' => $document->vendor_id,
+                'admin_id' => auth()->id(),
+                'rejection_reason' => $request->rejection_reason,
+                'admin_notes' => $request->admin_notes
+            ]);
+
+            // Load fresh data with relationships
+            $document->load(['vendor:id,nomor_vendor,nama_perusahaan', 'reviewedBy:id,username']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document rejected successfully',
+                'data' => $document
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Document not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error rejecting document: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reject document',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update document status (general method)
+     */
+    public function updateDocumentStatus(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:uploaded,under_review,approved,rejected,expired',
+                'admin_notes' => 'nullable|string|max:1000',
+                'rejection_reason' => 'required_if:status,rejected|string|max:255',
+            ]);
+
+            $document = VendorDocument::findOrFail($id);
+
+            $updateData = [
+                'status' => $request->status,
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ];
+
+            if ($request->has('admin_notes')) {
+                $updateData['admin_notes'] = $request->admin_notes;
+            }
+
+            if ($request->status === 'rejected') {
+                $updateData['rejection_reason'] = $request->rejection_reason;
+            } else {
+                $updateData['rejection_reason'] = null;
+            }
+
+            $document->update($updateData);
+
+            // Log the status change
+            Log::info('Document status updated', [
+                'document_id' => $document->id,
+                'old_status' => $document->getOriginal('status'),
+                'new_status' => $request->status,
+                'admin_id' => auth()->id(),
+                'admin_notes' => $request->admin_notes
+            ]);
+
+            // Load fresh data with relationships
+            $document->load(['vendor:id,nomor_vendor,nama_perusahaan', 'reviewedBy:id,username']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document status updated successfully',
+                'data' => $document
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Document not found'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error updating document status: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update document status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

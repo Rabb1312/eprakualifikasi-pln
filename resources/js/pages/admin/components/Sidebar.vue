@@ -125,9 +125,9 @@
             </div>
 
             <div class="nav-section">
-                <div v-if="!isCollapsed" class="section-title">
+                <!-- <div v-if="!isCollapsed" class="section-title">
                     Reports
-                </div>
+                </div> -->
 
                 <!-- Reports -->
                 <!-- <div class="nav-item-group">
@@ -182,7 +182,7 @@
             </div>
 
             <div class="nav-section">
-                <div v-if="!isCollapsed" class="section-title">System</div>
+                <!-- <div v-if="!isCollapsed" class="section-title">System</div> -->
 
                 <!-- Settings -->
                 <!-- <div class="nav-item-group">

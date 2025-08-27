@@ -39,15 +39,15 @@
                         <label>Status</label>
                         <select v-model="filters.status" @change="filterDocuments">
                             <option value="">Semua Status</option>
-                            <option value="not_uploaded">Belum Upload</option>
+                            <!-- <option value="not_uploaded">Belum Upload</option> -->
                             <option value="uploaded">Uploaded</option>
-                            <option value="under_review">Under Review</option>
+                            <!-- <option value="under_review">Under Review</option> -->
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
-                            <option value="expired">Expired</option>
+                            <!-- <option value="expired">Expired</option> -->
                         </select>
                     </div>
-                    <div class="filter-group">
+                    <!-- <div class="filter-group">
                         <label>Tipe Dokumen</label>
                         <select v-model="filters.type" @change="filterDocuments">
                             <option value="">Semua Tipe</option>
@@ -56,15 +56,15 @@
                             <option value="technical">Technical</option>
                             <option value="certificate">Certificate</option>
                         </select>
-                    </div>
-                    <div class="filter-group">
+                    </div> -->
+                    <!-- <div class="filter-group">
                         <label>Kadaluarsa</label>
                         <select v-model="filters.expiry" @change="filterDocuments">
                             <option value="">Semua</option>
                             <option value="expires_soon">Akan Kadaluarsa</option>
                             <option value="expired">Sudah Kadaluarsa</option>
                         </select>
-                    </div>
+                    </div> -->
                     <div class="filter-actions">
                         <button @click="resetFilters" class="btn-secondary">
                             <i class="fas fa-undo"></i>
@@ -138,8 +138,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-// ✅ PERBAIKI PATH IMPORT - relatif ke folder shared yang sejajar
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
 import DocumentCard from '../shared/DocumentCard.vue'
 import DocumentReviewModal from '../shared/DocumentReviewModal.vue'
 import DocumentViewerModal from '../shared/DocumentViewerModal.vue'
@@ -269,23 +269,68 @@ function reviewDocument(document) {
 }
 
 function viewDocument(document) {
-    selectedDocument.value = document
-    showViewerModal.value = true
+  let url = document.file_url || document.file_path;
+  if (!url) return;
+
+  // Jika tidak absolute URL, normalisasi ke /storage/...
+  if (!/^https?:\/\//i.test(url)) {
+    // jika sudah mengandung /admin/vendor_documents/ atau /vendor_documents/ atau storage path, normalisasikan ke /storage/vendor_documents/...
+    if (url.includes('/admin/vendor_documents/')) {
+      url = url.replace('/admin/vendor_documents/', '/storage/vendor_documents/');
+    } else if (url.includes('/storage/vendor_documents/')) {
+      // pastikan leading slash
+      url = url.startsWith('/') ? url : '/' + url;
+    } else {
+      // relatif seperti "vendor_documents/1/xxx.pdf" -> prefix /storage/
+      url = url.replace(/^\/+/, ''); // hapus slash awal bila ada
+      url = '/storage/' + url;
+    }
+  }
+
+  window.open(url, '_blank');
 }
 
-function downloadDocument(document) {
-    if (document.file_path) {
-        const link = document.createElement('a')
-        link.href = document.file_path
-        link.download = document.file_name || 'document'
+function downloadDocument(doc) {
+    // NOTE: parameter renamed to "doc" to avoid shadowing window.document
+    let url = doc.file_url || doc.file_path;
+    if (!url) return;
+
+    // Normalisasi sama seperti viewDocument
+    if (!/^https?:\/\//i.test(url)) {
+      if (url.includes('/admin/vendor_documents/')) {
+        url = url.replace('/admin/vendor_documents/', '/storage/vendor_documents/');
+      } else if (url.includes('/storage/vendor_documents/')) {
+        url = url.startsWith('/') ? url : '/' + url;
+      } else {
+        url = url.replace(/^\/+/, '');
+        url = '/storage/' + url;
+      }
+    }
+
+    try {
+        const link = window.document.createElement('a')
+        link.href = url
+        // set target so non-download-capable browsers open in new tab
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
+        // set download attribute if same-origin and you want forced download
+        // For cross-origin, some browsers ignore download; it's fine to open in new tab
+        if (!/^https?:\/\//i.test(url) || url.startsWith(window.location.origin)) {
+          link.download = doc.file_name || 'document'
+        }
+        // append to body to be able to click in all browsers
+        window.document.body.appendChild(link)
         link.click()
+        window.document.body.removeChild(link)
+    } catch (e) {
+        // fallback: open in new tab
+        window.open(url, '_blank')
     }
 }
 
 async function approveDocument(document, notes) {
     try {
-        // API call to approve document
-        await axios.patch(`/api/admin/documents/${document.id}/approve`, { notes })
+        await axios.post(`/api/admin/documents/${document.id}/approve`, { admin_notes: notes || '' })
         showReviewModal.value = false
         refreshDocuments()
         // Show success toast
@@ -297,10 +342,9 @@ async function approveDocument(document, notes) {
 
 async function rejectDocument(document, reason, notes) {
     try {
-        // API call to reject document
-        await axios.patch(`/api/admin/documents/${document.id}/reject`, { 
-            reason, 
-            notes 
+        await axios.post(`/api/admin/documents/${document.id}/reject`, { 
+            rejection_reason: reason || 'Dokumen ditolak',
+            admin_notes: notes || ''
         })
         showReviewModal.value = false
         refreshDocuments()

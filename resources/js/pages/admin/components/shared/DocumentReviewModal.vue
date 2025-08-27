@@ -13,16 +13,48 @@
                     <h3>{{ document.document_name }}</h3>
                     <p>Status: {{ document.status }}</p>
                 </div>
-                
-                <div class="review-actions">
-                    <button @click="$emit('approve', document, '')" class="btn-approve">
-                        <i class="fas fa-check"></i>
-                        Approve
-                    </button>
-                    <button @click="$emit('reject', document, 'rejected', 'Document rejected')" class="btn-reject">
-                        <i class="fas fa-times"></i>
-                        Reject
-                    </button>
+
+                <div class="review-actions" style="flex-direction: column; gap: 16px;">
+                    <textarea
+                        v-model="notes"
+                        placeholder="Catatan admin (optional)"
+                        rows="2"
+                        style="width: 100%; margin-bottom: 10px;"
+                    ></textarea>
+
+                    <div v-if="showReject" style="margin-bottom: 10px;">
+                        <textarea
+                            v-model="reason"
+                            placeholder="Alasan penolakan"
+                            rows="2"
+                            style="width: 100%;"
+                        ></textarea>
+                    </div>
+                    <div style="display: flex; gap: 16px;">
+                        <button
+                            @click="onApprove"
+                            class="btn-approve"
+                        >
+                            <i class="fas fa-check"></i>
+                            Approve
+                        </button>
+                        <button
+                            @click="showReject = true"
+                            v-if="!showReject"
+                            class="btn-reject"
+                        >
+                            <i class="fas fa-times"></i>
+                            Reject
+                        </button>
+                        <button
+                            @click="onReject"
+                            v-if="showReject"
+                            class="btn-reject"
+                        >
+                            <i class="fas fa-times"></i>
+                            Submit Reject
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -30,14 +62,30 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
+
 const props = defineProps({
     document: {
         type: Object,
         required: true
     }
-})
+});
 
-const emit = defineEmits(['close', 'approve', 'reject'])
+const emit = defineEmits(['close', 'approve', 'reject']);
+
+const notes = ref('');
+const reason = ref('');
+const showReject = ref(false);
+
+// Fungsi approve
+function onApprove() {
+    emit('approve', props.document, notes.value);
+}
+
+// Fungsi reject
+function onReject() {
+    emit('reject', props.document, reason.value, notes.value);
+}
 </script>
 
 <style scoped>

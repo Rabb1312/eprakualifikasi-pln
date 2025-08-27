@@ -119,12 +119,12 @@ const subTabs = computed(() => [
         icon: 'fas fa-headset',
         hasData: hasAfterSalesData.value
     },
-    {
-        id: 'documents',
-        label: 'Attachments/Documents',
-        icon: 'fas fa-file-alt',
-        hasData: true // selalu tampil, meski kosong
-    }
+    // {
+    //     id: 'documents',
+    //     label: 'Attachments/Documents',
+    //     icon: 'fas fa-file-alt',
+    //     hasData: true // selalu tampil, meski kosong
+    // }
 ])
 
 // Mapping tab id ke variable komponen

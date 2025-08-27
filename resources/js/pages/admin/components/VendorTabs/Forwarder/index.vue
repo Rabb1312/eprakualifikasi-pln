@@ -213,12 +213,12 @@ const subTabs = computed(() => [
         icon: 'fas fa-users',
         hasData: hasManpowerData.value
     },
-    {
-        id: 'documents',
-        label: 'Attachments/Documents',
-        icon: 'fas fa-file-alt',
-        hasData: true
-    }
+    // {
+    //     id: 'documents',
+    //     label: 'Attachments/Documents',
+    //     icon: 'fas fa-file-alt',
+    //     hasData: true
+    // }
 ])
 
 // FIX: Component mapping dengan nama yang jelas

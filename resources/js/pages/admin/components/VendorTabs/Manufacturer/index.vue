@@ -208,12 +208,12 @@ const subTabs = computed(() => [
         icon: 'fas fa-certificate',
         hasData: hasCodeStandardData.value
     },
-    {
-        id: 'documents',
-        label: 'Documents',
-        icon: 'fas fa-file-alt',
-        hasData: true
-    }
+    // {
+    //     id: 'documents',
+    //     label: 'Documents',
+    //     icon: 'fas fa-file-alt',
+    //     hasData: true
+    // }
 ])
 
 // Component mapping dengan komponen yang baru dibuat

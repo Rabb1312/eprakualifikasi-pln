@@ -41,7 +41,7 @@
             <!-- Dashboard Content -->
             <div class="dashboard-content">
                 <!-- Summary Stats -->
-                <div class="summary-section">
+                <!-- <div class="summary-section">
                     <div class="summary-card">
                         <div class="summary-icon">
                             <i class="fas fa-users"></i>
@@ -93,7 +93,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Vendor Stats Cards -->
                 <div class="vendor-section">
@@ -260,7 +260,7 @@
                             </div>
                         </router-link>
 
-                        <router-link to="/admin/settings" class="action-card">
+                        <!-- <router-link to="/admin/settings" class="action-card">
                             <div class="action-icon">
                                 <i class="fas fa-cog"></i>
                             </div>
@@ -271,7 +271,7 @@
                             <div class="action-arrow">
                                 <i class="fas fa-chevron-right"></i>
                             </div>
-                        </router-link>
+                        </router-link> -->
                     </div>
                 </div>
             </div>

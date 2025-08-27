@@ -37,6 +37,15 @@ Route::middleware(['api'])->group(function () {
             Route::patch('/{id}/reject', [VendorController::class, 'reject']);
             Route::get('/stats', [VendorController::class, 'getVendorStats']);
         });
+
+        Route::prefix('admin/documents')->group(function () {
+            Route::get('/', [VendorController::class, 'getAdminDocuments']);
+            Route::get('/pending', [VendorController::class, 'getPendingDocuments']);
+            Route::get('/{id}', [VendorController::class, 'getDocumentDetails']);
+            Route::post('/{id}/approve', [VendorController::class, 'approveDocument']);
+            Route::post('/{id}/reject', [VendorController::class, 'rejectDocument']);
+            Route::patch('/{id}/status', [VendorController::class, 'updateDocumentStatus']);
+        });
     });
 
     // Vendor routes (untuk level user)

@@ -122,12 +122,12 @@ const subTabs = computed(() => [
         icon: "fas fa-brain",
         hasData: !!props.data?.local_regulation_knowledge,
     },
-    {
-        id: "documents",
-        label: "Documents",
-        icon: "fas fa-file-alt",
-        hasData: true,
-    },
+    // {
+    //     id: "documents",
+    //     label: "Documents",
+    //     icon: "fas fa-file-alt",
+    //     hasData: true,
+    // },
 ]);
 
 // FIX: Mapping id tab ke variable komponen!
